@@ -7,7 +7,8 @@
 package common
 
 import (
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
 	"github.com/shopspring/decimal"
 )
 

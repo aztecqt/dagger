@@ -1,7 +1,7 @@
 /*
  * @Author: aztec
  * @Date: 2022-06-15 11:43
- * @LastEditors: aztec
+ * @LastEditors: Please set LastEditors
  * @FilePath: \stratergyc:\svn\quant\go\src\dagger\util\udpsocket\socket.go
  * @Description:
  * 封装了一个带加密的socket连接
@@ -15,8 +15,8 @@ import (
 	"encoding/json"
 	"net"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 const logPrefix = "udp-socket"

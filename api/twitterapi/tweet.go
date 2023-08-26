@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 const logPrefix = "twitter_api"

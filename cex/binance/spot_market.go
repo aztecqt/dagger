@@ -12,12 +12,13 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/api/binanceapi"
-	"aztecqt/dagger/api/binanceapi/binancespotapi"
-	"aztecqt/dagger/cex/common"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
+
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/api/binanceapi"
+	"github.com/aztecqt/dagger/api/binanceapi/binancespotapi"
+	"github.com/aztecqt/dagger/cex/common"
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/shopspring/decimal"
 )

@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 
 	"github.com/emirpasic/gods/sets/treeset"
 	"github.com/shopspring/decimal"

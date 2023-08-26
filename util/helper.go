@@ -24,7 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/shopspring/decimal"
 )

@@ -13,7 +13,7 @@ package apikey
 import (
 	"encoding/json"
 
-	"aztecqt/dagger/util/udpsocket"
+	"github.com/aztecqt/dagger/util/udpsocket"
 )
 
 const opGetKeyReq = "get_key_req"

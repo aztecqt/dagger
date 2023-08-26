@@ -10,8 +10,8 @@ package adv
 import (
 	"fmt"
 
-	"aztecqt/dagger/cex/common"
-	"aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 

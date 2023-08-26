@@ -10,8 +10,8 @@ import (
 	"errors"
 	"fmt"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 type IpRoyalApi struct {

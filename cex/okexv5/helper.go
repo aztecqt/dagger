@@ -16,8 +16,8 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 // btc usdt_swap -> BTC-USDT-SWAP

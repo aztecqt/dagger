@@ -16,8 +16,7 @@ import (
 	"fmt"
 	"sync"
 
-	"aztecqt/dagger/util"
-
+	"github.com/aztecqt/dagger/util"
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/shopspring/decimal"
 )

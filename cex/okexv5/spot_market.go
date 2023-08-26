@@ -15,7 +15,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 type SpotMarket struct {

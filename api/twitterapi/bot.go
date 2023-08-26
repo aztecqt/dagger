@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
-	"aztecqt/dagger/util/mathtools"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/mathtools"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/kb"

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/api/binanceapi"
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/api/binanceapi"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 func realUrl(url string, isusdt bool) string {

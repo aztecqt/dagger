@@ -8,7 +8,7 @@
 
 package myweb3
 
-import "aztecqt/dagger/util"
+import "github.com/aztecqt/dagger/util"
 
 const Network_EthMainnet string = "ether-main"
 const Network_EthGoerli string = "ether-goerli"

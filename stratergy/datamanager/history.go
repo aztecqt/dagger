@@ -12,9 +12,10 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/stratergy"
-	"aztecqt/dagger/util/influxdb"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
+	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/util/influxdb"
 	"github.com/influxdata/influxdb/client/v2"
 )
 

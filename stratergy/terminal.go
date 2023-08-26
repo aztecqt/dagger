@@ -22,8 +22,8 @@ import (
 	"syscall"
 	"time"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/util"
 )
 
 type Terminal struct {

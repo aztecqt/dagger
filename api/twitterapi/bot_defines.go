@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aztecqt/dagger/util"
 	"golang.org/x/net/html"
 )
 

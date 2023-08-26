@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 // btc_usdt_swap -> BTCUSDT, true

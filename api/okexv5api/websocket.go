@@ -1,8 +1,8 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-26 21:29:35
- * @LastEditors: aztec
- * @LastEditTime: 2023-08-15 17:24:41
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-08-26 13:10:26
  * @FilePath: \market_collectorc:\work\svn\quant\go\src\dagger\api\okexv5api\websocket.go
  * @Description: okexv5的ws
  * 关于消息处理。okexv5的行情数据，大都在头部的arg节点下包含instID，这种消息可以按照instID进行分发
@@ -20,9 +20,9 @@ import (
 	"strings"
 	"sync"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 const publicURL = "wss://ws.okx.com:8443/ws/v5/public"

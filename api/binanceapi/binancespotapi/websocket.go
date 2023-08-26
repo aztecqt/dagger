@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/api/binanceapi"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/api/binanceapi"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 const wsLogPrefix = "binance_spot_ws"

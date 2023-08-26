@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 var msgIndex int

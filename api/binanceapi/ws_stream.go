@@ -10,8 +10,8 @@ package binanceapi
 import (
 	"fmt"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 const baseURL = "wss://stream.binance.com:9443/ws/"

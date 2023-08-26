@@ -11,7 +11,7 @@ package api
 import (
 	"time"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 type Pinger struct {

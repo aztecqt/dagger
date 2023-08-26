@@ -11,7 +11,7 @@ package indacators
 import (
 	"math"
 
-	"aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/stratergy"
 )
 
 type StdDev struct {

@@ -1,8 +1,8 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-26 10:22:43
- * @LastEditors: aztec
- * @LastEditTime: 2023-07-13 17:25:57
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-08-26 13:10:17
  * @FilePath: \dagger\api\okexv5api\signer.go
  * @Description: okex消息签名器
  *
@@ -18,8 +18,8 @@ import (
 	"strconv"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 type signer struct {

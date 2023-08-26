@@ -19,9 +19,8 @@ import (
 	"os"
 	"strings"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
-
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 	"github.com/markcheno/go-talib"
 	"github.com/shopspring/decimal"
 )

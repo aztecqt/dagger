@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 // 实现Provider接口

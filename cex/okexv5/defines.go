@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/api/okexv5api"
-	"aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/api/okexv5api"
+	"github.com/aztecqt/dagger/util"
 
 	"github.com/shopspring/decimal"
 )

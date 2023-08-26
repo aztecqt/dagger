@@ -1,8 +1,8 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-27 17:49:32
- * @LastEditors: aztec
- * @LastEditTime: 2023-03-02 16:01:54
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-08-26 13:12:25
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\api\ws_subscriber.go
  * @Description:
  *
@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 type SubscribeTextGen func() string

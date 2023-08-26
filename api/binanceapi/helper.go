@@ -14,8 +14,8 @@ import (
 	"strings"
 	"sync"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 var ApiStatus map[string]interface{}

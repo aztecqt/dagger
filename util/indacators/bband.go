@@ -7,7 +7,7 @@
  */
 package indacators
 
-import "aztecqt/dagger/stratergy"
+import "github.com/aztecqt/dagger/stratergy"
 
 type BBand struct {
 	orign      *stratergy.DataLine

@@ -12,8 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
+	"github.com/aztecqt/dagger/util"
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/influxdata/influxdb/client/v2"
 )

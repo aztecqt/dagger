@@ -14,7 +14,7 @@ package okexv5api
 import (
 	"strings"
 
-	"aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 

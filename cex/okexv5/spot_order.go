@@ -12,7 +12,7 @@
 package okexv5
 
 import (
-	"aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/cex/common"
 
 	"github.com/shopspring/decimal"
 )

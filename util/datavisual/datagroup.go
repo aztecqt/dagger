@@ -15,9 +15,10 @@ import (
 	"sync"
 	"time"
 
-	"aztecqt/dagger/stratergy"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util"
+
+	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/util/logger"
 )
 
 var logPrefix = "datavisual"

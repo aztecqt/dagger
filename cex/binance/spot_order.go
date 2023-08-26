@@ -13,11 +13,12 @@ import (
 	"sync"
 	"time"
 
-	"aztecqt/dagger/api/binanceapi"
-	"aztecqt/dagger/api/binanceapi/binancespotapi"
-	"aztecqt/dagger/cex/common"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
+	"github.com/aztecqt/dagger/api/binanceapi"
+	"github.com/aztecqt/dagger/api/binanceapi/binancespotapi"
+	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 

@@ -1,8 +1,8 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-10 11:35:16
- * @LastEditors: aztec
- * @LastEditTime: 2023-01-09 17:20:35
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-08-26 13:04:36
  * @FilePath: \dagger\util\redis_client.go
  * @Description: redis客户端。其实也就封装了个日志输出，跟直接用没啥区别
  *
@@ -15,7 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
 	"github.com/go-redis/redis"
 )
 

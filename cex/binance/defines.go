@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"time"
 
-	"aztecqt/dagger/api/binanceapi"
+	"github.com/aztecqt/dagger/api/binanceapi"
 	"github.com/shopspring/decimal"
 )
 

@@ -10,7 +10,7 @@ package datavisual
 import (
 	"fmt"
 
-	"aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util"
 )
 
 type Color struct {

@@ -19,10 +19,10 @@ import (
 	"sync"
 	"time"
 
-	"aztecqt/dagger/cex/common"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/util/logger"
 
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 

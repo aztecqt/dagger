@@ -11,7 +11,7 @@ package myweb3
 import (
 	"fmt"
 
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 const logPrefix = "myweb3"

@@ -13,11 +13,12 @@ import (
 	"math"
 	"time"
 
-	"aztecqt/dagger/cex/common"
-	"aztecqt/dagger/stratergy"
-	"aztecqt/dagger/stratergy/datamanager"
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/stratergy/datamanager"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
+
 	"github.com/shopspring/decimal"
 )
 

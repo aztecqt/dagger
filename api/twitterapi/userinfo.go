@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"aztecqt/dagger/api"
-	"aztecqt/dagger/util/network"
+	"github.com/aztecqt/dagger/api"
+	"github.com/aztecqt/dagger/util/network"
 )
 
 // 自己的userinfo

@@ -7,9 +7,7 @@
  */
 package indacators
 
-import (
-	"aztecqt/dagger/stratergy"
-)
+import "github.com/aztecqt/dagger/stratergy"
 
 type SMA struct {
 	orign      *stratergy.DataLine

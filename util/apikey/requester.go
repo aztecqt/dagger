@@ -18,10 +18,10 @@ import (
 	"os"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/crypto"
-	"aztecqt/dagger/util/logger"
-	"aztecqt/dagger/util/udpsocket"
+	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/crypto"
+	"github.com/aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/udpsocket"
 )
 
 type FnKeyAquired func(k, s, p string)

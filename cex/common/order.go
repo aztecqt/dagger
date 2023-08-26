@@ -12,8 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"aztecqt/dagger/util"
-	"aztecqt/dagger/util/logger"
+	"github.com/aztecqt/dagger/util/logger"
+
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 
