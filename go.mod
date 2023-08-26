@@ -1,4 +1,4 @@
-module aztecqt/dagger
+module github.com/aztecqt/dagger
 
 go 1.21
 
