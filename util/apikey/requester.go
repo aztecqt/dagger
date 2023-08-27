@@ -1,7 +1,7 @@
 /*
  * @Author: aztec
  * @Date: 2022-05-27 10:14:00
- * @LastEditors: aztec
+ * @LastEditors: Please set LastEditors
  * @FilePath: \dagger\util\apikey\requester.go
  * @Description: 从apikey服务器请求一个符合条件的Key
  *
@@ -50,8 +50,8 @@ func (r *Requester) Go(exchange, account, user string, serverAddr string, server
 	r.chStop = make(chan int)
 
 	if b, err := os.ReadFile("des.private"); err == nil {
-	} else {
 		r.deskey = string(b)
+	} else {
 		logger.LogPanic(r.logPrefix, "read deskey failed")
 	}
 	go r.update(exchange, account, user, &us)
