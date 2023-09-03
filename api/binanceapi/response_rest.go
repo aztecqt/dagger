@@ -105,7 +105,15 @@ type AccountInfo struct {
 	} `json:"balances"`
 }
 
-// 订单信息
+// 市场交易数据
+type MarketTrade struct {
+	Id        int64           `json:"a"`
+	Price     decimal.Decimal `json:"p"`
+	Quantity  decimal.Decimal `json:"q"`
+	Timestamp int64           `json:"T"`
+	IsSell    bool            `json:"m"`
+	Foo       bool            `json:"M"`
+}
 
 // 下单返回（Ack）
 type MakeOrderResponse_Ack struct {

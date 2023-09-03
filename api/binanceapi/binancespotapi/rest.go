@@ -1,7 +1,7 @@
 /*
  * @Author: aztec
  * @Date: 2022-10-20 16:00:11
- * @LastEditors: aztec
+ * @LastEditors: Please set LastEditors
  * @Description: 币安现货api
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/aztecqt/dagger/api/binanceapi"
@@ -106,6 +107,33 @@ func GetKline(symbol, interval string, t0, t1 time.Time, limit int) (*binanceapi
 		(*rst)[i] = (*rst)[i][:6]
 		(*rst)[i][0] = int64((*rst)[i][0].(float64))
 	}
+
+	return rst, err
+}
+
+// 取市场成交数据（归集过的）
+// limit <= 1000
+func GetMarketTrades(symbol string, t0, t1 time.Time, fromtid int64, limit int) (*[]binanceapi.MarketTrade, error) {
+	action := "/api/v3/aggTrades"
+	method := "GET"
+	params := url.Values{}
+	params.Set("symbol", symbol)
+	if !t0.IsZero() {
+		params.Set("startTime", strconv.FormatInt(t0.UnixMilli(), 10))
+	}
+	if !t1.IsZero() {
+		params.Set("endTime", strconv.FormatInt(t1.UnixMilli(), 10))
+	}
+	if fromtid > 0 {
+		params.Set("fromId", strconv.FormatInt(fromtid, 10))
+	}
+	params.Set("limit", fmt.Sprintf("%d", limit))
+	paramsStr := params.Encode()
+	action = action + "?" + paramsStr
+	ep := rootUrl + action
+	rst, err := network.ParseHttpResult[[]binanceapi.MarketTrade](restLogPrefix, "GetMarketTrades", ep, method, "", nil, func(resp *http.Response, body []byte) {
+		binanceapi.ProcessResponse(resp, body, "spot")
+	}, binanceapi.ErrorCallback)
 
 	return rst, err
 }

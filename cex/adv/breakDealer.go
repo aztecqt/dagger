@@ -197,7 +197,7 @@ func (d *BreakDealer) Init(trader common.FutureTrader) {
 	go d.Update()
 }
 
-func (d *BreakDealer) IsFinished() bool {
+func (d *BreakDealer) Finished() bool {
 	return d.finished
 }
 

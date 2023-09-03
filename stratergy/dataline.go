@@ -1,8 +1,8 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-09 17:34:59
- * @LastEditors: aztec
- * @LastEditTime: 2023-08-25 11:29:47
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-08-30 10:44:11
  * @FilePath: \dagger\stratergy\dataline.go
  * @Description: 按固定时间间隔排列的数据队列
  * 对于外部输入时间-数据对，将其时间对齐后再记录
@@ -212,6 +212,7 @@ func (d *DataLine) Save() {
 	}
 
 	os.Remove(d.filePath)
+	util.MakeSureDirForFile(d.filePath)
 	if file, err := os.OpenFile(d.filePath, os.O_WRONLY|os.O_CREATE, 0666); err == nil {
 		// 序列化
 		buf := new(bytes.Buffer)
@@ -309,6 +310,18 @@ func (d *DataLine) Traval(index, maxCount int, cb func(v, w float64)) {
 			}
 		}
 	}
+}
+
+// 取尾部一段数据，最大长度l
+func (d *DataLine) Tail(l int) ([]float64, []int64) {
+	i := 0
+	if l >= d.Length() {
+		l = d.Length()
+	} else {
+		i = d.Length() - l
+	}
+
+	return d.Values[i:], d.Times[i:]
 }
 
 func (d *DataLine) SMA(timePeriod int) float64 {
