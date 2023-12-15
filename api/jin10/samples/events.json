@@ -1,0 +1,55 @@
+[{
+	"country": "阿联酋",
+	"determine": 1,
+	"event_content": "第28届联合国气候变化大会(COP28)在迪拜举行。",
+	"event_time": "2023-12-01T16:00:00.000Z",
+	"id": 1006384,
+	"note": null,
+	"people": null,
+	"region": null,
+	"star": 3,
+	"emergencies": 0,
+	"vip_resource": null
+}, {
+	"country": "美国",
+	"determine": 0,
+	"event_content": "美联储主席鲍威尔进行炉边谈话。[同传]",
+	"event_time": "2023-12-01T16:00:00.000Z",
+	"id": 1009363,
+	"note": null,
+	"people": "鲍威尔",
+	"region": null,
+	"star": 4,
+	"emergencies": 0,
+	"vip_resource": [{
+		"link": "https://tv.jin10.com/#/tradingNew",
+		"tags": [],
+		"type": "url",
+		"title": "同传直播",
+		"is_free": 2
+	}]
+}, {
+	"country": "美国",
+	"determine": 0,
+	"event_content": "美联储主席鲍威尔和美联储理事丽莎·库克就科技创新发表讲话。",
+	"event_time": "2023-12-01T19:00:00.000Z",
+	"id": 1009364,
+	"note": null,
+	"people": "鲍威尔",
+	"region": null,
+	"star": 3,
+	"emergencies": 0,
+	"vip_resource": null
+}, {
+	"country": "中国",
+	"determine": 0,
+	"event_content": "国家卫生健康委召开新闻发布会。",
+	"event_time": "2023-12-02T07:00:00.000Z",
+	"id": 1010100,
+	"note": null,
+	"people": null,
+	"region": null,
+	"star": 2,
+	"emergencies": 0,
+	"vip_resource": null
+}]

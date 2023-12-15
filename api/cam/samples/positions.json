@@ -1,0 +1,3244 @@
+{
+	"data": {
+		"amount": {
+			"amount": "0",
+			"contract_val": "0",
+			"contract_val_currency": "",
+			"margin_type": ""
+		},
+		"amount_str": "-",
+		"average_entry_price": "0",
+		"average_entry_price_str": "-",
+		"children": [],
+		"delta": {
+			"BsDelta": "0",
+			"Delta": "0"
+		},
+		"delta_str": "-",
+		"fund_alias": "LH04202-CCL",
+		"fund_name": "fund/lh04202-ccl-2d",
+		"gamma": "0",
+		"gamma_str": "-",
+		"is_exchange_symbol": false,
+		"mark_price": "0",
+		"mark_price_str": "-",
+		"pos_source": "",
+		"position_data": [{
+			"amount": {
+				"amount": "0",
+				"contract_val": "0",
+				"contract_val_currency": "",
+				"margin_type": ""
+			},
+			"amount_str": "-",
+			"average_entry_price": "0",
+			"average_entry_price_str": "-",
+			"children": [{
+				"amount": {
+					"amount": "0",
+					"contract_val": "0",
+					"contract_val_currency": "",
+					"margin_type": ""
+				},
+				"amount_str": "-",
+				"average_entry_price": "0",
+				"average_entry_price_str": "-",
+				"children": [{
+					"amount": {
+						"amount": "10",
+						"contract_val": "1",
+						"contract_val_currency": "sol",
+						"margin_type": "base"
+					},
+					"amount_str": "10.00000000 SOL",
+					"average_entry_price": "20.99846527777",
+					"average_entry_price_str": "20.99846528",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "65.503",
+					"mark_price_str": "65.50300000",
+					"pos_source": "exchange",
+					"symbol": "sol.usdt.td",
+					"symbol_str": "SOLUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "445.0453472999999591",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "445.05",
+					"unrealized_pnl_usd": "445.05732119299876",
+					"unrealized_pnl_usd_str": "445.06",
+					"value_usd": "655.0476235055114",
+					"value_usd_str": "655.05",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "1290",
+						"contract_val": "1",
+						"contract_val_currency": "id",
+						"margin_type": "base"
+					},
+					"amount_str": "1,290.00000000 ID",
+					"average_entry_price": "0.2703",
+					"average_entry_price_str": "0.27030000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.2805",
+					"mark_price_str": "0.28050000",
+					"pos_source": "exchange",
+					"symbol": "id.usdt.td",
+					"symbol_str": "IDUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "13.157999999999999",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "13.16",
+					"unrealized_pnl_usd": "13.158354014450513",
+					"unrealized_pnl_usd_str": "13.16",
+					"value_usd": "361.85473539738916",
+					"value_usd_str": "361.85",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "368",
+						"contract_val": "1",
+						"contract_val_currency": "mav",
+						"margin_type": "base"
+					},
+					"amount_str": "368.00000000 MAV",
+					"average_entry_price": "0.2899316351198",
+					"average_entry_price_str": "0.28993164",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.34550372",
+					"mark_price_str": "0.34550372",
+					"pos_source": "exchange",
+					"symbol": "mav.usdt.td",
+					"symbol_str": "MAVUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "20.4505291199999983",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "20.45",
+					"unrealized_pnl_usd": "20.45107933909326",
+					"unrealized_pnl_usd_str": "20.45",
+					"value_usd": "127.14878979127585",
+					"value_usd_str": "127.15",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "21.1",
+						"contract_val": "1",
+						"contract_val_currency": "fil",
+						"margin_type": "base"
+					},
+					"amount_str": "21.10000000 FIL",
+					"average_entry_price": "4.535244717747",
+					"average_entry_price_str": "4.53524472",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "4.75694532",
+					"mark_price_str": "4.75694532",
+					"pos_source": "exchange",
+					"symbol": "fil.usdt.td",
+					"symbol_str": "FILUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "4.6778828699999999",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "4.68",
+					"unrealized_pnl_usd": "4.678008727891305",
+					"unrealized_pnl_usd_str": "4.68",
+					"value_usd": "100.37424673670843",
+					"value_usd_str": "100.37",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "148",
+						"contract_val": "1",
+						"contract_val_currency": "ygg",
+						"margin_type": "base"
+					},
+					"amount_str": "148.00000000 YGG",
+					"average_entry_price": "0.4089891885661",
+					"average_entry_price_str": "0.40898919",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.4005",
+					"mark_price_str": "0.40050000",
+					"pos_source": "exchange",
+					"symbol": "ygg.usdt.td",
+					"symbol_str": "YGGUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-1.2563986399999998",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-1.26",
+					"unrealized_pnl_usd": "-1.2564324432584104",
+					"unrealized_pnl_usd_str": "-1.26",
+					"value_usd": "59.27559476003494",
+					"value_usd_str": "59.28",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "3.1",
+						"contract_val": "1",
+						"contract_val_currency": "dydx",
+						"margin_type": "base"
+					},
+					"amount_str": "3.10000000 DYDX",
+					"average_entry_price": "3.75047962508",
+					"average_entry_price_str": "3.75047963",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2.965",
+					"mark_price_str": "2.96500000",
+					"pos_source": "exchange",
+					"symbol": "dydx.usdt.td",
+					"symbol_str": "DYDXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2.4349868199999999",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2.43",
+					"unrealized_pnl_usd": "-2.4350523330354985",
+					"unrealized_pnl_usd_str": "-2.44",
+					"value_usd": "9.191747296232094",
+					"value_usd_str": "9.19",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "0.6",
+						"contract_val": "1",
+						"contract_val_currency": "cyber",
+						"margin_type": "base"
+					},
+					"amount_str": "0.60000000 CYBER",
+					"average_entry_price": "7.56877118825",
+					"average_entry_price_str": "7.56877119",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "6.92313707",
+					"mark_price_str": "6.92313707",
+					"pos_source": "exchange",
+					"symbol": "cyber.usdt.td",
+					"symbol_str": "CYBERUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-0.38738046",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-0.38738",
+					"unrealized_pnl_usd": "-0.38739088242595277",
+					"unrealized_pnl_usd_str": "-0.387391",
+					"value_usd": "4.153994001715716",
+					"value_usd_str": "4.15",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-20.6",
+						"contract_val": "1",
+						"contract_val_currency": "arb",
+						"margin_type": "base"
+					},
+					"amount_str": "-20.60000000 ARB",
+					"average_entry_price": "0.8895558252427",
+					"average_entry_price_str": "0.88955583",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.08309348",
+					"mark_price_str": "1.08309348",
+					"pos_source": "exchange",
+					"symbol": "arb.usdt.td",
+					"symbol_str": "ARBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-3.98687579",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-3.99",
+					"unrealized_pnl_usd": "-3.9869830564266655",
+					"unrealized_pnl_usd_str": "-3.99",
+					"value_usd": "-22.312325982369167",
+					"value_usd_str": "-22.31",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-0.046",
+						"contract_val": "1",
+						"contract_val_currency": "eth",
+						"margin_type": "base"
+					},
+					"amount_str": "-0.04600000 ETH",
+					"average_entry_price": "1637.548037907",
+					"average_entry_price_str": "1,637.54803791",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2275.24569919",
+					"mark_price_str": "2,275.24569919",
+					"pos_source": "exchange",
+					"symbol": "eth.usdt.td",
+					"symbol_str": "ETHUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-29.3340924099999998",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-29.33",
+					"unrealized_pnl_usd": "-29.334881640324202",
+					"unrealized_pnl_usd_str": "-29.33",
+					"value_usd": "-104.6641180628293",
+					"value_usd_str": "-104.66",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-477",
+						"contract_val": "1",
+						"contract_val_currency": "ark",
+						"margin_type": "base"
+					},
+					"amount_str": "-477.00000000 ARK",
+					"average_entry_price": "1.0884",
+					"average_entry_price_str": "1.08840000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.049",
+					"mark_price_str": "1.04900000",
+					"pos_source": "exchange",
+					"symbol": "ark.usdt.td",
+					"symbol_str": "ARKUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "18.7937999999999996",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "18.79",
+					"unrealized_pnl_usd": "18.794305644990125",
+					"unrealized_pnl_usd_str": "18.79",
+					"value_usd": "-500.3864624770213",
+					"value_usd_str": "-500.39",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-0.014",
+						"contract_val": "1",
+						"contract_val_currency": "btc",
+						"margin_type": "base"
+					},
+					"amount_str": "-0.01400000 BTC",
+					"average_entry_price": "33403.42857143",
+					"average_entry_price_str": "33,403.42857143",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "44010.22444697",
+					"mark_price_str": "44,010.22444697",
+					"pos_source": "exchange",
+					"symbol": "btc.usdt.td",
+					"symbol_str": "BTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-148.4951422499999754",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-148.50",
+					"unrealized_pnl_usd": "-148.49913749442828",
+					"unrealized_pnl_usd_str": "-148.50",
+					"value_usd": "-616.1597195167337",
+					"value_usd_str": "-616.16",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-843",
+						"contract_val": "1",
+						"contract_val_currency": "storj",
+						"margin_type": "base"
+					},
+					"amount_str": "-843.00000000 STORJ",
+					"average_entry_price": "0.623796731338",
+					"average_entry_price_str": "0.62379673",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.73545358",
+					"mark_price_str": "0.73545358",
+					"pos_source": "exchange",
+					"symbol": "storj.usdt.td",
+					"symbol_str": "STORJUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-94.126724550000009",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-94.13",
+					"unrealized_pnl_usd": "-94.1292570185112",
+					"unrealized_pnl_usd_str": "-94.13",
+					"value_usd": "-620.0040486275959",
+					"value_usd_str": "-620.00",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-631",
+						"contract_val": "1",
+						"contract_val_currency": "agld",
+						"margin_type": "base"
+					},
+					"amount_str": "-631.00000000 AGLD",
+					"average_entry_price": "0.7907003169572",
+					"average_entry_price_str": "0.79070032",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.07987997",
+					"mark_price_str": "1.07987997",
+					"pos_source": "exchange",
+					"symbol": "agld.usdt.td",
+					"symbol_str": "AGLDUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-182.4723654599999655",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-182.47",
+					"unrealized_pnl_usd": "-182.4772748576434",
+					"unrealized_pnl_usd_str": "-182.48",
+					"value_usd": "-681.4225941719197",
+					"value_usd_str": "-681.42",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-284",
+						"contract_val": "1",
+						"contract_val_currency": "mask",
+						"margin_type": "base"
+					},
+					"amount_str": "-284.00000000 MASK",
+					"average_entry_price": "2.618091670247",
+					"average_entry_price_str": "2.61809167",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "3.80383868",
+					"mark_price_str": "3.80383868",
+					"pos_source": "exchange",
+					"symbol": "mask.usdt.td",
+					"symbol_str": "MASKUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-336.7521508400000014",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-336.75",
+					"unrealized_pnl_usd": "-336.76121111721835",
+					"unrealized_pnl_usd_str": "-336.76",
+					"value_usd": "-1080.3192502010365",
+					"value_usd_str": "-1,080.32",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-10680",
+						"contract_val": "1",
+						"contract_val_currency": "doge",
+						"margin_type": "base"
+					},
+					"amount_str": "-10,680.00000000 DOGE",
+					"average_entry_price": "0.07393",
+					"average_entry_price_str": "0.07393000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10154059",
+					"mark_price_str": "0.10154059",
+					"pos_source": "exchange",
+					"symbol": "doge.usdt.td",
+					"symbol_str": "DOGEUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-294.8811012000000028",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-294.88",
+					"unrealized_pnl_usd": "-294.8890349415267",
+					"unrealized_pnl_usd_str": "-294.89",
+					"value_usd": "-1084.4826782945686",
+					"value_usd_str": "-1,084.48",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-617.2",
+						"contract_val": "1",
+						"contract_val_currency": "op",
+						"margin_type": "base"
+					},
+					"amount_str": "-617.20000000 OP",
+					"average_entry_price": "1.355257206234",
+					"average_entry_price_str": "1.35525721",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.79398142",
+					"mark_price_str": "1.79398142",
+					"pos_source": "exchange",
+					"symbol": "op.usdt.td",
+					"symbol_str": "OPUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-270.780588579999984",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-270.78",
+					"unrealized_pnl_usd": "-270.7878739000544",
+					"unrealized_pnl_usd_str": "-270.79",
+					"value_usd": "-1107.2751227301212",
+					"value_usd_str": "-1,107.28",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-4385",
+						"contract_val": "1",
+						"contract_val_currency": "ada",
+						"margin_type": "base"
+					},
+					"amount_str": "-4,385.00000000 ADA",
+					"average_entry_price": "0.2519415689462",
+					"average_entry_price_str": "0.25194157",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.4356",
+					"mark_price_str": "0.43560000",
+					"pos_source": "exchange",
+					"symbol": "ada.usdt.td",
+					"symbol_str": "ADAUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-805.3422593999998874",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-805.34",
+					"unrealized_pnl_usd": "-805.363927039264",
+					"unrealized_pnl_usd_str": "-805.36",
+					"value_usd": "-1910.1573911784476",
+					"value_usd_str": "-1,910.16",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-5838",
+						"contract_val": "1",
+						"contract_val_currency": "blur",
+						"margin_type": "base"
+					},
+					"amount_str": "-5,838.00000000 BLUR",
+					"average_entry_price": "0.5166338624335",
+					"average_entry_price_str": "0.51663386",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.51583399",
+					"mark_price_str": "0.51583399",
+					"pos_source": "exchange",
+					"symbol": "blur.usdt.td",
+					"symbol_str": "BLURUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "4.6696410599999997",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "4.67",
+					"unrealized_pnl_usd": "4.669766696146371",
+					"unrealized_pnl_usd_str": "4.67",
+					"value_usd": "-3011.51985602948",
+					"value_usd_str": "-3,011.52",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-16024",
+						"contract_val": "1",
+						"contract_val_currency": "cfx",
+						"margin_type": "base"
+					},
+					"amount_str": "-16,024.00000000 CFX",
+					"average_entry_price": "0.1746745816677",
+					"average_entry_price_str": "0.17467458",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.19466569",
+					"mark_price_str": "0.19466569",
+					"pos_source": "exchange",
+					"symbol": "cfx.usdt.td",
+					"symbol_str": "CFXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-320.3375466400000438",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-320.34",
+					"unrealized_pnl_usd": "-320.3461652842129",
+					"unrealized_pnl_usd_str": "-320.35",
+					"value_usd": "-3119.4069415807994",
+					"value_usd_str": "-3,119.41",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-5032.2",
+						"contract_val": "1",
+						"contract_val_currency": "eos",
+						"margin_type": "base"
+					},
+					"amount_str": "-5,032.20000000 EOS",
+					"average_entry_price": "0.8967376513953",
+					"average_entry_price_str": "0.89673765",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.73799055",
+					"mark_price_str": "0.73799055",
+					"pos_source": "exchange",
+					"symbol": "eos.usdt.td",
+					"symbol_str": "EOSUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "798.8471566199998562",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "798.85",
+					"unrealized_pnl_usd": "798.8686495092836",
+					"unrealized_pnl_usd_str": "798.87",
+					"value_usd": "-3713.8159628057047",
+					"value_usd_str": "-3,713.82",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-615918",
+						"contract_val": "1",
+						"contract_val_currency": "1000shib",
+						"margin_type": "base"
+					},
+					"amount_str": "-615,918.00000000 1000SHIB",
+					"average_entry_price": "0.0088978838455",
+					"average_entry_price_str": "0.00889788",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.009904",
+					"mark_price_str": "0.00990400",
+					"pos_source": "exchange",
+					"symbol": "1000shib.usdt.td",
+					"symbol_str": "1000SHIBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-619.6874181600000331",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-619.69",
+					"unrealized_pnl_usd": "-619.7040907774822",
+					"unrealized_pnl_usd_str": "-619.70",
+					"value_usd": "-6100.21599318191",
+					"value_usd_str": "-6,100.22",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-82.51",
+						"contract_val": "1",
+						"contract_val_currency": "bnb",
+						"margin_type": "base"
+					},
+					"amount_str": "-82.51000000 BNB",
+					"average_entry_price": "226.7560925948",
+					"average_entry_price_str": "226.75609259",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "233.31534456",
+					"mark_price_str": "233.31534456",
+					"pos_source": "exchange",
+					"symbol": "bnb.usdt.td",
+					"symbol_str": "BNBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-541.2038800399999778",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-541.20",
+					"unrealized_pnl_usd": "-541.2184410670716",
+					"unrealized_pnl_usd_str": "-541.22",
+					"value_usd": "-19251.36702148774",
+					"value_usd_str": "-19,251.37",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2960.1",
+						"contract_val": "1",
+						"contract_val_currency": "gas",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,960.10000000 GAS",
+					"average_entry_price": "8.026725814609",
+					"average_entry_price_str": "8.02672581",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "7.65990732",
+					"mark_price_str": "7.65990732",
+					"pos_source": "exchange",
+					"symbol": "gas.usdt.td",
+					"symbol_str": "GASUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "1085.819412239999854",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "1,085.82",
+					"unrealized_pnl_usd": "1085.8486260842453",
+					"unrealized_pnl_usd_str": "1,085.85",
+					"value_usd": "-22674.70170171519",
+					"value_usd_str": "-22,674.70",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1187578",
+						"contract_val": "1",
+						"contract_val_currency": "gala",
+						"margin_type": "base"
+					},
+					"amount_str": "-1,187,578.00000000 GALA",
+					"average_entry_price": "0.0295332601143",
+					"average_entry_price_str": "0.02953326",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.02953",
+					"mark_price_str": "0.02953000",
+					"pos_source": "exchange",
+					"symbol": "gala.usdt.td",
+					"symbol_str": "GALAUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "3.8715042799999999",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "3.87",
+					"unrealized_pnl_usd": "3.8716084423696873",
+					"unrealized_pnl_usd_str": "3.87",
+					"value_usd": "-35070.12187214014",
+					"value_usd_str": "-35,070.12",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-92050.3",
+						"contract_val": "1",
+						"contract_val_currency": "xrp",
+						"margin_type": "base"
+					},
+					"amount_str": "-92,050.30000000 XRP",
+					"average_entry_price": "0.6029877972685",
+					"average_entry_price_str": "0.60298780",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.635",
+					"mark_price_str": "0.63500000",
+					"pos_source": "exchange",
+					"symbol": "xrp.usdt.td",
+					"symbol_str": "XRPUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2946.7335341599997487",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,946.73",
+					"unrealized_pnl_usd": "-2946.8128156809685",
+					"unrealized_pnl_usd_str": "-2,946.81",
+					"value_usd": "-58453.51314262028",
+					"value_usd_str": "-58,453.51",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}],
+				"delta": {
+					"BsDelta": "0",
+					"Delta": "0"
+				},
+				"delta_str": "-",
+				"gamma": "0",
+				"gamma_str": "-",
+				"is_exchange_symbol": false,
+				"mark_price": "0",
+				"mark_price_str": "-",
+				"pos_source": "exchange",
+				"symbol": "cclaa12_virtual",
+				"symbol_str": "cclaa12_virtual",
+				"theta": "0",
+				"theta_str": "-",
+				"unrealized_pnl": "0",
+				"unrealized_pnl_currency": "",
+				"unrealized_pnl_currency_str": "-",
+				"unrealized_pnl_str": "-",
+				"unrealized_pnl_usd": "0",
+				"unrealized_pnl_usd_str": "-",
+				"value_usd": "-157804.799471315019477",
+				"value_usd_str": "-157,804.80",
+				"vega": {
+					"Vega": "0",
+					"Vega30DATM": "0"
+				},
+				"vega_str": "-"
+			}],
+			"delta": {
+				"BsDelta": "0",
+				"Delta": "0"
+			},
+			"delta_str": "-",
+			"gamma": "0",
+			"gamma_str": "-",
+			"is_exchange_symbol": true,
+			"mark_price": "0",
+			"mark_price_str": "-",
+			"pos_source": "exchange",
+			"symbol": "bnprop",
+			"symbol_str": "BINANCE",
+			"theta": "0",
+			"theta_str": "-",
+			"unrealized_pnl": "0",
+			"unrealized_pnl_currency": "",
+			"unrealized_pnl_currency_str": "-",
+			"unrealized_pnl_str": "-",
+			"unrealized_pnl_usd": "0",
+			"unrealized_pnl_usd_str": "-",
+			"value_usd": "-157804.799471315019477",
+			"value_usd_str": "-157,804.80",
+			"vega": {
+				"Vega": "0",
+				"Vega30DATM": "0"
+			},
+			"vega_str": "-"
+		}, {
+			"amount": {
+				"amount": "0",
+				"contract_val": "0",
+				"contract_val_currency": "",
+				"margin_type": ""
+			},
+			"amount_str": "-",
+			"average_entry_price": "0",
+			"average_entry_price_str": "-",
+			"children": [{
+				"amount": {
+					"amount": "0",
+					"contract_val": "0",
+					"contract_val_currency": "",
+					"margin_type": ""
+				},
+				"amount_str": "-",
+				"average_entry_price": "0",
+				"average_entry_price_str": "-",
+				"children": [{
+					"amount": {
+						"amount": "103000",
+						"contract_val": "1",
+						"contract_val_currency": "trx",
+						"margin_type": "base"
+					},
+					"amount_str": "103,000.00000000 TRX",
+					"average_entry_price": "0.1062465909090918",
+					"average_entry_price_str": "0.10624659",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10352",
+					"mark_price_str": "0.10352000",
+					"pos_source": "exchange",
+					"symbol": "trx.usdt.td",
+					"symbol_str": "TRXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-280.8388636364556082",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-280.84",
+					"unrealized_pnl_usd": "-280.8464195732236",
+					"unrealized_pnl_usd_str": "-280.85",
+					"value_usd": "10662.846874929279",
+					"value_usd_str": "10,662.85",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1590",
+						"contract_val": "1",
+						"contract_val_currency": "eos",
+						"margin_type": "base"
+					},
+					"amount_str": "-1,590.00000000 EOS",
+					"average_entry_price": "0.6821",
+					"average_entry_price_str": "0.68210000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.7381",
+					"mark_price_str": "0.73810000",
+					"pos_source": "exchange",
+					"symbol": "eos.usdt.td",
+					"symbol_str": "EOSUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-89.0399999999999",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-89.04",
+					"unrealized_pnl_usd": "-89.04239561078222",
+					"unrealized_pnl_usd_str": "-89.04",
+					"value_usd": "-1173.610575005686",
+					"value_usd_str": "-1,173.61",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-860.4",
+						"contract_val": "1",
+						"contract_val_currency": "fil",
+						"margin_type": "base"
+					},
+					"amount_str": "-860.40000000 FIL",
+					"average_entry_price": "5.100724376811297",
+					"average_entry_price_str": "5.10072438",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "4.754",
+					"mark_price_str": "4.75400000",
+					"pos_source": "exchange",
+					"symbol": "fil.usdt.td",
+					"symbol_str": "FILUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "298.3216538084406174",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "298.32",
+					"unrealized_pnl_usd": "298.3296801176327",
+					"unrealized_pnl_usd_str": "298.33",
+					"value_usd": "-4090.451650162177",
+					"value_usd_str": "-4,090.45",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-172600",
+						"contract_val": "1",
+						"contract_val_currency": "gala",
+						"margin_type": "base"
+					},
+					"amount_str": "-172,600.00000000 GALA",
+					"average_entry_price": "0.0268927487771331",
+					"average_entry_price_str": "0.02689275",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.0295",
+					"mark_price_str": "0.02950000",
+					"pos_source": "exchange",
+					"symbol": "gala.usdt.td",
+					"symbol_str": "GALAUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-450.0115610668268997",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-450.01",
+					"unrealized_pnl_usd": "-450.02366857522605",
+					"unrealized_pnl_usd_str": "-450.02",
+					"value_usd": "-5091.836991592771",
+					"value_usd_str": "-5,091.84",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2360",
+						"contract_val": "1",
+						"contract_val_currency": "near",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,360.00000000 NEAR",
+					"average_entry_price": "1.722556195965418",
+					"average_entry_price_str": "1.72255620",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2.352",
+					"mark_price_str": "2.35200000",
+					"pos_source": "exchange",
+					"symbol": "near.usdt.td",
+					"symbol_str": "NEARUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-1485.4873775216129042",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-1,485.49",
+					"unrealized_pnl_usd": "-1485.5273443857031",
+					"unrealized_pnl_usd_str": "-1,485.53",
+					"value_usd": "-5550.869341472165",
+					"value_usd_str": "-5,550.87",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-94000",
+						"contract_val": "1",
+						"contract_val_currency": "doge",
+						"margin_type": "base"
+					},
+					"amount_str": "-94,000.00000000 DOGE",
+					"average_entry_price": "0.0769474108818043",
+					"average_entry_price_str": "0.07694741",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10143",
+					"mark_price_str": "0.10143000",
+					"pos_source": "exchange",
+					"symbol": "doge.usdt.td",
+					"symbol_str": "DOGEUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2301.3633771103957599",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,301.36",
+					"unrealized_pnl_usd": "-2301.4252950227974",
+					"unrealized_pnl_usd_str": "-2,301.43",
+					"value_usd": "-9534.676522454572",
+					"value_usd_str": "-9,534.68",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1600000000",
+						"contract_val": "1",
+						"contract_val_currency": "shib",
+						"margin_type": "base"
+					},
+					"amount_str": "-1,600,000,000.00000000 SHIB",
+					"average_entry_price": "0.0000090327258907",
+					"average_entry_price_str": "0.0000090327",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.000009894",
+					"mark_price_str": "0.0000098940",
+					"pos_source": "exchange",
+					"symbol": "shib.usdt.td",
+					"symbol_str": "SHIBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-1378.0385748800001669",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-1,378.04",
+					"unrealized_pnl_usd": "-1378.0756508466268",
+					"unrealized_pnl_usd_str": "-1,378.08",
+					"value_usd": "-15830.825915059844",
+					"value_usd_str": "-15,830.83",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-39700",
+						"contract_val": "1",
+						"contract_val_currency": "blur",
+						"margin_type": "base"
+					},
+					"amount_str": "-39,700.00000000 BLUR",
+					"average_entry_price": "0.5198262972292199",
+					"average_entry_price_str": "0.51982630",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.516",
+					"mark_price_str": "0.51600000",
+					"pos_source": "exchange",
+					"symbol": "blur.usdt.td",
+					"symbol_str": "BLURUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "151.9040000000300072",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "151.90",
+					"unrealized_pnl_usd": "151.90808695937724",
+					"unrealized_pnl_usd_str": "151.91",
+					"value_usd": "-20485.75115190923",
+					"value_usd_str": "-20,485.75",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-18944",
+						"contract_val": "1",
+						"contract_val_currency": "sushi",
+						"margin_type": "base"
+					},
+					"amount_str": "-18,944.00000000 SUSHI",
+					"average_entry_price": "0.979731487108945",
+					"average_entry_price_str": "0.97973149",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.3723",
+					"mark_price_str": "1.37230000",
+					"pos_source": "exchange",
+					"symbol": "sushi.usdt.td",
+					"symbol_str": "SUSHIUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-7436.8179082081473551",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-7,436.82",
+					"unrealized_pnl_usd": "-7437.01799492386",
+					"unrealized_pnl_usd_str": "-7,437.02",
+					"value_usd": "-25997.550642239905",
+					"value_usd_str": "-25,997.55",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-87180",
+						"contract_val": "1",
+						"contract_val_currency": "sand",
+						"margin_type": "base"
+					},
+					"amount_str": "-87,180.00000000 SAND",
+					"average_entry_price": "0.4260473388391857",
+					"average_entry_price_str": "0.42604734",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.4491",
+					"mark_price_str": "0.44910000",
+					"pos_source": "exchange",
+					"symbol": "sand.usdt.td",
+					"symbol_str": "SANDUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2009.7309999997889327",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,009.73",
+					"unrealized_pnl_usd": "-2009.7850715772054",
+					"unrealized_pnl_usd_str": "-2,009.79",
+					"value_usd": "-39153.591394454044",
+					"value_usd_str": "-39,153.59",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2746",
+						"contract_val": "1",
+						"contract_val_currency": "link",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,746.00000000 LINK",
+					"average_entry_price": "14.917189241114318",
+					"average_entry_price_str": "14.91718924",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "15.922",
+					"mark_price_str": "15.92200000",
+					"pos_source": "exchange",
+					"symbol": "link.usdt.td",
+					"symbol_str": "LINKUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2759.2103439000833785",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,759.21",
+					"unrealized_pnl_usd": "-2759.2845801315584",
+					"unrealized_pnl_usd_str": "-2,759.28",
+					"value_usd": "-43722.9883302364",
+					"value_usd_str": "-43,722.99",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-7493",
+						"contract_val": "1",
+						"contract_val_currency": "uni",
+						"margin_type": "base"
+					},
+					"amount_str": "-7,493.00000000 UNI",
+					"average_entry_price": "5.5246503049905415",
+					"average_entry_price_str": "5.52465030",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "6.14",
+					"mark_price_str": "6.14000000",
+					"pos_source": "exchange",
+					"symbol": "uni.usdt.td",
+					"symbol_str": "UNIUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-4610.8152647058684746",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-4,610.82",
+					"unrealized_pnl_usd": "-4610.9393181511",
+					"unrealized_pnl_usd_str": "-4,610.94",
+					"value_usd": "-46008.25781349027",
+					"value_usd_str": "-46,008.26",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-646",
+						"contract_val": "1",
+						"contract_val_currency": "ltc",
+						"margin_type": "base"
+					},
+					"amount_str": "-646.00000000 LTC",
+					"average_entry_price": "74.45003095975233",
+					"average_entry_price_str": "74.45003096",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "74.04",
+					"mark_price_str": "74.04000000",
+					"pos_source": "exchange",
+					"symbol": "ltc.usdt.td",
+					"symbol_str": "LTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "264.87999999999826",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "264.88",
+					"unrealized_pnl_usd": "264.8871265654073",
+					"unrealized_pnl_usd_str": "264.89",
+					"value_usd": "-47831.12685624911",
+					"value_usd_str": "-47,831.13",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1929",
+						"contract_val": "1",
+						"contract_val_currency": "avax",
+						"margin_type": "base"
+					},
+					"amount_str": "-1,929.00000000 AVAX",
+					"average_entry_price": "14.93803113205911",
+					"average_entry_price_str": "14.93803113",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "26.135",
+					"mark_price_str": "26.13500000",
+					"pos_source": "exchange",
+					"symbol": "avax.usdt.td",
+					"symbol_str": "AVAXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-21598.9529462579754239",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-21,598.95",
+					"unrealized_pnl_usd": "-21599.534063559917",
+					"unrealized_pnl_usd_str": "-21,599.53",
+					"value_usd": "-50415.77139393709",
+					"value_usd_str": "-50,415.77",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1.5",
+						"contract_val": "1",
+						"contract_val_currency": "btc",
+						"margin_type": "base"
+					},
+					"amount_str": "-1.50000000 BTC",
+					"average_entry_price": "36091.152",
+					"average_entry_price_str": "36,091.15200000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "43997.2",
+					"mark_price_str": "43,997.20000000",
+					"pos_source": "exchange",
+					"symbol": "btc.usdt.td",
+					"symbol_str": "BTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-11859.0719999999924242",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-11,859.07",
+					"unrealized_pnl_usd": "-11859.391066944641",
+					"unrealized_pnl_usd_str": "-11,859.39",
+					"value_usd": "-65997.57560927748",
+					"value_usd_str": "-65,997.58",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-158200",
+						"contract_val": "1",
+						"contract_val_currency": "xrp",
+						"margin_type": "base"
+					},
+					"amount_str": "-158,200.00000000 XRP",
+					"average_entry_price": "0.641190028445011",
+					"average_entry_price_str": "0.64119003",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.6347",
+					"mark_price_str": "0.63470000",
+					"pos_source": "exchange",
+					"symbol": "xrp.usdt.td",
+					"symbol_str": "XRPUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "1026.7225000007414126",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "1,026.72",
+					"unrealized_pnl_usd": "1026.7501238494774",
+					"unrealized_pnl_usd_str": "1,026.75",
+					"value_usd": "-100412.24150692578",
+					"value_usd_str": "-100,412.24",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2260",
+						"contract_val": "1",
+						"contract_val_currency": "sol",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,260.00000000 SOL",
+					"average_entry_price": "58.238928298618205",
+					"average_entry_price_str": "58.23892830",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "65.47",
+					"mark_price_str": "65.47000000",
+					"pos_source": "exchange",
+					"symbol": "sol.usdt.td",
+					"symbol_str": "SOLUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-16342.2220451228519489",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-16,342.22",
+					"unrealized_pnl_usd": "-16342.661730694936",
+					"unrealized_pnl_usd_str": "-16,342.66",
+					"value_usd": "-147966.18090567942",
+					"value_usd_str": "-147,966.18",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-68.2",
+						"contract_val": "1",
+						"contract_val_currency": "eth",
+						"margin_type": "base"
+					},
+					"amount_str": "-68.20000000 ETH",
+					"average_entry_price": "2048.511304985337",
+					"average_entry_price_str": "2,048.51130499",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2274.62",
+					"mark_price_str": "2,274.62000000",
+					"pos_source": "exchange",
+					"symbol": "eth.usdt.td",
+					"symbol_str": "ETHUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-15420.613000000001721",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-15,420.61",
+					"unrealized_pnl_usd": "-15421.027889788555",
+					"unrealized_pnl_usd_str": "-15,421.03",
+					"value_usd": "-155133.2577298549",
+					"value_usd_str": "-155,133.26",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}],
+				"delta": {
+					"BsDelta": "0",
+					"Delta": "0"
+				},
+				"delta_str": "-",
+				"gamma": "0",
+				"gamma_str": "-",
+				"is_exchange_symbol": false,
+				"mark_price": "0",
+				"mark_price_str": "-",
+				"pos_source": "exchange",
+				"symbol": "ccltgok02",
+				"symbol_str": "ccltgok02",
+				"theta": "0",
+				"theta_str": "-",
+				"unrealized_pnl": "0",
+				"unrealized_pnl_currency": "",
+				"unrealized_pnl_currency_str": "-",
+				"unrealized_pnl_str": "-",
+				"unrealized_pnl_usd": "0",
+				"unrealized_pnl_usd_str": "-",
+				"value_usd": "-773733.717455071565",
+				"value_usd_str": "-773,733.72",
+				"vega": {
+					"Vega": "0",
+					"Vega30DATM": "0"
+				},
+				"vega_str": "-"
+			}, {
+				"amount": {
+					"amount": "0",
+					"contract_val": "0",
+					"contract_val_currency": "",
+					"margin_type": ""
+				},
+				"amount_str": "-",
+				"average_entry_price": "0",
+				"average_entry_price_str": "-",
+				"children": [{
+					"amount": {
+						"amount": "-4980",
+						"contract_val": "1",
+						"contract_val_currency": "gala",
+						"margin_type": "base"
+					},
+					"amount_str": "-4,980.00000000 GALA",
+					"average_entry_price": "0.0257012844603982",
+					"average_entry_price_str": "0.02570128",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.0295",
+					"mark_price_str": "0.02950000",
+					"pos_source": "exchange",
+					"symbol": "gala.usdt.td",
+					"symbol_str": "GALAUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-18.9176033872169565",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-18.92",
+					"unrealized_pnl_usd": "-18.91811236312273",
+					"unrealized_pnl_usd_str": "-18.92",
+					"value_usd": "-146.91395259636153",
+					"value_usd_str": "-146.91",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-18000",
+						"contract_val": "1",
+						"contract_val_currency": "trx",
+						"margin_type": "base"
+					},
+					"amount_str": "-18,000.00000000 TRX",
+					"average_entry_price": "0.1036233333333335",
+					"average_entry_price_str": "0.10362333",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10352",
+					"mark_price_str": "0.10352000",
+					"pos_source": "exchange",
+					"symbol": "trx.usdt.td",
+					"symbol_str": "TRXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "1.8600000000029425",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "1.86",
+					"unrealized_pnl_usd": "1.8600500430853226",
+					"unrealized_pnl_usd_str": "1.86",
+					"value_usd": "-1863.410133482787",
+					"value_usd_str": "-1,863.41",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-913.9",
+						"contract_val": "1",
+						"contract_val_currency": "fil",
+						"margin_type": "base"
+					},
+					"amount_str": "-913.90000000 FIL",
+					"average_entry_price": "4.623350271375758",
+					"average_entry_price_str": "4.62335027",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "4.754",
+					"mark_price_str": "4.75400000",
+					"pos_source": "exchange",
+					"symbol": "fil.usdt.td",
+					"symbol_str": "FILUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-119.4007869896946143",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-119.40",
+					"unrealized_pnl_usd": "-119.40399945389868",
+					"unrealized_pnl_usd_str": "-119.40",
+					"value_usd": "-4344.797493123215",
+					"value_usd_str": "-4,344.80",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2210",
+						"contract_val": "1",
+						"contract_val_currency": "near",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,210.00000000 NEAR",
+					"average_entry_price": "1.7959977451869813",
+					"average_entry_price_str": "1.79599775",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2.352",
+					"mark_price_str": "2.35200000",
+					"pos_source": "exchange",
+					"symbol": "near.usdt.td",
+					"symbol_str": "NEARUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-1228.7649831367710082",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-1,228.76",
+					"unrealized_pnl_usd": "-1228.7980429148768",
+					"unrealized_pnl_usd_str": "-1,228.80",
+					"value_usd": "-5198.059849429444",
+					"value_usd_str": "-5,198.06",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-24850",
+						"contract_val": "1",
+						"contract_val_currency": "eos",
+						"margin_type": "base"
+					},
+					"amount_str": "-24,850.00000000 EOS",
+					"average_entry_price": "0.7081530784708259",
+					"average_entry_price_str": "0.70815308",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.7381",
+					"mark_price_str": "0.73810000",
+					"pos_source": "exchange",
+					"symbol": "eos.usdt.td",
+					"symbol_str": "EOSUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-744.1809999999765776",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-744.18",
+					"unrealized_pnl_usd": "-744.2010221027124",
+					"unrealized_pnl_usd_str": "-744.20",
+					"value_usd": "-18342.278483579434",
+					"value_usd_str": "-18,342.28",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-248000",
+						"contract_val": "1",
+						"contract_val_currency": "doge",
+						"margin_type": "base"
+					},
+					"amount_str": "-248,000.00000000 DOGE",
+					"average_entry_price": "0.0833727969348674",
+					"average_entry_price_str": "0.08337280",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10145",
+					"mark_price_str": "0.10145000",
+					"pos_source": "exchange",
+					"symbol": "doge.usdt.td",
+					"symbol_str": "DOGEUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-4483.1463601528832108",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-4,483.15",
+					"unrealized_pnl_usd": "-4483.266978681175",
+					"unrealized_pnl_usd_str": "-4,483.27",
+					"value_usd": "-25160.276916094324",
+					"value_usd_str": "-25,160.28",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2618000000",
+						"contract_val": "1",
+						"contract_val_currency": "shib",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,618,000,000.00000000 SHIB",
+					"average_entry_price": "0.0000086694858686",
+					"average_entry_price_str": "0.0000086695",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.000009894",
+					"mark_price_str": "0.0000098940",
+					"pos_source": "exchange",
+					"symbol": "shib.usdt.td",
+					"symbol_str": "SHIBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-3205.7779960052022056",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-3,205.78",
+					"unrealized_pnl_usd": "-3205.8642470871087",
+					"unrealized_pnl_usd_str": "-3,205.86",
+					"value_usd": "-25903.188903516668",
+					"value_usd_str": "-25,903.19",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-86750",
+						"contract_val": "1",
+						"contract_val_currency": "sand",
+						"margin_type": "base"
+					},
+					"amount_str": "-86,750.00000000 SAND",
+					"average_entry_price": "0.4239786282420771",
+					"average_entry_price_str": "0.42397863",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.4491",
+					"mark_price_str": "0.44910000",
+					"pos_source": "exchange",
+					"symbol": "sand.usdt.td",
+					"symbol_str": "SANDUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2179.2789999998110481",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,179.28",
+					"unrealized_pnl_usd": "-2179.3376332463304",
+					"unrealized_pnl_usd_str": "-2,179.34",
+					"value_usd": "-38960.473198771375",
+					"value_usd_str": "-38,960.47",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2673",
+						"contract_val": "1",
+						"contract_val_currency": "link",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,673.00000000 LINK",
+					"average_entry_price": "13.84671940707403",
+					"average_entry_price_str": "13.84671941",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "15.923",
+					"mark_price_str": "15.92300000",
+					"pos_source": "exchange",
+					"symbol": "link.usdt.td",
+					"symbol_str": "LINKUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-5549.8980248911183734",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-5,549.90",
+					"unrealized_pnl_usd": "-5550.04734424814",
+					"unrealized_pnl_usd_str": "-5,550.05",
+					"value_usd": "-42563.32413044622",
+					"value_usd_str": "-42,563.32",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1.33",
+						"contract_val": "1",
+						"contract_val_currency": "btc",
+						"margin_type": "base"
+					},
+					"amount_str": "-1.33000000 BTC",
+					"average_entry_price": "36052.15204678362",
+					"average_entry_price_str": "36,052.15204678",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "43997.2",
+					"mark_price_str": "43,997.20000000",
+					"pos_source": "exchange",
+					"symbol": "btc.usdt.td",
+					"symbol_str": "BTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-10566.9137777777778009",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-10,566.91",
+					"unrealized_pnl_usd": "-10567.19807935664",
+					"unrealized_pnl_usd_str": "-10,567.20",
+					"value_usd": "-58517.85037355937",
+					"value_usd_str": "-58,517.85",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2465",
+						"contract_val": "1",
+						"contract_val_currency": "avax",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,465.00000000 AVAX",
+					"average_entry_price": "19.488616700000016",
+					"average_entry_price_str": "19.48861670",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "26.135",
+					"mark_price_str": "26.13500000",
+					"pos_source": "exchange",
+					"symbol": "avax.usdt.td",
+					"symbol_str": "AVAXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-16383.3348344999639541",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-16,383.33",
+					"unrealized_pnl_usd": "-16383.775626206836",
+					"unrealized_pnl_usd_str": "-16,383.78",
+					"value_usd": "-64424.50828722391",
+					"value_usd_str": "-64,424.51",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-12475",
+						"contract_val": "1",
+						"contract_val_currency": "uni",
+						"margin_type": "base"
+					},
+					"amount_str": "-12,475.00000000 UNI",
+					"average_entry_price": "5.608124809619241",
+					"average_entry_price_str": "5.60812481",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "6.14",
+					"mark_price_str": "6.14000000",
+					"pos_source": "exchange",
+					"symbol": "uni.usdt.td",
+					"symbol_str": "UNIUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-6635.142999999963732",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-6,635.14",
+					"unrealized_pnl_usd": "-6635.321517746067",
+					"unrealized_pnl_usd_str": "-6,635.32",
+					"value_usd": "-76598.5608198707",
+					"value_usd_str": "-76,598.56",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-164000",
+						"contract_val": "1",
+						"contract_val_currency": "xrp",
+						"margin_type": "base"
+					},
+					"amount_str": "-164,000.00000000 XRP",
+					"average_entry_price": "0.6190943292682978",
+					"average_entry_price_str": "0.61909433",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.6347",
+					"mark_price_str": "0.63470000",
+					"pos_source": "exchange",
+					"symbol": "xrp.usdt.td",
+					"symbol_str": "XRPUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2559.3299999991722323",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,559.33",
+					"unrealized_pnl_usd": "-2559.3988584733806",
+					"unrealized_pnl_usd_str": "-2,559.40",
+					"value_usd": "-104093.60055079537",
+					"value_usd_str": "-104,093.60",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-308310",
+						"contract_val": "1",
+						"contract_val_currency": "blur",
+						"margin_type": "base"
+					},
+					"amount_str": "-308,310.00000000 BLUR",
+					"average_entry_price": "0.5452115889851207",
+					"average_entry_price_str": "0.54521159",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.516",
+					"mark_price_str": "0.51600000",
+					"pos_source": "exchange",
+					"symbol": "blur.usdt.td",
+					"symbol_str": "BLURUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "9006.2250000025502564",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "9,006.23",
+					"unrealized_pnl_usd": "9006.467311432447",
+					"unrealized_pnl_usd_str": "9,006.47",
+					"value_usd": "-159092.2402429505",
+					"value_usd_str": "-159,092.24",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2952",
+						"contract_val": "1",
+						"contract_val_currency": "sol",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,952.00000000 SOL",
+					"average_entry_price": "57.971887240055",
+					"average_entry_price_str": "57.97188724",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "65.47",
+					"mark_price_str": "65.47000000",
+					"pos_source": "exchange",
+					"symbol": "sol.usdt.td",
+					"symbol_str": "SOLUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-22134.42886735764492",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-22,134.43",
+					"unrealized_pnl_usd": "-22135.024391576593",
+					"unrealized_pnl_usd_str": "-22,135.02",
+					"value_usd": "-193272.63983786092",
+					"value_usd_str": "-193,272.64",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}],
+				"delta": {
+					"BsDelta": "0",
+					"Delta": "0"
+				},
+				"delta_str": "-",
+				"gamma": "0",
+				"gamma_str": "-",
+				"is_exchange_symbol": false,
+				"mark_price": "0",
+				"mark_price_str": "-",
+				"pos_source": "exchange",
+				"symbol": "ccltgok03",
+				"symbol_str": "ccltgok03",
+				"theta": "0",
+				"theta_str": "-",
+				"unrealized_pnl": "0",
+				"unrealized_pnl_currency": "",
+				"unrealized_pnl_currency_str": "-",
+				"unrealized_pnl_str": "-",
+				"unrealized_pnl_usd": "0",
+				"unrealized_pnl_usd_str": "-",
+				"value_usd": "-818482.12317330059853",
+				"value_usd_str": "-818,482.12",
+				"vega": {
+					"Vega": "0",
+					"Vega30DATM": "0"
+				},
+				"vega_str": "-"
+			}, {
+				"amount": {
+					"amount": "0",
+					"contract_val": "0",
+					"contract_val_currency": "",
+					"margin_type": ""
+				},
+				"amount_str": "-",
+				"average_entry_price": "0",
+				"average_entry_price_str": "-",
+				"children": [{
+					"amount": {
+						"amount": "92000",
+						"contract_val": "1",
+						"contract_val_currency": "trx",
+						"margin_type": "base"
+					},
+					"amount_str": "92,000.00000000 TRX",
+					"average_entry_price": "0.1054585148514856",
+					"average_entry_price_str": "0.10545851",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10352",
+					"mark_price_str": "0.10352000",
+					"pos_source": "exchange",
+					"symbol": "trx.usdt.td",
+					"symbol_str": "TRXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-178.3433663366745356",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-178.34",
+					"unrealized_pnl_usd": "-178.34816464407965",
+					"unrealized_pnl_usd_str": "-178.35",
+					"value_usd": "9524.09623780091",
+					"value_usd_str": "9,524.10",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "2810",
+						"contract_val": "1",
+						"contract_val_currency": "near",
+						"margin_type": "base"
+					},
+					"amount_str": "2,810.00000000 NEAR",
+					"average_entry_price": "1.7968683274021353",
+					"average_entry_price_str": "1.79686833",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2.352",
+					"mark_price_str": "2.35200000",
+					"pos_source": "exchange",
+					"symbol": "near.usdt.td",
+					"symbol_str": "NEARUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "1559.91999999999964",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "1,559.92",
+					"unrealized_pnl_usd": "1559.961969465089",
+					"unrealized_pnl_usd_str": "1,559.96",
+					"value_usd": "6609.297817600333",
+					"value_usd_str": "6,609.30",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1410",
+						"contract_val": "1",
+						"contract_val_currency": "eos",
+						"margin_type": "base"
+					},
+					"amount_str": "-1,410.00000000 EOS",
+					"average_entry_price": "0.7049",
+					"average_entry_price_str": "0.70490000",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.7381",
+					"mark_price_str": "0.73810000",
+					"pos_source": "exchange",
+					"symbol": "eos.usdt.td",
+					"symbol_str": "EOSUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-46.81200000000001",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-46.81",
+					"unrealized_pnl_usd": "-46.813259471383006",
+					"unrealized_pnl_usd_str": "-46.81",
+					"value_usd": "-1040.7490004767405",
+					"value_usd_str": "-1,040.75",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-893.4",
+						"contract_val": "1",
+						"contract_val_currency": "fil",
+						"margin_type": "base"
+					},
+					"amount_str": "-893.40000000 FIL",
+					"average_entry_price": "4.594551290136553",
+					"average_entry_price_str": "4.59455129",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "4.754",
+					"mark_price_str": "4.75400000",
+					"pos_source": "exchange",
+					"symbol": "fil.usdt.td",
+					"symbol_str": "FILUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-142.451477392003111",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-142.45",
+					"unrealized_pnl_usd": "-142.45531003233552",
+					"unrealized_pnl_usd_str": "-142.46",
+					"value_usd": "-4247.337871054032",
+					"value_usd_str": "-4,247.34",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-156780",
+						"contract_val": "1",
+						"contract_val_currency": "gala",
+						"margin_type": "base"
+					},
+					"amount_str": "-156,780.00000000 GALA",
+					"average_entry_price": "0.026592519015198",
+					"average_entry_price_str": "0.02659252",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.0295",
+					"mark_price_str": "0.02950000",
+					"pos_source": "exchange",
+					"symbol": "gala.usdt.td",
+					"symbol_str": "GALAUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-455.8348687972571894",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-455.83",
+					"unrealized_pnl_usd": "-455.8471329810695",
+					"unrealized_pnl_usd_str": "-455.85",
+					"value_usd": "-4625.134435352923",
+					"value_usd_str": "-4,625.13",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-20303",
+						"contract_val": "1",
+						"contract_val_currency": "sushi",
+						"margin_type": "base"
+					},
+					"amount_str": "-20,303.00000000 SUSHI",
+					"average_entry_price": "0.9764639116246566",
+					"average_entry_price_str": "0.97646391",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "1.3723",
+					"mark_price_str": "1.37230000",
+					"pos_source": "exchange",
+					"symbol": "sushi.usdt.td",
+					"symbol_str": "SUSHIUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-8036.6601022845972649",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-8,036.66",
+					"unrealized_pnl_usd": "-8036.87632768436",
+					"unrealized_pnl_usd_str": "-8,036.88",
+					"value_usd": "-27862.556518654816",
+					"value_usd_str": "-27,862.56",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-282000",
+						"contract_val": "1",
+						"contract_val_currency": "doge",
+						"margin_type": "base"
+					},
+					"amount_str": "-282,000.00000000 DOGE",
+					"average_entry_price": "0.0775680000000027",
+					"average_entry_price_str": "0.07756800",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.10143",
+					"mark_price_str": "0.10143000",
+					"pos_source": "exchange",
+					"symbol": "doge.usdt.td",
+					"symbol_str": "DOGEUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-6729.0839999992388485",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-6,729.08",
+					"unrealized_pnl_usd": "-6729.265045216956",
+					"unrealized_pnl_usd_str": "-6,729.27",
+					"value_usd": "-28604.02956736372",
+					"value_usd_str": "-28,604.03",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2944000000",
+						"contract_val": "1",
+						"contract_val_currency": "shib",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,944,000,000.00000000 SHIB",
+					"average_entry_price": "0.0000089722635813",
+					"average_entry_price_str": "0.0000089723",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.000009894",
+					"mark_price_str": "0.0000098940",
+					"pos_source": "exchange",
+					"symbol": "shib.usdt.td",
+					"symbol_str": "SHIBUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-2713.5920166528012223",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-2,713.59",
+					"unrealized_pnl_usd": "-2713.665025528519",
+					"unrealized_pnl_usd_str": "-2,713.67",
+					"value_usd": "-29128.71968371011",
+					"value_usd_str": "-29,128.72",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-86240",
+						"contract_val": "1",
+						"contract_val_currency": "sand",
+						"margin_type": "base"
+					},
+					"amount_str": "-86,240.00000000 SAND",
+					"average_entry_price": "0.4268233302411894",
+					"average_entry_price_str": "0.42682333",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.4491",
+					"mark_price_str": "0.44910000",
+					"pos_source": "exchange",
+					"symbol": "sand.usdt.td",
+					"symbol_str": "SANDUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-1921.1399999998258847",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-1,921.14",
+					"unrealized_pnl_usd": "-1921.1916880467525",
+					"unrealized_pnl_usd_str": "-1,921.19",
+					"value_usd": "-38731.42603645006",
+					"value_usd_str": "-38,731.43",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2783",
+						"contract_val": "1",
+						"contract_val_currency": "link",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,783.00000000 LINK",
+					"average_entry_price": "14.712074208266243",
+					"average_entry_price_str": "14.71207421",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "15.922",
+					"mark_price_str": "15.92200000",
+					"pos_source": "exchange",
+					"symbol": "link.usdt.td",
+					"symbol_str": "LINKUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-3367.2234783950479282",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-3,367.22",
+					"unrealized_pnl_usd": "-3367.314073148769",
+					"unrealized_pnl_usd_str": "-3,367.31",
+					"value_usd": "-44312.11818027965",
+					"value_usd_str": "-44,312.12",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-7933",
+						"contract_val": "1",
+						"contract_val_currency": "uni",
+						"margin_type": "base"
+					},
+					"amount_str": "-7,933.00000000 UNI",
+					"average_entry_price": "5.3147283206486975",
+					"average_entry_price_str": "5.31472832",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "6.14",
+					"mark_price_str": "6.14000000",
+					"pos_source": "exchange",
+					"symbol": "uni.usdt.td",
+					"symbol_str": "UNIUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-6546.8802322938801203",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-6,546.88",
+					"unrealized_pnl_usd": "-6547.056375340545",
+					"unrealized_pnl_usd_str": "-6,547.06",
+					"value_usd": "-48709.930499722184",
+					"value_usd_str": "-48,709.93",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-712",
+						"contract_val": "1",
+						"contract_val_currency": "ltc",
+						"margin_type": "base"
+					},
+					"amount_str": "-712.00000000 LTC",
+					"average_entry_price": "74.87998622589532",
+					"average_entry_price_str": "74.87998623",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "74.04",
+					"mark_price_str": "74.04000000",
+					"pos_source": "exchange",
+					"symbol": "ltc.usdt.td",
+					"symbol_str": "LTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "598.0701928374652206",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "598.07",
+					"unrealized_pnl_usd": "598.0862838460293",
+					"unrealized_pnl_usd_str": "598.09",
+					"value_usd": "-52717.89833072657",
+					"value_usd_str": "-52,717.90",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-103250",
+						"contract_val": "1",
+						"contract_val_currency": "blur",
+						"margin_type": "base"
+					},
+					"amount_str": "-103,250.00000000 BLUR",
+					"average_entry_price": "0.5385172300242156",
+					"average_entry_price_str": "0.53851723",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.516",
+					"mark_price_str": "0.51600000",
+					"pos_source": "exchange",
+					"symbol": "blur.usdt.td",
+					"symbol_str": "BLURUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "2324.9040000002577611",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "2,324.90",
+					"unrealized_pnl_usd": "2324.966551270364",
+					"unrealized_pnl_usd_str": "2,324.97",
+					"value_usd": "-53278.43341145159",
+					"value_usd_str": "-53,278.43",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2275",
+						"contract_val": "1",
+						"contract_val_currency": "avax",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,275.00000000 AVAX",
+					"average_entry_price": "14.844118867034288",
+					"average_entry_price_str": "14.84411887",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "26.135",
+					"mark_price_str": "26.13500000",
+					"pos_source": "exchange",
+					"symbol": "avax.usdt.td",
+					"symbol_str": "AVAXUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-25686.7545774969987288",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-25,686.75",
+					"unrealized_pnl_usd": "-25687.445676623556",
+					"unrealized_pnl_usd_str": "-25,687.45",
+					"value_usd": "-59458.72468699164",
+					"value_usd_str": "-59,458.72",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-1.58",
+						"contract_val": "1",
+						"contract_val_currency": "btc",
+						"margin_type": "base"
+					},
+					"amount_str": "-1.58000000 BTC",
+					"average_entry_price": "36136.512280701754",
+					"average_entry_price_str": "36,136.51228070",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "43997.2",
+					"mark_price_str": "43,997.20000000",
+					"pos_source": "exchange",
+					"symbol": "btc.usdt.td",
+					"symbol_str": "BTCUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-12419.8865964912221355",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-12,419.89",
+					"unrealized_pnl_usd": "-12420.220752086974",
+					"unrealized_pnl_usd_str": "-12,420.22",
+					"value_usd": "-69517.44630843896",
+					"value_usd_str": "-69,517.45",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-165300",
+						"contract_val": "1",
+						"contract_val_currency": "xrp",
+						"margin_type": "base"
+					},
+					"amount_str": "-165,300.00000000 XRP",
+					"average_entry_price": "0.6466818962996855",
+					"average_entry_price_str": "0.64668190",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "0.6347",
+					"mark_price_str": "0.63470000",
+					"pos_source": "exchange",
+					"symbol": "xrp.usdt.td",
+					"symbol_str": "XRPUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "1980.6074583380114884",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "1,980.61",
+					"unrealized_pnl_usd": "1980.660746349947",
+					"unrealized_pnl_usd_str": "1,980.66",
+					"value_usd": "-104918.73275028338",
+					"value_usd_str": "-104,918.73",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-70.8",
+						"contract_val": "1",
+						"contract_val_currency": "eth",
+						"margin_type": "base"
+					},
+					"amount_str": "-70.80000000 ETH",
+					"average_entry_price": "2104.6731925165964",
+					"average_entry_price_str": "2,104.67319252",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "2274.62",
+					"mark_price_str": "2,274.62000000",
+					"pos_source": "exchange",
+					"symbol": "eth.usdt.td",
+					"symbol_str": "ETHUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-12032.2339698249692337",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-12,032.23",
+					"unrealized_pnl_usd": "-12032.557695672156",
+					"unrealized_pnl_usd_str": "-12,032.56",
+					"value_usd": "-161047.4288456558",
+					"value_usd_str": "-161,047.43",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}, {
+					"amount": {
+						"amount": "-2577",
+						"contract_val": "1",
+						"contract_val_currency": "sol",
+						"margin_type": "base"
+					},
+					"amount_str": "-2,577.00000000 SOL",
+					"average_entry_price": "58.004180073954046",
+					"average_entry_price_str": "58.00418007",
+					"children": [],
+					"delta": {
+						"BsDelta": "0",
+						"Delta": "0"
+					},
+					"delta_str": "-",
+					"gamma": "0",
+					"gamma_str": "-",
+					"is_exchange_symbol": false,
+					"mark_price": "65.47",
+					"mark_price_str": "65.47000000",
+					"pos_source": "exchange",
+					"symbol": "sol.usdt.td",
+					"symbol_str": "SOLUSDT-PERP",
+					"theta": "0",
+					"theta_str": "-",
+					"unrealized_pnl": "-19239.4179494204177437",
+					"unrealized_pnl_currency": "usdt",
+					"unrealized_pnl_currency_str": "USDT",
+					"unrealized_pnl_str": "-19,239.42",
+					"unrealized_pnl_usd": "-19239.935583709335",
+					"unrealized_pnl_usd_str": "-19,239.94",
+					"value_usd": "-168720.72928935214",
+					"value_usd_str": "-168,720.73",
+					"vega": {
+						"Vega": "0",
+						"Vega30DATM": "0"
+					},
+					"vega_str": "-"
+				}],
+				"delta": {
+					"BsDelta": "0",
+					"Delta": "0"
+				},
+				"delta_str": "-",
+				"gamma": "0",
+				"gamma_str": "-",
+				"is_exchange_symbol": false,
+				"mark_price": "0",
+				"mark_price_str": "-",
+				"pos_source": "exchange",
+				"symbol": "ccltgok01",
+				"symbol_str": "ccltgok01",
+				"theta": "0",
+				"theta_str": "-",
+				"unrealized_pnl": "0",
+				"unrealized_pnl_currency": "",
+				"unrealized_pnl_currency_str": "-",
+				"unrealized_pnl_str": "-",
+				"unrealized_pnl_usd": "0",
+				"unrealized_pnl_usd_str": "-",
+				"value_usd": "-880788.0013605630725",
+				"value_usd_str": "-880,788.00",
+				"vega": {
+					"Vega": "0",
+					"Vega30DATM": "0"
+				},
+				"vega_str": "-"
+			}],
+			"delta": {
+				"BsDelta": "0",
+				"Delta": "0"
+			},
+			"delta_str": "-",
+			"gamma": "0",
+			"gamma_str": "-",
+			"is_exchange_symbol": true,
+			"mark_price": "0",
+			"mark_price_str": "-",
+			"pos_source": "exchange",
+			"symbol": "okuniprop",
+			"symbol_str": "OKX",
+			"theta": "0",
+			"theta_str": "-",
+			"unrealized_pnl": "0",
+			"unrealized_pnl_currency": "",
+			"unrealized_pnl_currency_str": "-",
+			"unrealized_pnl_str": "-",
+			"unrealized_pnl_usd": "0",
+			"unrealized_pnl_usd_str": "-",
+			"value_usd": "-2473003.84198893523603",
+			"value_usd_str": "-2,473,003.84",
+			"vega": {
+				"Vega": "0",
+				"Vega30DATM": "0"
+			},
+			"vega_str": "-"
+		}],
+		"symbol": "",
+		"symbol_str": "-",
+		"theta": "0",
+		"theta_str": "-",
+		"unrealized_pnl": "0",
+		"unrealized_pnl_currency": "",
+		"unrealized_pnl_currency_str": "-",
+		"unrealized_pnl_str": "-",
+		"unrealized_pnl_usd": "0",
+		"unrealized_pnl_usd_str": "-",
+		"value_usd": "-2630808.641460250255507",
+		"value_usd_str": "-2,630,808.64",
+		"vega": {
+			"Vega": "0",
+			"Vega30DATM": "0"
+		},
+		"vega_str": "-"
+	},
+	"status": "ok"
+}
