@@ -23,23 +23,25 @@ const logPrefix = "camApi"
 const rootUrl = "https://cam.antalpha.com/api/v1"
 
 type Api struct {
+	lang           string
 	department     string
 	departmentList string
 	timezone       string
-	// todo: cookies
 }
 
 func NewApi() *Api {
 	a := &Api{
+		lang:           "zh",             // hard code
 		department:     "armada/default", // hard code
 		departmentList: "armada/default", // hard code
-		timezone:       "Etc/GMT-8",      // hard code
+		timezone:       "Asia/Shanghai",  // hard code
 	}
 	return a
 }
 
 func (a *Api) defaultParam() url.Values {
 	params := url.Values{}
+	params.Set("lang", a.lang)
 	params.Set("department", a.department)
 	params.Set("timezone", a.timezone)
 	return params
@@ -47,6 +49,7 @@ func (a *Api) defaultParam() url.Values {
 
 func (a *Api) defaultParamWithDepartmentList() url.Values {
 	params := url.Values{}
+	params.Set("lang", a.lang)
 	params.Set("department", a.department)
 	params.Set("timezone", a.timezone)
 	params.Set("department_list", a.departmentList)
@@ -158,7 +161,7 @@ func (a *Api) GetFundRisk(fundName string) (*RespRisk, error) {
 	return network.ParseHttpResult[RespRisk](logPrefix, "GetFundRisk", url, method, "", nil, nil, nil)
 }
 
-func (a *Api) getOrderRecordTaskId(fundName, accName string, t0, t1 time.Time) (*RespTaskid, error) {
+func (a *Api) getOrderRecordTaskId(accName string, t0, t1 time.Time) (*RespTaskid, error) {
 	action := "/fund/trading-analysis/list-order-records"
 	method := "POST"
 	params := a.defaultParam()
@@ -172,33 +175,74 @@ func (a *Api) getOrderRecordTaskId(fundName, accName string, t0, t1 time.Time) (
 		tradeacc_names: ["tradeacc/bnprop/ltpnew44virtual-be"]
 	*/
 	payload := make(map[string]interface{})
-	if !t0.IsZero() {
-		payload["start_time"] = t0.UnixNano()
-	}
-
-	if !t1.IsZero() {
-		payload["end_time"] = t1.UnixNano()
-	}
-
+	payload["start_time"] = t0.UnixNano()
+	payload["end_time"] = t1.UnixNano()
 	payload["tradeacc_names"] = []string{accName}
-	payload["fund_names"] = []string{fundName}
+	payload["fund_names"] = []string{}
 	payload["tag_names"] = []string{}
 
-	return network.ParseHttpResult[RespTaskid](logPrefix, "getOrderRecordTaskId", url, method, util.Object2String(payload), commonHeader(), nil, nil)
+	return network.ParseHttpResult[RespTaskid](logPrefix, "getOrderRecordTaskId", url, method, util.Object2StringWithoutIntent(payload), commonHeader(), nil, nil)
 }
 
-func (a *Api) GetOrderRecord(fundName, accName string, t0, t1 time.Time) (*RespOrderRecordInner, error) {
+func (a *Api) GetOrderRecord(accName string, t0, t1 time.Time) (*RespOrderRecordInner, error) {
 	action := "/fund/trading-analysis/list-order-records/fetch-by-task-id"
 	method := "POST"
 	params := a.defaultParam()
 
-	if resp, err := a.getOrderRecordTaskId(fundName, accName, t0, t1); err == nil {
+	if resp, err := a.getOrderRecordTaskId(accName, t0, t1); err == nil {
 		payload := make(map[string]interface{})
 		payload["task_id"] = resp.TaskId
 		url := rootUrl + action + "?" + params.Encode()
-		for i := 0; i < 500; i++ {
-			time.Sleep(time.Second * time.Duration(1))
+		for i := 0; i < 10; i++ {
+			time.Sleep(time.Second * time.Duration(i))
 			if resp, err := network.ParseHttpResult[RespOrderRecord](logPrefix, "GetOrderRecord", url, method, util.Object2String(payload), commonHeader(), nil, nil); err == nil {
+				if resp.Status == 1 {
+					resp.Data.parse()
+					return &resp.Data, nil
+				}
+			}
+		}
+		return nil, errors.New("time out")
+	} else {
+		return nil, errors.New("get task_id failed")
+	}
+}
+
+func (a *Api) getDealRecordTaskId(accName string, t0, t1 time.Time) (*RespTaskid, error) {
+	action := "/fund/trading-analysis/list-transaction-records"
+	method := "POST"
+	params := a.defaultParam()
+	url := rootUrl + action + "?" + params.Encode()
+
+	/*
+		account_names: ["tradeacc/okuniprop/ltpamokx010-35"]
+		end_time: 1702223999000000000
+		fund_names: []
+		start_time: 1702137600000000000
+		tag_names: []
+	*/
+	payload := make(map[string]interface{})
+	payload["start_time"] = t0.UnixNano()
+	payload["end_time"] = t1.UnixNano()
+	payload["account_names"] = []string{accName}
+	payload["fund_names"] = []string{}
+	payload["tag_names"] = []string{}
+
+	return network.ParseHttpResult[RespTaskid](logPrefix, "getDealRecordTaskId", url, method, util.Object2StringWithoutIntent(payload), commonHeader(), nil, nil)
+}
+
+func (a *Api) GetDealRecord(accName string, t0, t1 time.Time) (*RespDealRecordInner, error) {
+	action := "/fund/trading-analysis/list-transaction-records/fetch-by-task-id"
+	method := "POST"
+	params := a.defaultParam()
+
+	if resp, err := a.getDealRecordTaskId(accName, t0, t1); err == nil {
+		payload := make(map[string]interface{})
+		payload["task_id"] = resp.TaskId
+		url := rootUrl + action + "?" + params.Encode()
+		for i := 0; i < 10; i++ {
+			time.Sleep(time.Second * time.Duration(i))
+			if resp, err := network.ParseHttpResult[RespDealRecord](logPrefix, "GetDealRecord", url, method, util.Object2String(payload), commonHeader(), nil, nil); err == nil {
 				if resp.Status == 1 {
 					resp.Data.parse()
 					return &resp.Data, nil

@@ -303,24 +303,104 @@ type RespOrderRecord struct {
 }
 
 type DealRecord struct {
-	Exchange           string          `json:"account_venue"`
-	AccountAlias       string          `json:"account_alias"`
-	OrderTimeStampNano int64           `json:"order_time"`  //
-	SymbolType         string          `json:"symbol_type"` // spot/swap
-	Symbol             string          `json:"symbol"`      // binance/avax.usdt binance/avax.usdt.td binance/avax.usd.td
-	Dir                string          `json:"direction"`   // b/s
-	Amount             decimal.Decimal `json:"amount"`
-	DealAmount         decimal.Decimal `json:"dealt_amount"`
-	TotalValue         decimal.Decimal `json:"total_value"`
-	Price              decimal.Decimal `json:"price"`
-	AvgDealPrice       decimal.Decimal `json:"average_dealt_price"`
-	Status             string          `json:"status"`
+	Exchange          string          `json:"exchange_alias"`
+	AccountAlias      string          `json:"account_alias"`
+	DealTimeStampNano int64           `json:"dealt_time"`
+	OrderId           string          `json:"order_id"`
+	DealId            string          `json:"transaction_id"`
+	SymbolType        string          `json:"symbol_type"`  // spot/swap
+	Symbol            string          `json:"trading_pair"` // binance/avax.usdt binance/avax.usdt.td binance/avax.usd.td
+	Dir               string          `json:"direction"`    // b/s
+	Amount            decimal.Decimal `json:"dealt_amount"`
+	Price             decimal.Decimal `json:"dealt_price"`
+	Fee               decimal.Decimal `json:"commission"`
+	FeeCcy            string          `json:"commission_ccy"`
+	Status            string          `json:"status"`
+	DealType          string          `json:"transaction_type"`
 
+	TotalValue decimal.Decimal
 	BaseCcy    string
 	IsMaker    bool
-	OrderTime  time.Time
+	DealTime   time.Time
 	IsUsdtSwap bool
 	InstId     string // 符合交易所规范的instrumentId
+}
+
+func (o *DealRecord) parse() {
+	o.IsMaker = o.DealType == "maker"
+	o.DealTime = time.UnixMilli(o.DealTimeStampNano / 1e6)
+
+	// 是否为u本位合约
+	if o.SymbolType == "swap" {
+		if strings.Contains(o.Symbol, "usdt") {
+			o.IsUsdtSwap = true
+		} else {
+			o.IsUsdtSwap = false
+		}
+	}
+
+	// 计算baseCcy/instid
+	ss0 := strings.Split(o.Symbol, "/")
+	if len(ss0) == 2 {
+		ss1 := strings.Split(ss0[1], ".")
+		o.BaseCcy = ss1[0]
+
+		if o.Exchange == "BINANCE" {
+			if o.SymbolType == "swap" {
+				if ss1[1] == "usdt" {
+					o.InstId = binance.CCyCttypeToInstId(ss1[0], "usdt_swap")
+				} else if ss1[1] == "usd" {
+					o.InstId = binance.CCyCttypeToInstId(ss1[0], "usd_swap")
+				}
+			} else if o.SymbolType == "spot" {
+				o.InstId = binance.SpotTypeToInstId(ss1[0], ss1[1])
+			}
+		} else if o.Exchange == "OKX" {
+			if o.SymbolType == "swap" {
+				if ss1[1] == "usdt" {
+					o.InstId = okexv5.CCyCttypeToInstId(ss1[0], "usdt_swap")
+				} else if ss1[1] == "usd" {
+					o.InstId = okexv5.CCyCttypeToInstId(ss1[0], "usd_swap")
+				}
+			} else if o.SymbolType == "spot" {
+				o.InstId = okexv5.SpotTypeToInstId(ss1[0], ss1[1])
+			}
+		}
+	}
+
+	// 计算交易额
+	if strings.Contains(o.Symbol, "usd.td") {
+		ContractValue := decimal.NewFromInt(10)
+		if o.Symbol == "btc.usd.td" {
+			ContractValue = decimal.NewFromInt(100)
+		}
+		o.TotalValue = o.Amount.Mul(ContractValue)
+	} else {
+		o.TotalValue = o.Amount.Mul(o.Price)
+	}
+}
+
+func (o DealRecord) ToDataVisualPoint() datavisual.Point {
+	return datavisual.Point{
+		Time:  o.DealTime,
+		Value: o.Price.InexactFloat64(),
+		Tag:   util.ValueIf(o.Dir == "s", datavisual.PointTag_Sell, datavisual.PointTag_Buy)}
+}
+
+type RespDealRecordInner struct {
+	RespCommon
+	DealRecord []DealRecord `json:"data"`
+}
+
+func (r *RespDealRecordInner) parse() {
+	for i := range r.DealRecord {
+		r.DealRecord[i].parse()
+	}
+}
+
+type RespDealRecord struct {
+	Status int                 `json:"status"`
+	Data   RespDealRecordInner `json:"data"`
 }
 
 type AccountInfo struct {
