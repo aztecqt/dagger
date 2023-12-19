@@ -536,7 +536,9 @@ func GetFills_Auto(instId string, t0, t1 time.Time) (*FillsResp, error, int64) {
 }
 
 // 查询仓位历史
-func GetPositionHistory(instId string, closeType PositionCloseType, after time.Time) (*PositionHistoryResp, error) {
+// instType: MARGIN/SWAP/FUTURE/OPTION
+// instId: 跟instType二选一
+func GetPositionHistory(instType string, instId string, closeType PositionCloseType, after time.Time) (*PositionHistoryResp, error) {
 	action := "/api/v5/account/positions-history"
 	method := "GET"
 
@@ -546,8 +548,9 @@ func GetPositionHistory(instId string, closeType PositionCloseType, after time.T
 		params.Set("instId", instId)
 	}
 
-	// 目前只支持swap
-	params.Set("instType", "SWAP")
+	if len(instType) > 0 {
+		params.Set("instType", instType)
+	}
 
 	if !after.IsZero() {
 		params.Set("before", strconv.FormatInt(after.UnixMilli(), 10))

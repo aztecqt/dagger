@@ -8,6 +8,8 @@
 package cam
 
 import (
+	"encoding/binary"
+	"io"
 	"strings"
 	"time"
 
@@ -307,7 +309,6 @@ type DealRecord struct {
 	AccountAlias      string          `json:"account_alias"`
 	DealTimeStampNano int64           `json:"dealt_time"`
 	OrderId           string          `json:"order_id"`
-	DealId            string          `json:"transaction_id"`
 	SymbolType        string          `json:"symbol_type"`  // spot/swap
 	Symbol            string          `json:"trading_pair"` // binance/avax.usdt binance/avax.usdt.td binance/avax.usd.td
 	Dir               string          `json:"direction"`    // b/s
@@ -315,7 +316,6 @@ type DealRecord struct {
 	Price             decimal.Decimal `json:"dealt_price"`
 	Fee               decimal.Decimal `json:"commission"`
 	FeeCcy            string          `json:"commission_ccy"`
-	Status            string          `json:"status"`
 	DealType          string          `json:"transaction_type"`
 
 	TotalValue decimal.Decimal
@@ -326,7 +326,24 @@ type DealRecord struct {
 	InstId     string // 符合交易所规范的instrumentId
 }
 
-func (o *DealRecord) parse() {
+func serializeString(w io.Writer, str string) {
+	n := uint8(len(str))
+	binary.Write(w, binary.LittleEndian, n)
+	binary.Write(w, binary.LittleEndian, []byte(str))
+}
+
+func deserializeString(r io.Reader) (string, bool) {
+	n := uint8(0)
+	if binary.Read(r, binary.LittleEndian, &n) == nil {
+		buf := make([]byte, n)
+		if binary.Read(r, binary.LittleEndian, buf) == nil {
+			return string(buf), true
+		}
+	}
+	return "", false
+}
+
+func (o *DealRecord) Parse() {
 	o.IsMaker = o.DealType == "maker"
 	o.DealTime = time.UnixMilli(o.DealTimeStampNano / 1e6)
 
@@ -394,7 +411,7 @@ type RespDealRecordInner struct {
 
 func (r *RespDealRecordInner) parse() {
 	for i := range r.DealRecord {
-		r.DealRecord[i].parse()
+		r.DealRecord[i].Parse()
 	}
 }
 

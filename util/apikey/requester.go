@@ -1,12 +1,12 @@
 /*
  * @Author: aztec
  * @Date: 2022-05-27 10:14:00
-  - @LastEditors: Please set LastEditors
+ * @LastEditors: Please set LastEditors
  * @FilePath: \dagger\util\apikey\requester.go
  * @Description: 从apikey服务器请求一个符合条件的Key
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package apikey
 
@@ -56,7 +56,16 @@ func (r *Requester) Go(exchange, account, user string, share bool, serverAddr st
 	} else {
 		logger.LogPanic(r.logPrefix, "read deskey failed")
 	}
+
 	go r.update(exchange, account, user, &us)
+
+	for !r.Ready() {
+		time.Sleep(100)
+	}
+}
+
+func (r *Requester) Ready() bool {
+	return len(r.Key) > 0 && len(r.Secret) > 0
 }
 
 func (r *Requester) onRecvUDPMessage(op string, data []byte, addr *net.UDPAddr) {

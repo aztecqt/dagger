@@ -16,6 +16,7 @@ import (
 )
 
 var DecimalOne = decimal.NewFromInt(1)
+var DecimalTwo = decimal.NewFromInt(2)
 var DecimalNegOne = decimal.NewFromInt(-1)
 
 type Relation int

@@ -100,7 +100,7 @@ func ParseHttpResult[T any](logPref, funcName, url, method, postData string, hea
 			} else {
 				if EnableHttpLog {
 					if len(body) > 4096 {
-						logger.LogDebug(logPref, "%s resp: %s ...(+%d)", funcName, string(body[4096]), len(body)-4096)
+						logger.LogDebug(logPref, "%s resp: %s ...(+%d)", funcName, string(body[:4096]), len(body)-4096)
 					} else {
 						logger.LogDebug(logPref, "%s resp: %s", funcName, string(body))
 					}

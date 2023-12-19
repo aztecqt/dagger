@@ -40,6 +40,17 @@ func DateOfTime(t time.Time) time.Time {
 	return date
 }
 
+func MonthOfTime(t time.Time) time.Time {
+	y, m, _ := t.Date()
+	name, _ := t.Zone()
+	str := fmt.Sprintf("%04d-%02d-%02d 00:00:00 %s", y, m, 1, name)
+	date, e := time.Parse("2006-01-02 15:04:05 MST", str)
+	if e != nil {
+		fmt.Println(e.Error())
+	}
+	return date
+}
+
 func TimeNowUnix13() int64 {
 	return time.Now().UnixNano() / 1e6
 }

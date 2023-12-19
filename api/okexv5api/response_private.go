@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-06 13:19:27
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-09-28 19:54:16
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2023-12-17 16:45:34
  * @FilePath: \stratergyc:\work\svn\quant\go\src\dagger\api\okexv5api\response_private.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5api
 
@@ -288,10 +288,13 @@ type PositionHistory struct {
 	UpdateTimeStamp string          `json:"utime"`
 	OpenAvgPrice    decimal.Decimal `json:"openAvgPx"`
 	CloseAvgPrice   decimal.Decimal `json:"closeAvgPx"`
+	OpenMaxPos      decimal.Decimal `json:"openMaxPos"`
+	CloseTotalPos   decimal.Decimal `json:"closeTotalPos"`
 	Fee             decimal.Decimal `json:"fee"`
 	FundingFee      decimal.Decimal `json:"fundingFee"`
-	Profit          decimal.Decimal `json:"pnl"`
-	ProfitRatio     decimal.Decimal `json:"pnlRatio"`
+	RealizedPnl     decimal.Decimal `json:"realizedPnl"` // 总收益=平仓收益+资金费+手续费
+	Pnl             decimal.Decimal `json:"pnl"`         // 平仓收益
+	PnlRatio        decimal.Decimal `json:"pnlRatio"`    // ???计算方法未知
 	Lever           decimal.Decimal `json:"lever"`
 	Direction       string          `json:"direction"`
 	DepositCurrency string          `json:"ccy"`

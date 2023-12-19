@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-03-25 22:19:38
   - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-09-25 11:09:43
+  - @LastEditTime: 2023-12-19 17:44:31
  * @FilePath: \dagger\api\okexv5api\response_public.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
@@ -12,6 +12,8 @@
 package okexv5api
 
 import (
+	"encoding/binary"
+	"io"
 	"strings"
 
 	"github.com/aztecqt/dagger/util"
@@ -91,26 +93,28 @@ func (r *GetCurrencyResp) FindCurrency(ccy, chain string) (Currency, bool) {
 	return Currency{}, false
 }
 
+type Instrument struct {
+	InstID    string `json:"instID"`    // 产品类型
+	InstType  string `json:"instType"`  // 产品类型 FUTURES/SWAP/SPOT/MARGIN...
+	Uly       string `json:"uly"`       // 标的指数
+	BaseCcy   string `json:"baseCcy"`   // 币币中的交易货币币种，如BTC-USDT中的BTC
+	QuoteCcy  string `json:"quoteCcy"`  // 币币中的计价货币币种，如BTC-USDT中的USDT
+	SettleCcy string `json:"settleCcy"` // 盈亏结算和保证金币种
+	CtValCcy  string `json:"ctValCcy"`  // 合约面值计价币种
+	CtVal     string `json:"ctVal"`     // 合约面值
+	ExpTime   string `json:"expTime"`   // 交割日期（交割合约、期权）
+	Lever     string `json:"lever"`     // 最大杠杆倍率
+	TickSize  string `json:"tickSz"`    // 下单价格精度
+	LotSz     string `json:"lotSz"`     // 下单数量精度
+	MinSz     string `json:"minSz"`     // 最小下单数量
+	Alias     string `json:"alias"`     // 别名(this_week/next_week/quarter/next_quarter)
+	State     string `json:"state"`     // 状态：live：交易中	suspend：暂停中	expired：已过期	preopen：预上线	settlement：资金费结算
+}
+
 // 交易对信息
 type InstrumentRestResp struct {
 	CommonRestResp
-	Data []struct {
-		InstID    string `json:"instID"`    // 产品类型
-		InstType  string `json:"instType"`  // 产品类型 FUTURES/SWAP/SPOT/MARGIN...
-		Uly       string `json:"uly"`       // 标的指数
-		BaseCcy   string `json:"baseCcy"`   // 币币中的交易货币币种，如BTC-USDT中的BTC
-		QuoteCcy  string `json:"quoteCcy"`  // 币币中的计价货币币种，如BTC-USDT中的USDT
-		SettleCcy string `json:"settleCcy"` // 盈亏结算和保证金币种
-		CtValCcy  string `json:"ctValCcy"`  // 合约面值计价币种
-		CtVal     string `json:"ctVal"`     // 合约面值
-		ExpTime   string `json:"expTime"`   // 交割日期（交割合约、期权）
-		Lever     string `json:"lever"`     // 最大杠杆倍率
-		TickSize  string `json:"tickSz"`    // 下单价格精度
-		LotSz     string `json:"lotSz"`     // 下单数量精度
-		MinSz     string `json:"minSz"`     // 最小下单数量
-		Alias     string `json:"alias"`     // 别名(this_week/next_week/quarter/next_quarter)
-		State     string `json:"state"`     // 状态：live：交易中	suspend：暂停中	expired：已过期	preopen：预上线	settlement：资金费结算
-	} `json:"data"`
+	Data []Instrument `json:"data"`
 }
 
 // 行情
@@ -141,6 +145,15 @@ type KLineUnit struct {
 	Low       decimal.Decimal
 	Close     decimal.Decimal
 	VolumeUSD decimal.Decimal
+}
+
+func (ku KLineUnit) Serialize(w io.Writer) {
+	binary.Write(w, binary.LittleEndian, ku.TS)
+	binary.Write(w, binary.LittleEndian, ku.Open.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.High.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.Low.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.Close.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.VolumeUSD.InexactFloat64())
 }
 
 type KLineRestResp struct {
