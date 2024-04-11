@@ -1,11 +1,11 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-30 13:08:33
- * @LastEditors: Please set LastEditors
+  - @LastEditors: Please set LastEditors
  * @Description: 接口定义
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package common
 
@@ -19,8 +19,8 @@ type OrderDir int
 
 const (
 	OrderDir_None OrderDir = iota
-	OrderDir_Sell
 	OrderDir_Buy
+	OrderDir_Sell
 )
 
 func OrderDir2Str(d OrderDir) string {
@@ -67,12 +67,19 @@ type DealHistory struct {
 	Amount decimal.Decimal
 }
 
+// 深度观察者
 type DepthObserver interface {
 	OnDepthChanged()
 }
 
+// 成交观察者
 type OrderObserver interface {
 	OnDeal(d Deal)
+}
+
+// 市场爆仓观察者
+type LiquidationObserver interface {
+	OnLiquidation(px, sz decimal.Decimal, dir OrderDir)
 }
 
 type ChDeal chan Deal  // TODO remove
@@ -88,7 +95,6 @@ type Order interface {
 	GetType() string         // 交易对名称
 	String() string
 	GetStatus() string
-	GetExtend() string
 	GetDir() OrderDir
 	GetPrice() decimal.Decimal
 	GetSize() decimal.Decimal
@@ -108,6 +114,7 @@ type Order interface {
 
 // 币种权益
 type Balance interface {
+	Ccy() string
 	Rights() decimal.Decimal
 	Frozen() decimal.Decimal
 	Available() decimal.Decimal
@@ -115,6 +122,8 @@ type Balance interface {
 
 // 合约仓位
 type Position interface {
+	Symbol() string
+	ContractType() string
 	Long() decimal.Decimal
 	Short() decimal.Decimal
 	LongAvgPx() decimal.Decimal
@@ -126,8 +135,9 @@ type Position interface {
 type CommonMarket interface {
 	Type() string
 	String() string
+	TradingTime() TradingTimes // 获取近期的交易时间配置。返回nil表示24小时交易不停盘
 	Ready() bool
-	ReadyStr() string
+	UnreadyReason() string
 	Uninit()
 	LatestPrice() decimal.Decimal
 	OrderBook() *Orderbook
@@ -135,21 +145,24 @@ type CommonMarket interface {
 	AlignPrice(price decimal.Decimal, dir OrderDir, makeOnly bool) decimal.Decimal
 	AlignSize(size decimal.Decimal) decimal.Decimal
 	MinSize() decimal.Decimal
-	AddDepthObserver(obs DepthObserver)
-	RemoveDepthObserver(obs DepthObserver)
+	AddDepthObserver(o DepthObserver)
+	RemoveDepthObserver(o DepthObserver)
 }
 
 // 合约行情接口
 type FutureMarket interface {
 	CommonMarket
 
+	Symbol() string                                                        // 币种，表示是哪种币的合约。用小写，如：btc
+	ContractType() string                                                  // 合约种类，表示是哪种合约。可选：usd_swap/usdt_swap/this_week/next_week/this_quarter/next_quarter
+	IsUsdtContract() bool                                                  // 是否为U本位合约
 	MarkPrice() decimal.Decimal                                            // 标记价格，用于计算仓位浮动盈亏的价格。如果交易所不提供，则使用中间价代替
 	ValueAmount() decimal.Decimal                                          // 单位合约面值数量
 	ValueCurrency() string                                                 // 面值单位币种，usdt合约为币，usd合约为usdt
 	SettlementCurrency() string                                            // 保证金币种
-	Symbol() string                                                        // 币种，表示是哪种币的合约。用小写，如：btc
-	ContractType() string                                                  // 合约种类，表示是哪种合约。可选：usd_swap/usdt_swap/this_week/next_week/this_quarter/next_quarter
 	FundingInfo() (decimal.Decimal, decimal.Decimal, time.Time, time.Time) // 当期费率、下期费率、当期时间
+	AddLiquidationObserver(o LiquidationObserver)                          // 注册市场爆仓观察器
+	RemoveLiquidationObserver(o LiquidationObserver)                       //
 }
 
 // 现货行情接口
@@ -166,7 +179,9 @@ type CommonTrader interface {
 	Market() CommonMarket
 	String() string
 	Ready() bool
-	ReadyStr() string // 方便查看哪里没就绪
+	UnreadyReason() string // 方便查看哪里没就绪
+	BuyPriceRange() (min, max decimal.Decimal)
+	SellPriceRange() (min, max decimal.Decimal)
 	MakeOrder(price, amount decimal.Decimal, dir OrderDir, makeOnly, reduceOnly bool, purpose string, observer OrderObserver) Order
 	Orders() []Order
 	FeeTaker() decimal.Decimal
@@ -174,7 +189,7 @@ type CommonTrader interface {
 
 	// 在某个方向上最多可交易的数量
 	// 注意合约有反向仓位时，只能返回可平仓数量，不考虑新开仓数量
-	AvilableAmount(dir OrderDir, price decimal.Decimal) decimal.Decimal
+	AvailableAmount(dir OrderDir, price decimal.Decimal) decimal.Decimal
 }
 
 // 合约交易器接口
@@ -201,22 +216,34 @@ type SpotTrader interface {
 // 全币种费率信息接口
 // 独立于Market对象，单独抽象一个针对全永续合约费率监控的接口
 type FundingFeeObserver interface {
-	AddType(t string)
-	GetFeeInfo(t string) (FundingFeeInfo, bool)
-	AllTypes() []string
+	GetFeeInfo(instId string) (FundingFeeInfo, bool)
+	AllInstIds() []string
 	AllFeeInfo() []FundingFeeInfo
+	Ready() (float64, bool)
 }
 
 type FundingFeeInfo struct {
-	TradeType   string                        // 合约Id/名称
-	RefreshTime time.Time                     // 数据刷新时间
-	PriceRatio  decimal.Decimal               // 当前价格比例（现货/合约）
+	InstId      string                        // 合约Id/名称
+	SpotPrice   decimal.Decimal               // 当前价格
+	SwapPrice   decimal.Decimal               // 当前价格
 	VolUSD24h   decimal.Decimal               // 24小时成交额
 	FeeRate     decimal.Decimal               // 当期费率
 	FeeTime     time.Time                     // 当期费率时间
 	NextFeeRate decimal.Decimal               // 下期费率
 	NextFeeTime time.Time                     // 下期费率时间
 	FeeHistory  map[time.Time]decimal.Decimal // 历史费率
+}
+
+func (f *FundingFeeInfo) FundingFeeOk() bool {
+	return !f.FeeTime.IsZero()
+}
+
+func (f *FundingFeeInfo) NextFundingFeeOk() bool {
+	return !f.NextFeeTime.IsZero()
+}
+
+func (f *FundingFeeInfo) HistoryFundingFeeOk() bool {
+	return f.FeeHistory != nil && len(f.FeeHistory) > 0
 }
 
 type ContractInfo struct {
@@ -233,6 +260,47 @@ type ContractObserver interface {
 	GetContractInfo(ccy string) *ContractInfo // 查询某个合约信息
 }
 
+// 统一账号整体风险。不同交易所的同一账号风险计算方式可能不同。这里统一抽象为风险等级
+// 交易所在实现时，宜用配置文件来指定每个风险等级的具体标准
+type UniAccRiskLevel int
+
+const (
+	UniAccRiskLevel_Safe UniAccRiskLevel = iota
+	UniAccRiskLevel_Warning
+	UniAccRiskLevel_Danger
+)
+
+func UniAccRiskLevel2String(l UniAccRiskLevel) string {
+	switch l {
+	case UniAccRiskLevel_Safe:
+		return "safe"
+	case UniAccRiskLevel_Warning:
+		return "warning"
+	case UniAccRiskLevel_Danger:
+		return "danger"
+	default:
+		return "invalid"
+	}
+}
+
+// 统一账户整体风险级别
+// 所有支持统一账户的交易所都应该计算这个
+type UniAccRisk struct {
+	Level          UniAccRiskLevel   // 当前风险等级。所有策略逻辑仅依赖这一个值
+	PositionValue  decimal.Decimal   // 仓位价值
+	TotalMargin    decimal.Decimal   // 总保证金
+	MaintainMargin decimal.Decimal   // 有效保证金
+	Details        map[string]string // 详情，仅用于显示，不用于计算
+}
+
+// 金融接口
+type Finance interface {
+	GetSavingApy(ccy string) decimal.Decimal
+	GetSavedBalance(ccy string) decimal.Decimal
+	Save(ccy string, amount decimal.Decimal) bool
+	Draw(ccy string, amount decimal.Decimal) bool
+}
+
 // 中心化交易所
 // 一个CEx对应一个中心化交易所的账号
 // 总管所有账号数据
@@ -241,7 +309,9 @@ type ContractObserver interface {
 type CEx interface {
 	Name() string
 	Instruments() []*Instruments
-	GetInstrument(id string) *Instruments
+	GetSpotInstrument(baseCcy, quoteCcy string) *Instruments
+	GetFutureInstrument(symbol, contractType string) *Instruments
+	GetUniAccRisk() UniAccRisk
 
 	// 创建合约行情器/交易器
 	// 这里symbol/contractType采用交易所无关的统一命名
@@ -250,15 +320,21 @@ type CEx interface {
 	// 各交易所自行转化成自己的表达方式
 	FutureMarkets() []FutureMarket
 	FutureTraders() []FutureTrader
-	UseFutureMarket(symbol string, contractType string) FutureMarket
-	UseFutureTrader(symbol string, contractType string, lever int) FutureTrader // lever填0表示自动设置最合适的杠杆率
+	UseFutureMarket(symbol, contractType string) FutureMarket
+	UseFutureTrader(symbol, contractType string, lever int) FutureTrader // lever填0表示自动设置最合适的杠杆率
 
 	SpotMarkets() []SpotMarket
 	SpotTraders() []SpotTrader
-	UseSpotMarket(baseCcy string, quoteCcy string) SpotMarket
-	UseSpotTrader(baseCcy string, quoteCcy string) SpotTrader
+	UseSpotMarket(baseCcy, quoteCcy string) SpotMarket
+	UseSpotTrader(baseCcy, quoteCcy string) SpotTrader
 
-	UseFundingFeeInfoObserver(maxLength int) FundingFeeObserver
+	// 获取金融接口
+	GetFinance() Finance
+
+	GetAllPositions() []Position
+	GetAllBalances() []Balance
+
+	UseFundingFeeInfoObserver() FundingFeeObserver
 	FundingFeeInfoObserver() FundingFeeObserver
 
 	UseContractObserver(contractType string) ContractObserver

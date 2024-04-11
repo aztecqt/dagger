@@ -49,7 +49,7 @@ type TimeEvent struct {
 
 // 数据集合
 type DataGroup struct {
-	Interval int64 `json:"interval"` // 所包含的时间序列间隔
+	IntervalMs int64 `json:"interval"` // 所包含的时间序列间隔
 
 	lines      map[string]*stratergy.DataLine // 时间序列
 	points     map[string][]Point             // 非均匀分布的点
@@ -57,9 +57,9 @@ type DataGroup struct {
 	extraInfo  strings.Builder
 }
 
-func NewDataGroup(interval int64) *DataGroup {
+func NewDataGroup(intervalMs int64) *DataGroup {
 	dg := new(DataGroup)
-	dg.Interval = interval
+	dg.IntervalMs = intervalMs
 	dg.lines = make(map[string]*stratergy.DataLine)
 	dg.points = make(map[string][]Point)
 	dg.timeEvents = make(map[string][]TimeEvent)
@@ -72,7 +72,7 @@ func (d *DataGroup) FindOrAddDataLine(name string) *stratergy.DataLine {
 		return dl
 	} else {
 		dl := new(stratergy.DataLine)
-		dl.Init(name, math.MaxInt, d.Interval, 0)
+		dl.Init(name, math.MaxInt, d.IntervalMs, 0)
 		d.lines[name] = dl
 		return dl
 	}
@@ -104,6 +104,25 @@ func (d *DataGroup) FindOrAddTimeEventList(name string) []TimeEvent {
 func (d *DataGroup) RecordLine(key string, val float64, t time.Time) {
 	dl := d.FindOrAddDataLine(key)
 	dl.Update(t.UnixMilli(), val)
+}
+
+// 所有dl尾部对齐
+func (d *DataGroup) AlignLineTail() {
+	lastMs := int64(0)
+	for _, dl := range d.lines {
+		if len(dl.Times) > 0 {
+			ms := dl.Times[len(dl.Times)-1]
+			if ms > lastMs {
+				lastMs = ms
+			}
+		}
+	}
+
+	for _, dl := range d.lines {
+		if len(dl.Values) > 0 {
+			dl.Update(lastMs, dl.Values[len(dl.Values)-1])
+		}
+	}
 }
 
 func (d *DataGroup) CopyDataLine(dl *stratergy.DataLine) {

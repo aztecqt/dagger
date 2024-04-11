@@ -1,20 +1,20 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-01 14:14:14
- * @LastEditors: aztec
- * @LastEditTime: 2023-03-02 17:56:40
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-04-09 15:53:13
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\okexv5\future_trader.go
  * @Description:合约交易器okexv5版本。实现common.FutureTrader接口
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5
 
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"math"
 	"sync"
 	"time"
 
@@ -55,12 +55,35 @@ func (t *FutureTrader) Init(ex *Exchange, orderTag string, m *FutureMarket, leve
 
 	// 设置杠杆倍率
 	for {
-		resp, err := okexv5api.SetLeverRate(m.instId, lever)
-		if err == nil && resp.Code == "0" {
-			t.lever = util.String2IntPanic(resp.Data[0].Lever)
-			logger.LogImportant(t.logPrefix, "lever set to %s", resp.Data[0].Lever)
+		// 组合保证金模式+合约全仓模式，不需要、也无法设置杠杆倍率
+		// 此时将杠杆率视作1来处理
+		if t.exchange.excfg.AccLevel == okexv5api.AccLevel_Portfolio && t.exchange.excfg.ContractTradeMode == okexv5api.TradeMode_Cross {
+			logger.LogImportant(t.logPrefix, "lever set to 1(in portfolio mode)")
+			t.lever = 1
 			break
 		}
+
+		if resp, err := okexv5api.GetLeverage(m.instId); err == nil && resp.Code == "0" {
+			if resp.Data[0].Lever == lever {
+				t.lever = lever
+				logger.LogImportant(t.logPrefix, "lever is already %d", lever)
+				break
+			}
+		}
+
+		resp, err := okexv5api.SetLeverage(m.instId, lever)
+		if err == nil && resp.Code == "0" {
+			t.lever = resp.Data[0].Lever
+			logger.LogImportant(t.logPrefix, "lever set to %d", resp.Data[0].Lever)
+			break
+		} else {
+			if err != nil {
+				logger.LogImportant(t.logPrefix, "set leverage failed: %s", err.Error())
+			} else {
+				logger.LogImportant(t.logPrefix, "set leverage failed: %s", resp.Msg)
+			}
+		}
+
 		time.Sleep(time.Second)
 	}
 
@@ -166,8 +189,28 @@ func (t *FutureTrader) Ready() bool {
 	return t.market.Ready() && t.pos.Ready() && t.balance.Ready() && exchangeReady && !t.errorlock
 }
 
-func (t *FutureTrader) ReadyStr() string {
-	return fmt.Sprintf("%s position_ok:%v, balance_ok:%v, exchange_ok:%v, no-errlock:%v", t.market.ReadyStr(), t.pos.Ready(), t.balance.Ready(), exchangeReady, !t.errorlock)
+func (t *FutureTrader) UnreadyReason() string {
+	if !t.market.Ready() {
+		return t.market.UnreadyReason()
+	} else if !t.pos.Ready() {
+		return "postion not ready"
+	} else if t.balance.Ready() {
+		return "balance not ready"
+	} else if !exchangeReady {
+		return "exchange not ready"
+	} else if t.errorlock {
+		return "locked by error"
+	} else {
+		return ""
+	}
+}
+
+func (t *FutureTrader) BuyPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
+}
+
+func (t *FutureTrader) SellPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
 }
 
 func (t *FutureTrader) MakeOrder(
@@ -181,7 +224,7 @@ func (t *FutureTrader) MakeOrder(
 		o := new(ContractOrder)
 		if o.Init(t, price, amount, dir, makeOnly, reduceOnly, purpose) {
 			t.muOrders.Lock()
-			t.orders[o.CltOrderId] = o
+			t.orders[o.CltOrderId.(string)] = o
 			t.muOrders.Unlock()
 			o.AddObserver(t)   // 先内部处理
 			o.AddObserver(obs) // 再外部处理
@@ -191,7 +234,7 @@ func (t *FutureTrader) MakeOrder(
 			return nil
 		}
 	} else {
-		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. ReadyStr=%s", t.ReadyStr())
+		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. reason=%s", t.UnreadyReason())
 		time.Sleep(time.Second)
 		return nil
 	}
@@ -213,35 +256,49 @@ func (t *FutureTrader) FeeMaker() decimal.Decimal {
 	return decimal.Zero
 }
 
-func (t *FutureTrader) AvilableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
+func (t *FutureTrader) AvailableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
 	// 开仓时，可用数量以保证金计算
 	// 反向合约（USD合约）为coin x price x lever / AmountValue
 	// 正向合约（USDT合约）为usdt / price x lever / AmountValue
 	// 平仓时，可用数量以剩余仓位计算（目前不考虑对向开仓，这样比较保守和简单）
-	bal := t.balance.Available().InexactFloat64()
-	px := t.market.orderBook.Sell1().InexactFloat64()
-	valueAmnt := t.FutureMarket().ValueAmount().InexactFloat64()
-
-	isUSDTContract := !strings.Contains(t.market.ValueCurrency(), "usd")
-	avililable := decimal.Zero
-	if isUSDTContract {
-		avililable = decimal.NewFromFloat(bal / px * float64(t.lever) / valueAmnt * 0.95) // 按保守估计
-	} else if t.market.ContractType() == "usd_swap" {
-		avililable = decimal.NewFromFloat(bal * px * float64(t.lever) / valueAmnt * 0.95) // 按保守估计
+	availableMargin := t.balance.Available().InexactFloat64()
+	if !t.exchange.isSingleMarginMode() {
+		// 注意，单币种保证金模式和跨币种/组合保证金模式的保证金计算方式不一样。
+		// 前者为balance，后者则需要从api获取。特殊的：组合保证金模式的杠杆率以1计算（因为没有杠杆率的概念）
+		if v, ok := t.exchange.getMaxAvailable(t.market.instId); ok {
+			availableMargin = util.ValueIf(dir == common.OrderDir_Buy, v.AvailableBuy.InexactFloat64(), v.AvailableSell.InexactFloat64())
+		} else {
+			logger.LogImportant(t.logPrefix, "get max available from exchange failed")
+			return decimal.Zero
+		}
 	}
 
-	avililable = t.exchange.instrumentMgr.AlignSize(t.market.instId, avililable)
+	valueAmnt := t.FutureMarket().ValueAmount().InexactFloat64()
+
+	if price.IsZero() {
+		price = util.ValueIf(dir == common.OrderDir_Buy, t.market.orderBook.Sell1Price(), t.market.orderBook.Buy1Price())
+	}
+	px := price.InexactFloat64()
+
+	available := decimal.Zero
+	if t.market.IsUsdtContract() {
+		available = decimal.NewFromFloat(availableMargin / px * float64(t.lever) / valueAmnt * 0.95) // 按保守估计
+	} else {
+		available = decimal.NewFromFloat(availableMargin * px * float64(t.lever) / valueAmnt * 0.95) // 按保守估计
+	}
+
+	available = t.exchange.instrumentMgr.AlignSize(t.market.instId, available)
 	if dir == common.OrderDir_Buy {
 		if t.pos.Short().IsPositive() {
 			return t.pos.Short() // 平空
 		} else {
-			return avililable // 开多
+			return available // 开多
 		}
 	} else if dir == common.OrderDir_Sell {
 		if t.pos.Long().IsPositive() {
 			return t.pos.Long() // 平多
 		} else {
-			return avililable // 开空
+			return available // 开空
 		}
 	} else {
 		return decimal.Zero

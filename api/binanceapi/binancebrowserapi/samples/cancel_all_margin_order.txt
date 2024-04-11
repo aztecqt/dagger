@@ -1,0 +1,31 @@
+{
+
+}
+
+{
+    "code": "000000",
+    "message": null,
+    "messageDetail": null,
+    "data": {
+        "errors": [],
+        "corrects": [
+            {
+                "orderId": "272679364",
+                "symbol": "SSVUSDT",
+                "msg": "取消订单成功",
+                "origClientOrderId": "web_8e7490ee970349c9b6a0249cfffa938f",
+                "clientOrderId": "yEeMBCdVc2vREoz7y0Impg",
+                "transactTime": null,
+                "price": "30.00000000",
+                "origQty": "1.00000000",
+                "executedQty": "0.00000000",
+                "cummulativeQuoteQty": "0.00000000",
+                "status": "CANCELED",
+                "timeInForce": "GTC",
+                "type": "LIMIT",
+                "side": "BUY"
+            }
+        ]
+    },
+    "success": true
+}

@@ -28,9 +28,19 @@ func NewBalanceMgr() *BalanceMgr {
 // 设置权益
 func (e *BalanceMgr) RefreshBalance(ccy string, free, frozen decimal.Decimal, refreshTime time.Time) {
 	bal := e.FindBalance(ccy)
-	bal.rights = free.Add(frozen)
-	bal.frozen = frozen
-	bal.RefreshRights(free.Add(frozen), frozen, refreshTime)
+	bal.Refresh(free.Add(frozen), frozen, refreshTime)
+}
+
+// 获取所有资产
+func (e *BalanceMgr) GetAllBalances() []*BalanceImpl {
+	e.muBalance.Lock()
+	defer e.muBalance.Unlock()
+
+	bals := make([]*BalanceImpl, 0, len(e.balanceByCcy))
+	for _, bi := range e.balanceByCcy {
+		bals = append(bals, bi)
+	}
+	return bals
 }
 
 // 查找某币种的权益，指针可以长期保存使用

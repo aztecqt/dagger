@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-04-09 17:34:59
   - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-10-10 15:47:19
+  - @LastEditTime: 2024-04-01 11:14:21
  * @FilePath: \dagger\stratergy\dataline.go
  * @Description: 按固定时间间隔排列的数据队列
  * 对于外部输入时间-数据对，将其时间对齐后再记录
@@ -78,17 +78,23 @@ func (d *DataLine) Name() string {
 }
 
 func (d *DataLine) WithFilePath(path string) *DataLine {
-	d.filePath = path
-	d.load()
+	if len(path) > 0 {
+		d.filePath = path
+		d.load()
+	}
+
 	return d
 }
 
 func (d *DataLine) WithFileDirAndPath(dir, path string) *DataLine {
-	if dir[len(dir)-1] != '\\' && dir[len(dir)-1] != '/' {
-		dir = dir + "/"
+	if len(dir) > 0 && len(path) > 0 {
+		if dir[len(dir)-1] != '\\' && dir[len(dir)-1] != '/' {
+			dir = dir + "/"
+		}
+		d.filePath = dir + path
+		d.load()
 	}
-	d.filePath = dir + path
-	d.load()
+
 	return d
 }
 
@@ -107,14 +113,14 @@ func (d *DataLine) Clear() {
 }
 
 func (d *DataLine) Update(ms int64, v float64) {
-	d.updateInner(ms, v, true)
+	d.updateInner(ms, v)
 }
 
 func (d *DataLine) UpdateDecimal(ms int64, v decimal.Decimal) {
-	d.updateInner(ms, v.InexactFloat64(), true)
+	d.updateInner(ms, v.InexactFloat64())
 }
 
-func (d *DataLine) updateInner(ms int64, v float64, toChan bool) {
+func (d *DataLine) updateInner(ms int64, v float64) {
 	if len(d.Values) == 0 {
 		// 首个元素直接插入
 		msAligned := ms / d.intervalMs * d.intervalMs
@@ -127,18 +133,20 @@ func (d *DataLine) updateInner(ms int64, v float64, toChan bool) {
 		for {
 			l := len(d.Values)
 			deltaMs := ms - d.lastAlignedMs
-			if deltaMs < d.intervalMs {
-				// 更新最后一个元素
-				d.Values[l-1] = v
-				d.Times[l-1] = ms
-				break
-			} else {
-				// 补齐后面的元素
-				d.Times[l-1] = d.Times[l-2] + d.intervalMs
-				d.Values[l-1] = v
-				d.lastAlignedMs = d.Times[l-1]
-				d.Values = append(d.Values, v)
-				d.Times = append(d.Times, d.Times[l-1]+1)
+			if deltaMs >= 0 {
+				if deltaMs < d.intervalMs {
+					// 更新最后一个元素
+					d.Values[l-1] = v
+					d.Times[l-1] = ms
+					break
+				} else {
+					// 补齐后面的元素
+					d.Times[l-1] = d.Times[l-2] + d.intervalMs
+					d.Values[l-1] = v
+					d.lastAlignedMs = d.Times[l-1]
+					d.Values = append(d.Values, v)
+					d.Times = append(d.Times, d.Times[l-1]+1)
+				}
 			}
 		}
 
@@ -164,7 +172,13 @@ func (d *DataLine) GetData(index int) (DatalineUnit, bool) {
 	}
 }
 
+// index： 0, 1, 2, 3
+// index：-4,-3,-2,-1
 func (d *DataLine) GetValue(index int) (float64, bool) {
+	if index < 0 {
+		index = d.Length() + index
+	}
+
 	if index >= 0 && index < len(d.Values) {
 		return d.Values[index], true
 	} else {
@@ -173,10 +187,19 @@ func (d *DataLine) GetValue(index int) (float64, bool) {
 }
 
 func (d *DataLine) GetTime(index int) (int64, bool) {
+	if index < 0 {
+		index = d.Length() + index
+	}
+
 	if index >= 0 && index < len(d.Times) {
 		return d.Times[index], true
 	} else {
-		return 0, false
+		// 越界时，返回推测出来的时间，但是ok为false
+		if index < 0 {
+			return d.Times[0] - d.intervalMs*(-int64(index)), false
+		} else {
+			return d.Times[0] + d.intervalMs*(int64(index)), false
+		}
 	}
 }
 

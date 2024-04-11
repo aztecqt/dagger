@@ -8,13 +8,17 @@
 package binanceapi
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aztecqt/dagger/api"
 	"github.com/aztecqt/dagger/util/logger"
 )
 
-const baseURL = "wss://stream.binance.com:9443/ws/"
+const SpotBaseUrl = "wss://stream.binance.com:9443/ws/"
+const CmBaseUrl = "wss://fstream.binance.com/ws/"
+const UmBaseUrl = "wss://dstream.binance.com/ws/"
 const wsLogPrefix = "binance_ws"
 
 var wsSubscribeId int
@@ -23,12 +27,10 @@ type WsStream struct {
 	wsConn api.WsConnection
 }
 
-func (ws *WsStream) Start(streamName string, fnOnRawMsg api.OnRecvWSRawMsg) *api.WsSubscriber {
+func (ws *WsStream) Start(baseUrl, streamName string, fnOnRawMsg api.OnRecvWSRawMsg) *api.WsSubscriber {
 	logger.LogImportant(wsLogPrefix, "starting...")
-	url := fmt.Sprintf("%s%s", baseURL, streamName)
+	url := fmt.Sprintf("%s%s", baseUrl, streamName)
 	ws.wsConn.Start(url, wsLogPrefix, fnOnRawMsg)
-	p1 := api.Pinger{}
-	p1.Start(&ws.wsConn, wsLogPrefix, `{"pong"}`, 5, 60*6)
 
 	id := wsSubscribeId
 	wsSubscribeId++
@@ -46,4 +48,22 @@ func (ws *WsStream) Start(streamName string, fnOnRawMsg api.OnRecvWSRawMsg) *api
 
 func (ws *WsStream) Stop() {
 	ws.wsConn.Stop()
+}
+
+func SubscribeWithStream[T any](baseUrl, streamName, logPrefix string, fn api.OnRecvWSMsg) (*api.WsSubscriber, *WsStream) {
+	stream := new(WsStream)
+	s := stream.Start(baseUrl, streamName, func(rawMsg api.WSRawMsg) {
+		if !strings.Contains(rawMsg.Str, "result") {
+			// 将rawMsg序列化成对象，并返回
+			t := new(T)
+			err := json.Unmarshal(rawMsg.Data, t)
+			if err == nil {
+				fn(t)
+			} else {
+				logger.LogImportant(logPrefix, err.Error())
+			}
+		}
+	})
+
+	return s, stream
 }

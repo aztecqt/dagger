@@ -47,8 +47,7 @@ func (m *SpotMarket) Init(ex *Exchange, instID string, detailedDepth bool) {
 	m.instId = instID
 	m.inst = *ex.instrumentMgr.Get(instID)
 	m.detailedDepth = detailedDepth
-	m.orderBook = new(common.Orderbook)
-	m.orderBook.Init()
+	m.orderBook = common.NewOrderBook()
 	m.priceOK = false
 	m.depthOK = false
 
@@ -194,6 +193,10 @@ func (m *SpotMarket) Type() string {
 	return m.instId
 }
 
+func (m *SpotMarket) TradingTime() common.TradingTimes {
+	return nil
+}
+
 func (m *SpotMarket) String() string {
 	bb := bytes.Buffer{}
 	bb.WriteString(fmt.Sprintf("\nspot market: %s\n", m.instId))
@@ -207,8 +210,12 @@ func (m *SpotMarket) Ready() bool {
 	return m.depthOK
 }
 
-func (m *SpotMarket) ReadyStr() string {
-	return fmt.Sprintf("depth_ok:%v", m.depthOK)
+func (m *SpotMarket) UnreadyReason() string {
+	if !m.depthOK {
+		return "depth not ready"
+	} else {
+		return ""
+	}
 }
 
 func (m *SpotMarket) BaseCurrency() string {
@@ -235,7 +242,7 @@ func (m *SpotMarket) AlignPrice(price decimal.Decimal, dir common.OrderDir, make
 	if price.IsZero() {
 		return price
 	} else {
-		return m.ex.instrumentMgr.AlignPrice(m.instId, price, dir, makeOnly, m.orderBook.Buy1(), m.orderBook.Sell1())
+		return m.ex.instrumentMgr.AlignPrice(m.instId, price, dir, makeOnly, m.orderBook.Buy1Price(), m.orderBook.Sell1Price())
 	}
 }
 
@@ -248,7 +255,7 @@ func (m *SpotMarket) AlignSize(size decimal.Decimal) decimal.Decimal {
 }
 
 func (m *SpotMarket) MinSize() decimal.Decimal {
-	return m.ex.instrumentMgr.MinSize(m.instId, m.orderBook.Buy1())
+	return m.ex.instrumentMgr.MinSize(m.instId, m.orderBook.Buy1Price())
 }
 
 // #endregion

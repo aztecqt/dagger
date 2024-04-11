@@ -59,7 +59,7 @@ func GetServerTs() int64 {
 	if err == nil {
 		return rst.ServerTime
 	} else {
-		logger.LogPanic(restLogPrefix, "get server ts failed: %s", err.Error())
+		logger.LogImportant(restLogPrefix, "get server ts failed: %s", err.Error())
 		return 0
 	}
 }
@@ -279,6 +279,46 @@ func GetBookTicker(symbols ...string) (*[]binanceapi.BookTicker, error) {
 		for i := range *rst {
 			(*rst)[i].Ts = ts
 		}
+		return rst, err
+	}
+}
+
+// 24小时价格变动（好奇怪的名字）
+func Get24hrTicker(symbols ...string) (*[]binanceapi.Ticker24hr, error) {
+	action := "/api/v3/ticker/24hr"
+	method := "GET"
+	paramStr := ""
+	single := false
+	params := url.Values{}
+	if len(symbols) > 0 {
+		if len(symbols) == 1 {
+			params.Set("symbol", symbols[0])
+			single = true
+		} else {
+			d, _ := json.Marshal(symbols)
+			symbolsstr := string(d)
+			params.Set("symbols", symbolsstr)
+		}
+	}
+	params.Set("type", "MINI")
+	paramStr = params.Encode()
+	action = action + "?" + paramStr
+	ep := rootUrl + action
+	if single {
+		rst, err := network.ParseHttpResult[binanceapi.Ticker24hr](restLogPrefix, "GetSpot24hrTicker", ep, method, "", nil, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+		if err == nil {
+			respArry := []binanceapi.Ticker24hr{*rst}
+			return &respArry, nil
+		} else {
+			return nil, err
+		}
+
+	} else {
+		rst, err := network.ParseHttpResult[[]binanceapi.Ticker24hr](restLogPrefix, "GetSpot24hrTicker", ep, method, "", nil, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
 		return rst, err
 	}
 }
@@ -634,4 +674,31 @@ func GetUserTrade(symbol string, t0, t1 time.Time, limit int, fromId int64, ac A
 			binanceapi.ProcessResponse(resp, body, "spot")
 		}, binanceapi.ErrorCallback)
 	return rst, err
+}
+
+// 获取下架计划
+func GetDelistPlan() (*[]binanceapi.DelistPlan, error) {
+	action := "/sapi/v1/spot/delist-schedule"
+	method := "GET"
+	ep := rootUrl + action
+	params := url.Values{}
+	header, _, err := binanceapi.SignerIns.Sign(params)
+	rst, err := network.ParseHttpResult[[]binanceapi.DelistPlan](
+		restLogPrefix,
+		"GetDelistPlan",
+		ep,
+		method,
+		"",
+		header, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+
+	if err == nil {
+		for i := range *rst {
+			(*rst)[i].Parse()
+		}
+		return rst, nil
+	} else {
+		return nil, err
+	}
 }

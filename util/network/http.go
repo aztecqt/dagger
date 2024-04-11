@@ -67,7 +67,8 @@ func HttpCall(url string, method string, postData string, headers map[string]str
 	}
 }
 
-var EnableHttpLog = true
+var EnableHttpLog = false
+var HttpLogMaxLen = 256
 
 func ParseHttpResult[T any](logPref, funcName, url, method, postData string, headers map[string]string, cbRaw func(resp *http.Response, body []byte), cbErr func(e error)) (t *T, e error) {
 	defer util.DefaultRecover()
@@ -99,8 +100,8 @@ func ParseHttpResult[T any](logPref, funcName, url, method, postData string, hea
 				logger.LogImportant(logPref, "read body error: %s", err.Error())
 			} else {
 				if EnableHttpLog {
-					if len(body) > 4096 {
-						logger.LogDebug(logPref, "%s resp: %s ...(+%d)", funcName, string(body[:4096]), len(body)-4096)
+					if len(body) > HttpLogMaxLen {
+						logger.LogDebug(logPref, "%s resp: %s ...(+%d)", funcName, string(body[:HttpLogMaxLen]), len(body)-HttpLogMaxLen)
 					} else {
 						logger.LogDebug(logPref, "%s resp: %s", funcName, string(body))
 					}

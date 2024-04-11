@@ -57,8 +57,7 @@ func (c *ContractObserver) Init(contractType string) {
 				ctinfo.ValueAmount, _ = util.String2Decimal(v.CtVal)
 				ctinfo.ValueCurrency = v.CtValCcy
 				ctinfo.LatestPrice = decimal.Zero
-				ctinfo.Depth = common.Orderbook{}
-				ctinfo.Depth.Init()
+				ctinfo.Depth = *common.NewOrderBook()
 				c.contractInfos[InstId2Symbol(v.InstID)] = ctinfo
 				c.currencys = append(c.currencys, InstId2Symbol(v.InstID))
 			}
@@ -81,7 +80,7 @@ func (c *ContractObserver) updateTicker() {
 		} else {
 			for _, tr := range resp.Data {
 				if v, ok := c.contractInfos[InstId2Symbol(tr.InstId)]; ok {
-					v.LatestPrice = util.String2DecimalPanic(tr.Last)
+					v.LatestPrice = tr.Last
 				}
 			}
 		}

@@ -1,12 +1,12 @@
 /*
  * @Author: aztec
  * @Date: 2022-05-07
- * @LastEditors: aztec
- * @LastEditTime: 2023-02-24 11:30:03
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-15 10:06:34
  * @FilePath: \dagger\cex\adv\taker.go
  * @Description: 对冲吃单任务
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package adv
 
@@ -34,7 +34,7 @@ type OnTakerFinish func()
 var TakerTaskIndex int
 
 type Taker struct {
-	mu         sync.Mutex
+	sync.Mutex
 	index      int
 	logPrefix  string
 	purpose    string
@@ -136,8 +136,8 @@ func (t *Taker) SetFinishFn(fn OnTakerFinish) {
 
 // 实现common.OrderObserver
 func (t *Taker) OnDeal(deal common.Deal) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	t.Lock()
+	defer t.Unlock()
 
 	// 订单成交
 	id, cid := deal.O.GetID()
@@ -159,8 +159,8 @@ func (t *Taker) OnDeal(deal common.Deal) {
 }
 
 func (t *Taker) updateOrder() {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+	t.Lock()
+	defer t.Unlock()
 
 	if t.O != nil && t.O.IsFinished() {
 		if t.O.HasFatalError() {
@@ -172,9 +172,9 @@ func (t *Taker) updateOrder() {
 	if !t.Finished() {
 		if t.O == nil {
 			// 创建订单
-			price := t.trader.Market().OrderBook().Buy1().Mul(decimal.NewFromFloat(0.99))
+			price := t.trader.Market().OrderBook().Buy1Price().Mul(decimal.NewFromFloat(0.99))
 			if t.dir == common.OrderDir_Buy {
-				price = t.trader.Market().OrderBook().Sell1().Mul(decimal.NewFromFloat(1.01))
+				price = t.trader.Market().OrderBook().Sell1Price().Mul(decimal.NewFromFloat(1.01))
 			}
 			size := t.amount.Sub(t.dealed)
 			alignedPrice := t.trader.Market().AlignPrice(price, t.dir, false)
@@ -185,11 +185,11 @@ func (t *Taker) updateOrder() {
 			}
 		} else {
 			needCancel := false
-			if t.dir == common.OrderDir_Buy && t.O.GetPrice().LessThanOrEqual(t.trader.Market().OrderBook().Sell1()) {
+			if t.dir == common.OrderDir_Buy && t.O.GetPrice().LessThanOrEqual(t.trader.Market().OrderBook().Sell1Price()) {
 				needCancel = true
 			}
 
-			if t.dir == common.OrderDir_Sell && t.O.GetPrice().GreaterThanOrEqual(t.trader.Market().OrderBook().Buy1()) {
+			if t.dir == common.OrderDir_Sell && t.O.GetPrice().GreaterThanOrEqual(t.trader.Market().OrderBook().Buy1Price()) {
 				needCancel = true
 			}
 

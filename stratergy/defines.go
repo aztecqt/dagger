@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -51,25 +52,24 @@ func (e *OrderExport) From(o common.Order) {
 	e.UpdateTime = o.GetUpdateTime().UnixMilli()
 	e.Status = o.GetStatus()
 	e.Finished = o.IsFinished()
-	e.Extend = o.GetExtend()
 }
 
 type CommonMarketExport struct {
-	Type     string `json:"type"`
-	Ready    bool   `json:"ready"`
-	ReadyStr string `json:"readys"`
-	Price    string `json:"px"`
-	Buy1     string `json:"b1"`
-	Sell1    string `json:"s1"`
+	Type          string `json:"type"`
+	Ready         bool   `json:"ready"`
+	UnreadyReason string `json:"readys"`
+	Price         string `json:"px"`
+	Buy1          string `json:"b1"`
+	Sell1         string `json:"s1"`
 }
 
 func (e *CommonMarketExport) From(m common.CommonMarket) {
 	e.Type = m.Type()
 	e.Ready = m.Ready()
-	e.ReadyStr = m.ReadyStr()
+	e.UnreadyReason = m.UnreadyReason()
 	e.Price = m.LatestPrice().String()
-	e.Buy1 = m.OrderBook().Buy1().String()
-	e.Sell1 = m.OrderBook().Sell1().String()
+	e.Buy1 = m.OrderBook().Buy1Price().String()
+	e.Sell1 = m.OrderBook().Sell1Price().String()
 }
 
 type FutureMarketExport struct {
@@ -102,14 +102,14 @@ func (e *SpotMarketExport) From(m common.SpotMarket) {
 }
 
 type CommonTraderExport struct {
-	Ready    bool          `json:"ready"`
-	ReadyStr string        `json:"readys"`
-	Orders   []OrderExport `json:"orders"`
+	Ready         bool          `json:"ready"`
+	UnreadyReason string        `json:"readys"`
+	Orders        []OrderExport `json:"orders"`
 }
 
 func (e *CommonTraderExport) From(t common.CommonTrader) {
 	e.Ready = t.Ready()
-	e.ReadyStr = t.ReadyStr()
+	e.UnreadyReason = t.UnreadyReason()
 	orders := t.Orders()
 	e.Orders = make([]OrderExport, 0, len(orders))
 	for _, o := range orders {
@@ -160,7 +160,6 @@ func (e *SpotTraderExport) From(t common.SpotTrader) {
 }
 
 type FundingFeeInfoExport struct {
-	RefreshTime int64                     `json:"rt"`
 	PriceRatio  decimal.Decimal           `json:"pr"`
 	VolUSD24h   decimal.Decimal           `json:"volusd24h"`
 	FeeRate     decimal.Decimal           `json:"fr"`
@@ -171,8 +170,12 @@ type FundingFeeInfoExport struct {
 }
 
 func (f *FundingFeeInfoExport) from(ffi common.FundingFeeInfo) {
-	f.RefreshTime = ffi.RefreshTime.UnixMilli()
-	f.PriceRatio = ffi.PriceRatio
+	if ffi.SwapPrice.IsPositive() {
+		f.PriceRatio = ffi.SpotPrice.Div(ffi.SwapPrice)
+	} else {
+		f.PriceRatio = util.DecimalOne
+	}
+
 	f.VolUSD24h = ffi.VolUSD24h
 	f.FeeRate = ffi.FeeRate
 	f.FeeTime = ffi.FeeTime.UnixMilli()
@@ -194,7 +197,7 @@ func (f *FundingFeeObserverExport) from(ffo common.FundingFeeObserver) {
 	for _, fi := range fis {
 		ffie := FundingFeeInfoExport{}
 		ffie.from(fi)
-		f.FeeInfos[fi.TradeType] = ffie
+		f.FeeInfos[fi.InstId] = ffie
 	}
 }
 

@@ -36,9 +36,10 @@ func ProcessResponse(resp *http.Response, body []byte, apiType string) *ErrorMes
 				}
 
 				MuApiStatus.Lock()
-				ApiStatus[fmt.Sprintf("bn-api-weight-%s", apiType)] = weight
+				key := fmt.Sprintf("bn-api-weight-%s", apiType)
+				ApiStatus[key] = weight
 				MuApiStatus.Unlock()
-				logger.LogImportant("binance_rest", "bn(%s) weight usage: %s: %d", apiType, periodstr, weight)
+				logger.LogImportant("binance_rest", "bn(%s) weight usage: %s: %d", key, periodstr, weight)
 			}
 		}
 

@@ -24,7 +24,7 @@ type OrderImpl struct {
 	Trader        CommonTrader    // 所属Traqder
 	InstId        string          // 现货交易对、合约Id等类型标识
 	OrderId       int64           // 订单Id
-	CltOrderId    string          // 自定义订单Id
+	CltOrderId    interface{}     // 自定义订单Id
 	Price         decimal.Decimal // 订单价格
 	Size          decimal.Decimal // 订单数量
 	Dir           OrderDir        // 订单方向
@@ -46,7 +46,7 @@ type OrderImpl struct {
 
 // 初始化订单，矫正价格、数量
 func (o *OrderImpl) Init(
-	trader CommonTrader,
+	trader CommonTrader, // TODO：增加minBuyPrice和maxSellPrice
 	instrumentMgr *InstrumentMgr,
 	instId string,
 	price, amount decimal.Decimal,
@@ -66,22 +66,14 @@ func (o *OrderImpl) Init(
 		price,
 		dir,
 		makeOnly,
-		trader.Market().OrderBook().Buy1(),
-		trader.Market().OrderBook().Sell1())
-	o.Size = amount
-	max := o.Trader.AvilableAmount(o.Dir, o.Price)
-	o.Size = util.ClampDecimal(o.Size, decimal.Zero, max) // 受AvilableAmount的制约
-	o.Size = instrumentMgr.AlignSize(instId, o.Size)      // 对齐
-	minSize := instrumentMgr.MinSize(instId, price)
+		trader.Market().OrderBook().Buy1Price(),
+		trader.Market().OrderBook().Sell1Price())
 
-	if o.Size.GreaterThanOrEqual(minSize) {
-		o.CltOrderId = NewClientOrderId(o.Purpose)
-		o.LogPrefix = fmt.Sprintf("Order-%s-%s", o.InstId, o.CltOrderId)
-		o.Status = "born"
-		o.Borntime = time.Now()
-		o.Observers = make([]OrderObserver, 0)
-		return true
-	} else {
+	max := o.Trader.AvailableAmount(o.Dir, o.Price)
+	amount = util.ClampDecimal(amount, decimal.Zero, max) // 受AvailableAmount的制约
+	amount = instrumentMgr.AlignSize(instId, amount)      // 对齐
+	minSize := instrumentMgr.MinSize(instId, price)
+	if amount.LessThan(minSize) {
 		logger.LogInfo(o.LogPrefix, "creating order failed, size too small(instId=%s, raw amount=%v, aligned size=%v, minSize=%v)",
 			instId,
 			amount,
@@ -89,6 +81,18 @@ func (o *OrderImpl) Init(
 			minSize)
 		return false
 	}
+
+	if !PriceInRange(o.Price, o.Dir, o.Trader) {
+		logger.LogInfo(o.LogPrefix, "creating order failed, price(%v) out of range", o.Price)
+		return false
+	}
+
+	o.Size = amount
+	o.LogPrefix = fmt.Sprintf("Order-%s-%v", o.InstId, o.CltOrderId)
+	o.Status = "born"
+	o.Borntime = time.Now()
+	o.Observers = make([]OrderObserver, 0)
+	return true
 }
 
 // #region 实现common.Order
@@ -97,7 +101,7 @@ func (o *OrderImpl) AddObserver(obs OrderObserver) {
 }
 
 func (o *OrderImpl) GetID() (string, string) {
-	return strconv.FormatInt(o.OrderId, 10), o.CltOrderId
+	return strconv.FormatInt(o.OrderId, 10), fmt.Sprintf("%v", o.CltOrderId)
 }
 
 func (o *OrderImpl) GetType() string {
@@ -128,10 +132,6 @@ func (o *OrderImpl) String() string {
 
 func (o *OrderImpl) GetStatus() string {
 	return o.Status
-}
-
-func (o *OrderImpl) GetExtend() string {
-	return "" // 子类覆盖
 }
 
 func (o *OrderImpl) GetDir() OrderDir {

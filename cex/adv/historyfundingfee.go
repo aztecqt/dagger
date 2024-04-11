@@ -8,16 +8,13 @@
 package adv
 
 import (
-	"fmt"
-	"slices"
 	"strings"
 	"time"
 
-	"github.com/aztecqt/dagger/api/binanceapi/binancefutureapi"
-	"github.com/aztecqt/dagger/api/okexv5api"
+	"github.com/aztecqt/dagger/api/binanceapi/cachedbn"
+	"github.com/aztecqt/dagger/api/okexv5api/cachedok"
 	"github.com/aztecqt/dagger/cex/binance"
 	"github.com/aztecqt/dagger/cex/okexv5"
-	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -59,42 +56,26 @@ func getOkxFundingFee(t0, t1 time.Time, symbol, contractType string) (fees []Fun
 }
 
 func getOkxFundingFeeByInstId(t0, t1 time.Time, instId string) (fees []FundingFeeUnit, ok bool) {
+	// 加载费率
+	rawFees := cachedok.GetFundingFees(instId, t0, t1, nil)
 	fees = make([]FundingFeeUnit, 0)
-
-	// okx需要从t1到t0反向获取
-	t := t1
-	enough := false
-	for !enough {
-		if resp, err := okexv5api.GetFundingRateHistory(instId, 100, time.Time{}, t); err == nil {
-			for _, frhr := range resp.Data {
-				ffu := FundingFeeUnit{}
-				ffu.FeeRate = util.String2DecimalPanic(frhr.FundingRate)
-				ffu.Time = time.UnixMilli(util.String2Int64Panic(frhr.FundingTime))
-				t = ffu.Time
-				fees = append(fees, ffu)
-				if ffu.Time.Unix() <= t0.Unix() {
-					enough = true
-					break
-				}
-			}
-		} else {
-			fmt.Printf("get funding fee from ok failed: %s\n", err.Error())
-			time.Sleep(time.Second * 3)
-		}
+	for _, ffr := range rawFees {
+		ffu := FundingFeeUnit{}
+		ffu.FeeRate = ffr.FundingRate
+		ffu.Time = time.UnixMilli(ffr.FundingTimeStamp)
+		fees = append(fees, ffu)
 	}
 
-	slices.Reverse(fees)
-
 	// 获取这段时间的1小时k线，为所有费率记录配上价格
-	kus := okexv5.GetKline(instId, t0.AddDate(0, 0, -1), t1.AddDate(0, 0, 1), 3600)
+	kus, _ := cachedok.GetKline(instId, t0.AddDate(0, 0, -1), t1.AddDate(0, 0, 1), 3600, nil)
 	time2Price := make(map[int64]decimal.Decimal)
 	for _, k := range kus {
-		time2Price[k.Time.Unix()] = k.OpenPrice
+		time2Price[k.Time.Unix()/3600] = k.Open
 	}
 
 	allPriceOk := true
 	for i, ffu := range fees {
-		if px, ok := time2Price[ffu.Time.Unix()]; ok {
+		if px, ok := time2Price[ffu.Time.Unix()/3600]; ok {
 			fees[i].MarkPrice = px
 		} else {
 			allPriceOk = false
@@ -113,36 +94,30 @@ func getBinanceFundingFee(t0, t1 time.Time, symbol, contractType string) (fees [
 }
 
 func getBinanceFundingFeeByInstId(t0, t1 time.Time, instId string) (fees []FundingFeeUnit, ok bool) {
+	// 加载费率
+	rawFees := cachedbn.GetFundingFees(instId, t0, t1, nil)
 	fees = make([]FundingFeeUnit, 0)
+	for _, ffr := range rawFees {
+		ffu := FundingFeeUnit{}
+		ffu.FeeRate = ffr.FundingRate
+		ffu.Time = time.UnixMilli(ffr.FundingTimeStamp)
+		fees = append(fees, ffu)
+	}
 
-	// 转换为币安的symbol
-	isUsdt := strings.Contains(instId, "USDT")
-	ac := util.ValueIf(isUsdt, binancefutureapi.API_ClassicUsdt, binancefutureapi.API_ClassicUsd)
-	if rawFees, err := binancefutureapi.GetHistoryFundingRate(instId, t0, t1, ac); err == nil {
-		for _, ff := range *rawFees {
-			fu := FundingFeeUnit{
-				FeeRate: ff.FundingRate,
-				Time:    time.UnixMilli(ff.FundingTimeStamp),
-			}
-			fees = append(fees, fu)
-		}
-		ok = true
-	} else {
-		fmt.Printf("get fundingfee from bn failed: %s\n", err.Error())
-		time.Sleep(time.Second * 3)
+	if len(fees) == 0 {
+		return fees, true
 	}
 
 	// 获取这段时间的1小时k线，为所有费率记录配上价格
-	klfn := util.ValueIf(isUsdt, binancefutureapi.GetKline_Usdt, binancefutureapi.GetKline_Usd)
-	kus := binance.GetKline(instId, t0, t1, 3600, klfn)
+	kus, _ := cachedbn.GetFutureKline(instId, t0, t1, 3600, nil)
 	time2Price := make(map[int64]decimal.Decimal)
 	for _, k := range kus {
-		time2Price[k.Time.Unix()] = k.OpenPrice
+		time2Price[k.Time.Unix()/3600] = k.Open
 	}
 
 	allPriceOk := true
 	for i, ffu := range fees {
-		if px, ok := time2Price[ffu.Time.Unix()]; ok {
+		if px, ok := time2Price[ffu.Time.Unix()/3600]; ok {
 			fees[i].MarkPrice = px
 		} else {
 			allPriceOk = false

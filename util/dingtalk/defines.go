@@ -60,6 +60,24 @@ type sendLinkMsgReq struct {
 	} `json:"msg"`
 }
 
+type actionCardButton struct {
+	Title string `json:"title"`
+	Url   string `json:"action_url"`
+}
+
+type sendActionCardMsgReq struct {
+	sendMsgReq
+	Msg struct {
+		MsgType    string `json:"msgtype"`
+		ActionCard struct {
+			Title          string             `json:"title"`
+			Markdown       string             `json:"markdown"`
+			BtnOrientation string             `json:"btn_orientation"` // "0"=竖向，"1"=横向
+			Btns           []actionCardButton `json:"btn_json_list"`
+		} `json:"action_card"`
+	} `json:"msg"`
+}
+
 type sendMsgResp struct {
 	commonResp
 	TaskId int64 `json:"task_id"`

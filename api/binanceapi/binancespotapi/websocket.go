@@ -25,24 +25,6 @@ type WsClient struct {
 	publicStreams map[string]*binanceapi.WsStream
 }
 
-func subscribeWithStream[T any](streamName string, fn api.OnRecvWSMsg) (*api.WsSubscriber, *binanceapi.WsStream) {
-	stream := new(binanceapi.WsStream)
-	s := stream.Start(streamName, func(rawMsg api.WSRawMsg) {
-		if !strings.Contains(rawMsg.Str, "result") {
-			// 将rawMsg序列化成对象，并返回
-			t := new(T)
-			err := json.Unmarshal(rawMsg.Data, t)
-			if err == nil {
-				fn(t)
-			} else {
-				logger.LogImportant(wsLogPrefix, err.Error())
-			}
-		}
-	})
-
-	return s, stream
-}
-
 func (ws *WsClient) Start() {
 	logger.LogImportant(wsLogPrefix, "starting...")
 	ws.publicStreams = make(map[string]*binanceapi.WsStream)
@@ -51,7 +33,7 @@ func (ws *WsClient) Start() {
 func (ws *WsClient) SubscribeTicker(pair string, fn api.OnRecvWSMsg) *api.WsSubscriber {
 	pair = strings.ToLower(pair)
 	streamName := fmt.Sprintf("%s@ticker", pair)
-	s, stream := subscribeWithStream[binanceapi.WSPayload_Ticker](streamName, fn)
+	s, stream := binanceapi.SubscribeWithStream[binanceapi.WSPayload_Ticker](binanceapi.SpotBaseUrl, streamName, wsLogPrefix, fn)
 	ws.publicStreams[streamName] = stream
 	return s
 }
@@ -68,7 +50,7 @@ func (ws *WsClient) UnsubscribeTicker(pair string) {
 func (ws *WsClient) SubscribeMiniTicker(pair string, fn api.OnRecvWSMsg) *api.WsSubscriber {
 	pair = strings.ToLower(pair)
 	streamName := fmt.Sprintf("%s@miniTicker", pair)
-	s, stream := subscribeWithStream[binanceapi.WSPayload_MiniTicker](streamName, fn)
+	s, stream := binanceapi.SubscribeWithStream[binanceapi.WSPayload_MiniTicker](binanceapi.SpotBaseUrl, streamName, wsLogPrefix, fn)
 	ws.publicStreams[streamName] = stream
 	return s
 }
@@ -85,7 +67,7 @@ func (ws *WsClient) UnsubscribeMiniTicker(pair string) {
 func (ws *WsClient) SubscribeDepth(pair string, fn api.OnRecvWSMsg) *api.WsSubscriber {
 	pair = strings.ToLower(pair)
 	streamName := fmt.Sprintf("%s@depth10@100ms", pair)
-	s, stream := subscribeWithStream[binanceapi.WSPayload_Depth](streamName, fn)
+	s, stream := binanceapi.SubscribeWithStream[binanceapi.WSPayload_Depth](binanceapi.SpotBaseUrl, streamName, wsLogPrefix, fn)
 	ws.publicStreams[streamName] = stream
 	return s
 }
@@ -116,7 +98,7 @@ func (ws *WsClient) SubscribeUserData(fnAccountUpdate, fnOrderUpdate api.OnRecvW
 		listenKey := resp.ListenKey
 		if ws.userStream == nil {
 			ws.userStream = new(binanceapi.WsStream)
-			s := ws.userStream.Start(listenKey, func(rawMsg api.WSRawMsg) {
+			s := ws.userStream.Start(binanceapi.SpotBaseUrl, listenKey, func(rawMsg api.WSRawMsg) {
 				localTime := time.Now()
 				if !strings.Contains(rawMsg.Str, "result") {
 					// 将rawMsg序列化成对象，并返回

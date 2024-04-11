@@ -171,8 +171,8 @@ func (d *BreakDealer) Init(trader common.FutureTrader) {
 	d.cfg = EmptyBreakDealerConfig()
 	d.mkOpen = new(Maker)
 	d.mkClose = new(Maker)
-	d.mkOpen.Init(trader, false, false, 0, 0, "open")
-	d.mkClose.Init(trader, false, false, 0, 0, "close")
+	d.mkOpen.Init(trader, false, false, true, 0, 0, "open")
+	d.mkClose.Init(trader, false, false, true, 0, 0, "close")
 	d.mkOpen.Go()
 	d.mkClose.Go()
 	d.mkOpen.SetDealFn(d.onOpenDeal)
@@ -358,11 +358,13 @@ func (d *BreakDealer) short() decimal.Decimal {
 }
 
 func (d *BreakDealer) takerPxBuy() decimal.Decimal {
-	return d.trader.Market().OrderBook().Sell1().Mul(decimal.NewFromFloat(1.01))
+	px, _ := d.trader.Market().OrderBook().Sell1()
+	return px.Mul(decimal.NewFromFloat(1.01))
 }
 
 func (d *BreakDealer) takerPxSell() decimal.Decimal {
-	return d.trader.Market().OrderBook().Buy1().Mul(decimal.NewFromFloat(0.99))
+	px, _ := d.trader.Market().OrderBook().Buy1()
+	return px.Mul(decimal.NewFromFloat(0.99))
 }
 
 func (d *BreakDealer) posPrice() decimal.Decimal {
@@ -518,14 +520,14 @@ func (d *BreakDealer) updateOpenBuy() {
 		cond1 := false
 		if rta.GreaterThan(d.cfg.MaxRetreatAbs) {
 			cond1 = true
-			logger.LogInfo(d.logPrefix, "rta(%.2f) is greater than max-rta(%.2f)", rta, d.cfg.MaxRetreatAbs)
+			logger.LogInfo(d.logPrefix, "rta(%.2f) is greater than max-rta(%.2f)", rta.InexactFloat64(), d.cfg.MaxRetreatAbs.InexactFloat64())
 		}
 
 		// 相对回撤
 		cond2 := false
 		if rtr.GreaterThan(d.cfg.MaxRetreatRel) {
 			cond2 = true
-			logger.LogInfo(d.logPrefix, "rtr(%.2f) is greater than max-rtr(%.2f)", rtr, d.cfg.MaxRetreatRel)
+			logger.LogInfo(d.logPrefix, "rtr(%.2f) is greater than max-rtr(%.2f)", rtr.InexactFloat64(), d.cfg.MaxRetreatRel.InexactFloat64())
 		}
 
 		if cond1 && cond2 {
@@ -571,14 +573,14 @@ func (d *BreakDealer) updateOpenSell() {
 		cond1 := false
 		if rta.GreaterThan(d.cfg.MaxRetreatAbs) {
 			cond1 = true
-			logger.LogInfo(d.logPrefix, "rta(%.2f) is greater than max-rta(%.2f)", rta, d.cfg.MaxRetreatAbs)
+			logger.LogInfo(d.logPrefix, "rta(%.2f) is greater than max-rta(%.2f)", rta.InexactFloat64(), d.cfg.MaxRetreatAbs.InexactFloat64())
 		}
 
 		// 相对回撤
 		cond2 := false
 		if rtr.GreaterThan(d.cfg.MaxRetreatRel) {
 			cond2 = true
-			logger.LogInfo(d.logPrefix, "rtr(%.2f) is greater than max-rtr(%.2f)", rtr, d.cfg.MaxRetreatRel)
+			logger.LogInfo(d.logPrefix, "rtr(%.2f) is greater than max-rtr(%.2f)", rtr.InexactFloat64(), d.cfg.MaxRetreatRel.InexactFloat64())
 		}
 
 		if cond1 && cond2 {

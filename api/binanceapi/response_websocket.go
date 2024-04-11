@@ -86,3 +86,22 @@ type WSPayload_OrderUpdate struct {
 	I                  int64           `json:"I"`
 	LocalTime          time.Time
 }
+
+// 合约交易对状态信息流
+type WsPayload_ContractInfo struct {
+	WSPayload_Common
+	Symbol          string `json:"s"`
+	ContractType    string `json:"ct"`
+	DelistTimeStamp int64  `json:"dt"`
+	OpenTime        int64  `json:"ot"`
+	ContractStatus  string `json:"cs"`
+	Brackets        []struct {
+		Bs  int             `json:"bs"`  // 层级
+		Bnf decimal.Decimal `json:"bnf"` // 该层对应的名义价值下限
+		Bnc decimal.Decimal `json:"bnc"` // 该层对应的名义价值上限
+		Mmr decimal.Decimal `json:"mmr"` // 该层对应的维持保证金率
+		Cf  decimal.Decimal `json:"cf"`  // 速算数
+		Mi  decimal.Decimal `json:"mi"`  // 该层杠杆下界
+		Ma  decimal.Decimal `json:"ma"`  // 该层杠杆上界
+	}
+}

@@ -10,7 +10,9 @@ package binance
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
+	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 )
 
@@ -86,4 +88,11 @@ func CCyCttypeToInstId(symbol, contractType string) string {
 		logger.LogPanic(logPrefix, "unknown contractType: %s", contractType)
 		return ""
 	}
+}
+
+var accClientOrderId int32
+
+func NewClientOrderId(purpose string) string {
+	newId := atomic.AddInt32(&accClientOrderId, 1)
+	return util.ToLetterNumberOnly(fmt.Sprintf("%05d%s", newId, purpose), 32)
 }

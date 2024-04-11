@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFrame Example</title>
+    <style>
+        /* Add any additional styling here */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #pageTitle {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        #dataSection {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dataItem {
+            padding: 10px;
+            text-align: center;
+        }
+        
+        #mainIframe {
+            width: 1600px;
+            height: 600px;
+            margin-top: 20px;
+            border: 1px solid #333; /* Simple flat border */
+        }
+
+        #subIframesContainer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .subIframe {
+            width: 800px;
+            height: 300px;
+            border: 1px solid #333; /* Simple flat border */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pageTitle">#Title#</div>
+
+    <div id="dataSection">
+        <div class="dataItem">IC: 0.0056</div>
+        <div class="dataItem">IR: 1.0000000000</div>
+        <div class="dataItem">Value 3</div>
+        <div class="dataItem">Value 4</div>
+        <div class="dataItem">Value 5</div>
+        <div class="dataItem">Value 6</div>
+        <div class="dataItem">Value 7</div>
+        <div class="dataItem">Value 8</div>
+    </div>
+
+    <iframe id="mainIframe" src="chart.html" title="Main IFrame"></iframe>
+
+    <div id="subIframesContainer">
+        <iframe class="subIframe" src="chart.html" title="Sub IFrame 1"></iframe>
+        <iframe class="subIframe" src="chart.html" title="Sub IFrame 2"></iframe>
+    </div>
+
+</body>
+</html>

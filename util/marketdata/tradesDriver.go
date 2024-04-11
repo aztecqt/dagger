@@ -93,7 +93,7 @@ func (d *TradeDriver) Init(rootDir string, t0, t1 time.Time, maxIntervalMS int64
 		trades := make([]marketTrade, 0)
 		for d := dt0; d.Unix() <= dt1.Unix(); d = d.AddDate(0, 0, 1) {
 			path := fmt.Sprintf("%s/%s/%s.trades", rootDir, symbol, d.Format(time.DateOnly))
-			util.FileDeserializeToObjectList(
+			util.FileDeserializeToObjects(
 				path,
 				func() *marketTrade { return &marketTrade{} },
 				func(t *marketTrade) bool {

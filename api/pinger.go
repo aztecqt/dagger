@@ -20,8 +20,7 @@ type Pinger struct {
 
 // pinger做这些事情：
 // 每过一段时间发送指定的ping字符串
-// 超过一段时间每收到任何数据，则重连
-// 这个逻辑现在可以适配okx和bn的情况
+// 超过一段时间没收到任何数据，则重连
 func (p *Pinger) Start(wsConn *WsConnection, logPrfix, sendStr string, sendInterval, reconnectInterval int64) {
 	p.wsConn = wsConn
 

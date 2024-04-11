@@ -9,12 +9,14 @@ package okexv5api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 	"github.com/aztecqt/dagger/util/network"
 	"github.com/shopspring/decimal"
@@ -25,6 +27,19 @@ const restLogPrefix = "okexv5_rest"
 
 // 外部通过设置这个回调来处理关键错误
 var ErrorCallback func(e error)
+
+// 通用错误处理
+func CheckRestResp(resp CommonRestResp, err error, op, logPrefix string) bool {
+	if err != nil {
+		logger.LogImportant(logPrefix, "%s failed: %s", op, err.Error())
+		return false
+	} else if resp.Code != "0" {
+		logger.LogImportant(logPrefix, "%s failed, code=%s, msg=%s", op, resp.Code, resp.Msg)
+		return false
+	} else {
+		return true
+	}
+}
 
 // 获取服务器时间(毫秒数)
 func GetServerTS() int64 {
@@ -46,6 +61,21 @@ func GetCurrencies() (*GetCurrencyResp, error) {
 	method := "GET"
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[GetCurrencyResp](restLogPrefix, "GetCurrencies", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 获取币种列表（外部）
+func GetProjects() (*GetProjectsResp, error) {
+	action := "/v2/support/info/announce/listProject"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[GetProjectsResp](restLogPrefix, "GetProjects", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.Parse()
+	}
 	return resp, err
 }
 
@@ -84,6 +114,9 @@ func GetTicker(instId string) (*TickerRestResp, error) {
 	action = action + "?" + params.Encode()
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[TickerRestResp](restLogPrefix, "GetTicker", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
 	return resp, err
 }
 
@@ -96,6 +129,9 @@ func GetTickers(instType string) (*TickerRestResp, error) {
 	action = action + "?" + params.Encode()
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[TickerRestResp](restLogPrefix, "GetTicker", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
 	return resp, err
 }
 
@@ -175,6 +211,9 @@ func GetFundingRate(instId string) (*FundingRateRestResp, error) {
 	action = action + "?" + params.Encode()
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[FundingRateRestResp](restLogPrefix, "GetFundingRate", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
 	return resp, err
 }
 
@@ -195,21 +234,24 @@ func GetFundingRateHistory(instId string, limit int, before, after time.Time) (*
 	action = action + "?" + params.Encode()
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[FundingRateHistoryRestResp](restLogPrefix, "GetFundingRateHistory", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
 	return resp, err
 }
 
 // 查询账户配置
-func GetAccountConfig() (*accountConfigRestResp, error) {
+func GetAccountConfig() (*AccountConfigRestResp, error) {
 	action := "/api/v5/account/config"
 	method := "GET"
 
 	url := rootUrl + action
-	resp, err := network.ParseHttpResult[accountConfigRestResp](restLogPrefix, "GetAccountConfig", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	resp, err := network.ParseHttpResult[AccountConfigRestResp](restLogPrefix, "GetAccountConfig", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
 	return resp, err
 }
 
 // 设置杠杆倍率（目前只能按照instId设置，且只能是"cross"模式）
-func SetLeverRate(instId string, lever int) (*SetLeverRateRestResp, error) {
+func SetLeverage(instId string, lever int) (*GetSetLeverageRestResp, error) {
 	action := "/api/v5/account/set-leverage"
 	method := "POST"
 	url := rootUrl + action
@@ -221,7 +263,26 @@ func SetLeverRate(instId string, lever int) (*SetLeverRateRestResp, error) {
 
 	b, _ := json.Marshal(req)
 	postStr := string(b)
-	resp, err := network.ParseHttpResult[SetLeverRateRestResp](restLogPrefix, "SetLeverRate", url, method, postStr, signerIns.getHttpHeaderWithSign(method, action, postStr), nil, ErrorCallback)
+	resp, err := network.ParseHttpResult[GetSetLeverageRestResp](restLogPrefix, "SetLeverRate", url, method, postStr, signerIns.getHttpHeaderWithSign(method, action, postStr), nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
+	return resp, err
+}
+
+// 获取杠杆倍率
+func GetLeverage(instId string) (*GetSetLeverageRestResp, error) {
+	action := "/api/v5/account/leverage-info"
+	method := "GET"
+	params := url.Values{}
+	params.Set("instId", instId)
+	params.Set("mgnMode", "cross")
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[GetSetLeverageRestResp](restLogPrefix, "GetLeverage", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
 	return resp, err
 }
 
@@ -250,6 +311,54 @@ func GetAssetBalance(currency []string) (*AssetBalanceRestResp, error) {
 	}
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[AssetBalanceRestResp](restLogPrefix, "GetAssetBalance", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 获取最大可买卖/开仓数量
+func GetMaxTradeOrOpenSize(instId, tdMode string) (*MaxSizeRestResp, error) {
+	action := "/api/v5/account/max-size"
+	method := "GET"
+	params := url.Values{}
+	params.Set("instId", instId)
+	params.Set("tdMode", tdMode)
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[MaxSizeRestResp](restLogPrefix, "GetMaxTradeOrOpenSize", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 获取最大可用数量
+// 现货杠杆返回的是借币可用来买币的U，和可用来卖的币的数量
+// 合约返回的是
+func GetMaxAvailableSize(instId, tdMode string, reduceOnly bool) (*MaxAvailableSizeRestResp, error) {
+	action := "/api/v5/account/max-avail-size"
+	method := "GET"
+	params := url.Values{}
+	params.Set("instId", instId)
+	params.Set("tdMode", tdMode)
+	params.Set("reduceOnly", fmt.Sprintf("%v", reduceOnly))
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[MaxAvailableSizeRestResp](restLogPrefix, "GetMaxAvailableSize", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 查询仓位
+// instType：MARGIN/SWAP/FUTURES/OPTION，可以不传
+func GetPositions(instType, instId string) (*PositionRestResp, error) {
+	action := "/api/v5/account/positions"
+	method := "GET"
+	params := url.Values{}
+	if len(instType) > 0 {
+		params.Set("instType", instType)
+	}
+	if len(instId) > 0 {
+		params.Set("instId", instId)
+
+	}
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[PositionRestResp](restLogPrefix, "GetPositions", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
 	return resp, err
 }
 
@@ -570,6 +679,37 @@ func GetPositionHistory(instType string, instId string, closeType PositionCloseT
 	return resp, err
 }
 
+// 查询历史账单
+func GetBills(fromBillId string, fromTime time.Time, limit int) (*BillRestResp, error) {
+	action := "/api/v5/account/bills-archive"
+	method := "GET"
+
+	params := url.Values{}
+
+	if len(fromBillId) > 0 {
+		params.Set("before", fromBillId)
+	}
+
+	if !fromTime.IsZero() {
+		params.Set("begin", strconv.FormatInt(fromTime.UnixMilli(), 10))
+	}
+
+	if limit > 0 {
+		params.Set("limit", strconv.FormatInt(int64(limit), 10))
+	}
+
+	if len(params) > 0 {
+		action = action + "?" + params.Encode()
+	}
+
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[BillRestResp](restLogPrefix, "GetBillsHistory", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	if err == nil {
+		resp.parse()
+	}
+	return resp, err
+}
+
 // 查询市场公共成交数据
 // typ: 1: by tradeId 2:by ts
 func GetMarketHistoryTrades(instId string, typ int, after, before int64) (*GetMarketTradesResp, error) {
@@ -591,5 +731,135 @@ func GetMarketHistoryTrades(instId string, typ int, after, before int64) (*GetMa
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[GetMarketTradesResp](restLogPrefix, "GetMarketHistoryTrades", url, method, "", nil, nil, ErrorCallback)
 	resp.Parse()
+	return resp, err
+}
+
+// 查询某品种的爆仓订单
+func GetLiquidationOrders(instId string, filled bool, limit int, page int) (*GetLiquidationOrdersExtRest, error) {
+	action := "/priapi/v5/public/liquidation-orders"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+
+	ss := strings.Split(instId, "-")
+	if len(ss) == 3 {
+		params.Set("instFamily", fmt.Sprintf("%s-%s", ss[0], ss[1]))
+		params.Set("instType", ss[2])
+	} else {
+		return nil, errors.New("invalid instId")
+	}
+
+	if filled {
+		params.Set("state", "filled")
+	} else {
+		params.Set("state", "unfilled")
+	}
+
+	if page > 1 {
+		params.Set("page", strconv.FormatInt(int64(page), 10))
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[GetLiquidationOrdersExtRest](restLogPrefix, "GetLiquidationOrders", url, method, "", nil, nil, ErrorCallback)
+	resp.parse()
+	return resp, err
+}
+
+// 查看defi质押项目
+func GetFinanceDefiStakingOffers(ccy string) (*FinanceDefiStakingOffersResp, error) {
+	action := "/api/v5/finance/staking-defi/offers"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+	if len(ccy) > 0 {
+		params.Set("ccy", ccy)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[FinanceDefiStakingOffersResp](restLogPrefix, "GetFinanceStakingOffers", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 查询余币宝余额
+func GetFinanceSavingBalance(ccy string) (*FinanceSavingBalanceResp, error) {
+	action := "/api/v5/finance/savings/balance"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+	if len(ccy) > 0 {
+		params.Set("ccy", ccy)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[FinanceSavingBalanceResp](restLogPrefix, "GetFinanceSavingBalance", url, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
+	return resp, err
+}
+
+// 余币宝申购/赎回
+func FinanceSavingPurchaseRedempt(ccy string, amt decimal.Decimal, isPurchase bool) (*FinanceSavingPurchageRedemptResultResp, error) {
+	action := "/api/v5/finance/savings/purchase-redempt"
+	method := "POST"
+	url := rootUrl + action
+
+	req := make(map[string]string)
+	req["ccy"] = ccy
+	req["amt"] = amt.String()
+	req["side"] = util.ValueIf(isPurchase, "purchase", "redempt")
+	req["rate"] = "0.01" // hard code，固定填最小值，以保证借出
+
+	b, _ := json.Marshal(req)
+	postStr := string(b)
+	resp, err := network.ParseHttpResult[FinanceSavingPurchageRedemptResultResp](restLogPrefix, "SetLeverRate", url, method, postStr, signerIns.getHttpHeaderWithSign(method, action, postStr), nil, ErrorCallback)
+	return resp, err
+}
+
+// 查询市场借贷利率
+func GetMarketLendingRateSummary(ccy string) (*MarketLendingRateSummaryResp, error) {
+	action := "/api/v5/finance/savings/lending-rate-summary"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+	if len(ccy) > 0 {
+		params.Set("ccy", ccy)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[MarketLendingRateSummaryResp](restLogPrefix, "GetMarketLendingRateSummary", url, method, "", nil, nil, ErrorCallback)
+	return resp, err
+}
+
+// 查询市场借贷利率历史
+func GetMarketLendingRateHistory(ccy string, after, before time.Time, limit int) (*MarketLendingRateHistoryResp, error) {
+	action := "/api/v5/finance/savings/lending-rate-history"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+
+	if len(ccy) > 0 {
+		params.Set("ccy", ccy)
+	}
+
+	if !after.IsZero() {
+		params.Set("after", strconv.FormatInt(after.UnixMilli(), 10))
+	}
+
+	if !before.IsZero() {
+		params.Set("before", strconv.FormatInt(before.UnixMilli(), 10))
+	}
+
+	if limit > 0 {
+		params.Set("limit", strconv.FormatInt(int64(limit), 10))
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[MarketLendingRateHistoryResp](restLogPrefix, "GetMarketLendingRateHistory", url, method, "", nil, nil, ErrorCallback)
+	if resp != nil {
+		resp.parse()
+	}
 	return resp, err
 }

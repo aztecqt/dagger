@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-10 11:35:16
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-09-30 17:03:43
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-20 19:27:11
  * @FilePath: \dagger\util\redis_client.go
  * @Description: redis客户端。其实也就封装了个日志输出，跟直接用没啥区别
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package util
 
@@ -39,23 +39,23 @@ type RedisClient struct {
 func (r *RedisClient) InitFromConfigStr(configstr string) {
 	ss := strings.Split(configstr, "@")
 	if len(ss) == 3 {
-		r.Init(ss[0], ss[1], String2IntPanic(ss[2]))
+		r.Init(ss[0], ss[1], String2IntPanic(ss[2]), false)
 	} else {
 		logger.LogPanic(redisLogPrefix, "wrong config format: %s(need: 127.0.0.1:6666@password@dbindex)", configstr)
 	}
 }
 
 func (r *RedisClient) InitFromConfig(cfg RedisConfig) {
-	r.Init(cfg.Addr, cfg.Password, cfg.DB)
+	r.Init(cfg.Addr, cfg.Password, cfg.DB, false)
 }
 
 func (r *RedisClient) CloneWithDiffrentDbIndex(db int) *RedisClient {
 	clone := &RedisClient{}
-	clone.Init(r.Addr, r.Password, db)
+	clone.Init(r.Addr, r.Password, db, false)
 	return clone
 }
 
-func (r *RedisClient) Init(addr, pass string, db int) {
+func (r *RedisClient) Init(addr, pass string, db int, readOnly bool) {
 	r.Addr = addr
 	r.Password = pass
 	r.DB = db

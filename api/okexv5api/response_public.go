@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-25 22:19:38
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-12-19 17:44:31
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-03-28 10:40:11
  * @FilePath: \dagger\api\okexv5api\response_public.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5api
 
@@ -15,6 +15,7 @@ import (
 	"encoding/binary"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
@@ -22,7 +23,8 @@ import (
 
 type CommonWsResp struct {
 	Arg struct {
-		InstId string `json:"instId"`
+		InstId   string `json:"instId"`
+		InstType string `json:"instType"`
 	} `json:"arg"`
 }
 
@@ -93,6 +95,43 @@ func (r *GetCurrencyResp) FindCurrency(ccy, chain string) (Currency, bool) {
 	return Currency{}, false
 }
 
+// 币种信息（非正式API)
+type Project struct {
+	Classification string  `json:"classification"`
+	CurrencyId     int     `json:"currencyId"`
+	DayHigh        float64 `json:"dayHigh"`
+	DayLow         float64 `json:"dayLow"`
+	Last           float64 `json:"last"`
+	Open           float64 `json:"open"`
+	Symbol         string  `json:"symbol"`
+	Volume         float64 `json:"volume"`
+	MarketCap      float64 `json:"marketCap"`
+	Icon           string  `json:"icon"`
+	BaseCurrency   string
+	QuoteCurrency  string
+}
+
+func (p *Project) Parse() {
+	ss := strings.Split(p.Symbol, "_")
+	if len(ss) == 2 {
+		p.BaseCurrency = ss[0]
+		p.QuoteCurrency = ss[1]
+	}
+}
+
+type GetProjectsResp struct {
+	Code int `json:"code"`
+	Data struct {
+		List []Project `json:"list"`
+	} `json:"data"`
+}
+
+func (p *GetProjectsResp) Parse() {
+	for i := range p.Data.List {
+		p.Data.List[i].Parse()
+	}
+}
+
 type Instrument struct {
 	InstID    string `json:"instID"`    // 产品类型
 	InstType  string `json:"instType"`  // 产品类型 FUTURES/SWAP/SPOT/MARGIN...
@@ -119,12 +158,24 @@ type InstrumentRestResp struct {
 
 // 行情
 type TickerResp struct {
-	InstId    string `json:"instId"`
-	Last      string `json:"last"`
-	Sell1     string `json:"askPx"`
-	Buy1      string `json:"bidPx"`
-	VolCcy24h string `json:"volCcy24h"`
-	TimeStamp string `json:"ts"`
+	InstId       string          `json:"instId"`
+	InstType     string          `json:"instType"`
+	Last         decimal.Decimal `json:"last"`
+	Sell1        decimal.Decimal `json:"askPx"`
+	Buy1         decimal.Decimal `json:"bidPx"`
+	VolCcy24h    decimal.Decimal `json:"volCcy24h"`
+	TimeStampStr string          `json:"ts"`
+	Time         time.Time
+	VolUsd24h    decimal.Decimal
+}
+
+func (t *TickerResp) parse() {
+	t.Time = time.UnixMilli(util.String2Int64Panic(t.TimeStampStr))
+	if t.InstType != "SPOT" {
+		t.VolUsd24h = t.VolCcy24h.Mul(t.Last)
+	} else {
+		t.VolUsd24h = t.VolCcy24h
+	}
 }
 
 type TickerWsResp struct {
@@ -132,14 +183,26 @@ type TickerWsResp struct {
 	Data []TickerResp `json:"data"`
 }
 
+func (t *TickerWsResp) parse() {
+	for i := range t.Data {
+		t.Data[i].parse()
+	}
+}
+
 type TickerRestResp struct {
 	CommonRestResp
 	Data []TickerResp `json:"data"`
 }
 
+func (t *TickerRestResp) parse() {
+	for i := range t.Data {
+		t.Data[i].parse()
+	}
+}
+
 // k线
 type KLineUnit struct {
-	TS        int64
+	Time      time.Time
 	Open      decimal.Decimal
 	High      decimal.Decimal
 	Low       decimal.Decimal
@@ -148,12 +211,58 @@ type KLineUnit struct {
 }
 
 func (ku KLineUnit) Serialize(w io.Writer) {
-	binary.Write(w, binary.LittleEndian, ku.TS)
+	binary.Write(w, binary.LittleEndian, ku.Time.UnixMilli())
 	binary.Write(w, binary.LittleEndian, ku.Open.InexactFloat64())
 	binary.Write(w, binary.LittleEndian, ku.High.InexactFloat64())
 	binary.Write(w, binary.LittleEndian, ku.Low.InexactFloat64())
 	binary.Write(w, binary.LittleEndian, ku.Close.InexactFloat64())
 	binary.Write(w, binary.LittleEndian, ku.VolumeUSD.InexactFloat64())
+}
+
+func (ku *KLineUnit) Deserialize(r io.Reader) bool {
+	ms := int64(0)
+	if binary.Read(r, binary.LittleEndian, &ms) != nil {
+		return false
+	} else {
+		ku.Time = time.UnixMilli(ms)
+	}
+
+	fvalue := 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Open = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.High = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Low = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Close = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.VolumeUSD = decimal.NewFromFloat(fvalue)
+	}
+
+	return true
 }
 
 type KLineRestResp struct {
@@ -167,7 +276,7 @@ func (kl *KLineRestResp) Build() {
 	for i := 0; i < len(kl.DataRaw); i++ {
 		v := kl.DataRaw[i]
 		ku := KLineUnit{
-			TS:        util.String2Int64Panic(v[0]),
+			Time:      time.UnixMilli(util.String2Int64Panic(v[0])),
 			Open:      util.String2DecimalPanic(v[1]),
 			High:      util.String2DecimalPanic(v[2]),
 			Low:       util.String2DecimalPanic(v[3]),
@@ -215,19 +324,21 @@ type PriceLimitWsResp struct {
 type TradesWsResp struct {
 	CommonWsResp
 	Data []struct {
-		TradeID string `json:"tradeId"`
-		Price   string `json:"px"`
-		Size    string `json:"sz"`
-		Side    string `json:"side"`
+		TradeID   string          `json:"tradeId"`
+		Price     decimal.Decimal `json:"px"`
+		Size      decimal.Decimal `json:"sz"`
+		Side      string          `json:"side"`
+		TimeStamp string          `json:"ts"`
 	} `json:"data"`
 }
 
 // 深度
 type DepthResp struct {
 	Data []struct {
-		Asks     [][4]string `json:"asks"`
-		Bids     [][4]string `json:"bids"`
-		Checksum int         `json:"checksum"`
+		Asks      [][4]string `json:"asks"`
+		Bids      [][4]string `json:"bids"`
+		Checksum  int32       `json:"checksum"`
+		TimeStamp string      `json:"ts"`
 	} `json:"data"`
 }
 
@@ -243,32 +354,63 @@ type DepthRestResp struct {
 }
 
 // 当前资金费率
-type FundingRateResp struct {
-	FundingRate     string `json:"fundingRate"`
-	NextFundingRate string `json:"nextFundingRate"`
-	FundingTime     string `json:"fundingTime"`
-	NextFundingTime string `json:"nextFundingTime"`
+type FundingRate struct {
+	FundingRate        decimal.Decimal `json:"fundingRate"`
+	NextFundingRate    decimal.Decimal `json:"nextFundingRate"`
+	FundingTimeStr     string          `json:"fundingTime"`
+	NextFundingTimeStr string          `json:"nextFundingTime"`
+
+	FundingTime     time.Time
+	NextFundingTime time.Time
+}
+
+func (f *FundingRate) parse() {
+	f.FundingTime = time.UnixMilli(util.String2Int64Panic(f.FundingTimeStr))
+	f.NextFundingTime = time.UnixMilli(util.String2Int64Panic(f.NextFundingTimeStr))
 }
 
 type FundingRateRestResp struct {
 	CommonRestResp
-	Data []FundingRateResp `json:"data"`
+	Data []FundingRate `json:"data"`
+}
+
+func (f *FundingRateRestResp) parse() {
+	for i := range f.Data {
+		f.Data[i].parse()
+	}
 }
 
 type FundingRateWsResp struct {
 	CommonWsResp
-	Data []FundingRateResp `json:"data"`
+	Data []FundingRate `json:"data"`
+}
+
+func (f *FundingRateWsResp) parse() {
+	for i := range f.Data {
+		f.Data[i].parse()
+	}
 }
 
 // 历史资金费率
-type FundingRateHistoryResp struct {
-	FundingRate string `json:"fundingRate"`
-	FundingTime string `json:"fundingTime"`
+type FundingRateHistory struct {
+	FundingRate         decimal.Decimal `json:"fundingRate"`
+	FundingTimeStampStr string          `json:"fundingTime"`
+	FundingTimeStamp    int64
+}
+
+func (f *FundingRateHistory) parse() {
+	f.FundingTimeStamp = util.String2Int64Panic(f.FundingTimeStampStr)
 }
 
 type FundingRateHistoryRestResp struct {
 	CommonRestResp
-	Data []FundingRateHistoryResp `json:"data"`
+	Data []FundingRateHistory `json:"data"`
+}
+
+func (f *FundingRateHistoryRestResp) parse() {
+	for i := range f.Data {
+		f.Data[i].parse()
+	}
 }
 
 // 市场成交
@@ -297,4 +439,93 @@ func (r *GetMarketTradesResp) Parse() {
 	for i := range r.Data {
 		r.Data[i].Parse()
 	}
+}
+
+// 爆仓信息（外部API）
+type LiquidationOrderExt struct {
+	BrokenLost  decimal.Decimal `json:"bkLoss"` //穿仓损失
+	BrokenPrice decimal.Decimal `json:"bkPx"`   // 破产价格
+	Side        string          `json:"side"`   // buy/sell
+	Price       decimal.Decimal `json:"price"`  // 成交价格？
+	Size        decimal.Decimal `json:"sz"`     // 数量
+	TimeStamp   int64           `json:"time"`   // 时间
+	Time        time.Time
+}
+
+func (l *LiquidationOrderExt) parse() {
+	l.Time = time.UnixMilli(l.TimeStamp)
+}
+
+type GetLiquidationOrdersExtRest struct {
+	CommonRestResp
+	Data []struct {
+		InstrumentId  string                `json:"instId"`
+		ContractValue decimal.Decimal       `json:"ctVal"`
+		Details       []LiquidationOrderExt `json:"details"`
+	} `json:"data"`
+}
+
+func (g *GetLiquidationOrdersExtRest) parse() {
+	for i := range g.Data {
+		for i2 := range g.Data[i].Details {
+			g.Data[i].Details[i2].parse()
+		}
+	}
+}
+
+// 爆仓信息（内部API）
+type LiquidationOrderDetial struct {
+	BrokenLost   decimal.Decimal `json:"bkLoss"` // 穿仓损失
+	BrokenPrice  decimal.Decimal `json:"bkPx"`   // 破产价格
+	Side         string          `json:"side"`   // buy/sell
+	Size         decimal.Decimal `json:"sz"`     // 数量
+	TimeStampStr string          `json:"ts"`     // 强平发生时间
+	Time         time.Time
+}
+
+func (l *LiquidationOrderDetial) parse() {
+	l.Time = time.UnixMilli(util.String2Int64Panic(l.TimeStampStr))
+}
+
+type LiquidationOrderWsResp struct {
+	CommonWsResp
+	Data []struct {
+		InstId  string                   `json:"instId"`
+		Details []LiquidationOrderDetial `json:"details"`
+	} `json:"data"`
+}
+
+func (l *LiquidationOrderWsResp) parse() {
+	for _, data := range l.Data {
+		for i := range data.Details {
+			data.Details[i].parse()
+		}
+	}
+}
+
+// defi质押项目
+type FinanceDefiStakingOffer struct {
+	Ccy          string          `json:"ccy"`          // 币种
+	ProductId    string          `json:"productId"`    // 项目Id
+	Protocol     string          `json:"protocol"`     // 项目名称
+	ProtocolType string          `json:"protocolType"` // staking：简单赚币定期/defi：链上赚币
+	Term         string          `json:"term"`         // 项目期限,活期为0，其他则显示定期天数
+	Apy          decimal.Decimal `json:"apy"`          // 年化
+	EarlyRedeem  bool            `json:"earlyRedeem"`  // 是否支持提前赎回
+	InvestData   []struct {
+		Ccy       string          `json:"ccy"`
+		Balance   decimal.Decimal `json:"bal"`
+		MinAmount decimal.Decimal `json:"minAmt"` // 最小申购量
+		MaxAmount decimal.Decimal `json:"maxAmt"` // 最大申购量
+	} `json:"investData"`
+	EarningData []struct {
+		Ccy         string `json:"ccy"`
+		EarningType string `json:"earningType"` // 收益类型 0：预估收益 1：累计发放收益
+	} `json:"earningData"`
+	State string `json:"state"` // 项目状态	purchasable：可申购 sold_out：售罄 stop：暂停申购
+}
+
+type FinanceDefiStakingOffersResp struct {
+	CommonRestResp
+	Data []FinanceDefiStakingOffer `json:"data"`
 }

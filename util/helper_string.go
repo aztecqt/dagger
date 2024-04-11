@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -44,7 +45,13 @@ func StringStartWith(s, substr string) bool {
 
 // 判断字符串是否包含后缀
 func StringEndWith(s, substr string) bool {
-	return strings.Index(s, substr) == len(s)-len(substr)
+	a := strings.Index(s, substr)
+	if a >= 0 {
+		b := len(s) - len(substr)
+		return a == b
+	} else {
+		return false
+	}
 }
 
 // 获取s中pre之后、下个post之前的字符串
@@ -140,6 +147,10 @@ func String2DecimalPanicUnless(s, unless string) decimal.Decimal {
 }
 
 func HexString2Decimal(s string, dcm int32) (decimal.Decimal, bool) {
+	if len(s) == 0 {
+		return decimal.Zero, true
+	}
+
 	bi := HexString2BigInt(s)
 	if bi != nil {
 		d := decimal.NewFromBigInt(bi, -dcm)
@@ -152,7 +163,7 @@ func HexString2Decimal(s string, dcm int32) (decimal.Decimal, bool) {
 func String2Bool(s string) (bool, bool) {
 	if s == "true" || s == "True" || s == "TRUE" {
 		return true, true
-	} else if s == "false" || s == "False" || s == "FALSE" {
+	} else if s == "false" || s == "False" || s == "FALSE" || s == "" {
 		return false, true
 	} else {
 		return false, false
@@ -170,6 +181,10 @@ func String2BoolPanic(s string) bool {
 }
 
 func String2Int(s string) (int, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	i, err := strconv.Atoi(s)
 	if err == nil {
 		return i, true
@@ -189,6 +204,10 @@ func String2IntPanic(s string) int {
 }
 
 func HexString2UInt64(s string) (uint64, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	numberStr := strings.Replace(s, "0x", "", -1)
 	numberStr = strings.Replace(numberStr, "0X", "", -1)
 	n, err := strconv.ParseUint(numberStr, 16, 64)
@@ -200,6 +219,10 @@ func HexString2UInt64(s string) (uint64, bool) {
 }
 
 func HexString2Int64(s string) (int64, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	numberStr := strings.Replace(s, "0x", "", -1)
 	numberStr = strings.Replace(numberStr, "0X", "", -1)
 	n, err := strconv.ParseInt(numberStr, 16, 64)
@@ -211,6 +234,10 @@ func HexString2Int64(s string) (int64, bool) {
 }
 
 func HexString2BigInt(s string) *big.Int {
+	if len(s) == 0 {
+		return new(big.Int)
+	}
+
 	numberStr := strings.Replace(s, "0x", "", -1)
 	numberStr = strings.Replace(numberStr, "0X", "", -1)
 	if len(numberStr)%2 != 0 {
@@ -226,6 +253,10 @@ func HexString2BigInt(s string) *big.Int {
 }
 
 func String2Int64(s string) (int64, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err == nil {
 		return i, true
@@ -244,7 +275,34 @@ func String2Int64Panic(s string) int64 {
 	}
 }
 
+func String2Int32(s string) (int32, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
+	i, err := strconv.ParseInt(s, 10, 32)
+	if err == nil {
+		return int32(i), true
+	} else {
+		return 0, false
+	}
+}
+
+func String2Int32Panic(s string) int32 {
+	i, ok := String2Int32(s)
+	if ok {
+		return i
+	} else {
+		logger.LogPanic("", "can't parse [%s] to int64", s)
+		return 0
+	}
+}
+
 func String2UInt64(s string) (uint64, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	i, err := strconv.ParseUint(s, 10, 64)
 	if err == nil {
 		return i, true
@@ -265,7 +323,7 @@ func String2UInt64Panic(s string) uint64 {
 
 func String2Float64(s string) (float64, bool) {
 	if len(s) == 0 {
-		return 0, false
+		return 0, true
 	}
 
 	multi := 1.0
@@ -339,6 +397,10 @@ func String2Float64Panic(s string) float64 {
 }
 
 func PctString2Float64(s string) (float64, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
 	s = strings.Trim(s, " ")
 	i := strings.LastIndexByte(s, '%')
 	if i == len(s)-1 {
@@ -465,4 +527,26 @@ func DecompressStringFromString(s string) string {
 	}
 
 	return ""
+}
+
+func SerializeString(w io.Writer, str string) {
+	n := uint8(len(str))
+	binary.Write(w, binary.LittleEndian, n)
+	binary.Write(w, binary.LittleEndian, []byte(str))
+}
+
+func DeserializeString(r io.Reader) (string, bool) {
+	n := uint8(0)
+	if binary.Read(r, binary.LittleEndian, &n) == nil {
+		buf := make([]byte, n)
+		if binary.Read(r, binary.LittleEndian, buf) == nil {
+			return string(buf), true
+		}
+	}
+	return "", false
+}
+
+// 是否为可见字符
+func IsVisibleByte(b byte) bool {
+	return b >= '!' && b <= '~'
 }

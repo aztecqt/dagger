@@ -1,8 +1,6 @@
 /*
  * @Author: aztec
  * @Date: 2022-06-15 11:43
- * @LastEditors: aztec
- * @FilePath: \center_serverc:\work\svn\go\src\dagger\util\terminal\interface.go
  * @Description:
  * 定义了一个命令行接口
  *

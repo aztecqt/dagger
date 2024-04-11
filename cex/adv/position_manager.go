@@ -95,10 +95,10 @@ func (p *PositionManager) Init(trader common.FutureTrader, onDeal OnMakerOrderDe
 	p.mkClose = new(Maker)
 	p.tkOpen = new(Maker)
 	p.tkClose = new(Maker)
-	p.mkOpen.Init(trader, p.makeOnly, false, 0, 0, "mkOpen")
-	p.mkClose.Init(trader, p.makeOnly, false, 0, 0, "mkClose")
-	p.tkOpen.Init(trader, false, false, 0, 0, "tkOpen")
-	p.tkClose.Init(trader, false, false, 0, 0, "tkClose")
+	p.mkOpen.Init(trader, p.makeOnly, false, true, 0, 0, "mkOpen")
+	p.mkClose.Init(trader, p.makeOnly, false, true, 0, 0, "mkClose")
+	p.tkOpen.Init(trader, false, false, true, 0, 0, "tkOpen")
+	p.tkClose.Init(trader, false, false, true, 0, 0, "tkClose")
 	p.mkOpen.SetDealFn(p.onOpenDeal)
 	p.mkClose.SetDealFn(p.onCloseDeal)
 	p.tkOpen.SetDealFn(p.onOpenDeal)
@@ -306,12 +306,12 @@ func (p *PositionManager) Update() {
 		//lint:ignore SA4006
 		price := decimal.Zero
 		if dir == common.OrderDir_Buy {
-			price = p.trader.Market().OrderBook().Sell1().Mul(decimal.NewFromFloat(1.01))
+			price = p.trader.Market().OrderBook().Sell1Price().Mul(decimal.NewFromFloat(1.01))
 			if p.maxBuyPrice.IsPositive() && price.GreaterThan(p.maxBuyPrice) {
 				price = p.maxBuyPrice
 			}
 		} else {
-			price = p.trader.Market().OrderBook().Buy1().Mul(decimal.NewFromFloat(0.99))
+			price = p.trader.Market().OrderBook().Buy1Price().Mul(decimal.NewFromFloat(0.99))
 			if p.minSellPrice.IsPositive() && price.LessThan(p.minSellPrice) {
 				price = p.minSellPrice
 			}
@@ -352,11 +352,11 @@ func (p *PositionManager) Update() {
 			}
 
 			if isOpen {
-				p.tkOpen.Modify2(price, sz, dir, false, false) // 吃单交易不要修改订单，否则容易出错（猜）
+				p.tkOpen.ModifyWithoutOrderModify(price, sz, dir, false) // 吃单交易不要修改订单，否则容易出错（猜）
 				p.tkClose.Cancel()
 				p.takerCD = time.Now().Add(time.Second)
 			} else {
-				p.tkClose.Modify2(price, sz, dir, true, false) // 吃单交易不要修改订单，否则容易出错（猜）
+				p.tkClose.ModifyWithoutOrderModify(price, sz, dir, true) // 吃单交易不要修改订单，否则容易出错（猜）
 				p.tkOpen.Cancel()
 				p.takerCD = time.Now().Add(time.Second)
 			}

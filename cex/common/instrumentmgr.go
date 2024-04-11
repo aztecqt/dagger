@@ -7,6 +7,7 @@
 package common
 
 import (
+	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 
 	"github.com/shopspring/decimal"
@@ -45,7 +46,16 @@ func (i *InstrumentMgr) GetAll() []*Instruments {
 
 func (i *InstrumentMgr) AlignPriceNumber(instId string, price decimal.Decimal) decimal.Decimal {
 	if inst, ok := i.instrumentsById[instId]; ok {
-		price = price.Round(-inst.TickSize.Exponent())
+		inst.refreshTickSizeMode()
+		t := inst.TickSize
+		m := inst.TickSizeMode
+		if m == TickSizeMode_Standard {
+			price = price.Round(-t.Exponent())
+		} else {
+			mul := decimal.NewFromInt(price.Add(t.Div(util.DecimalTwo)).Div(t).IntPart())
+			price = t.Mul(mul)
+		}
+
 		return price
 	} else {
 		logger.LogPanic(i.logPrefix, "unknown instid:%s", instId)
@@ -55,10 +65,26 @@ func (i *InstrumentMgr) AlignPriceNumber(instId string, price decimal.Decimal) d
 
 func (i *InstrumentMgr) AlignPrice(instId string, price decimal.Decimal, dir OrderDir, makeOnly bool, buy1, sell1 decimal.Decimal) decimal.Decimal {
 	if inst, ok := i.instrumentsById[instId]; ok {
-		if dir == OrderDir_Buy {
-			price = price.RoundDown(-inst.TickSize.Exponent())
+		inst.refreshTickSizeMode()
+		t := inst.TickSize
+		m := inst.TickSizeMode
+		if m == TickSizeMode_Standard {
+			if dir == OrderDir_Buy {
+				price = price.RoundDown(-inst.TickSize.Exponent())
+			} else {
+				price = price.RoundUp(-inst.TickSize.Exponent())
+			}
 		} else {
-			price = price.RoundUp(-inst.TickSize.Exponent())
+			if dir == OrderDir_Buy {
+				mul := decimal.NewFromInt(price.Div(t).IntPart())
+				price = t.Mul(mul)
+			} else {
+				mul := decimal.NewFromInt(price.Div(t).IntPart())
+				temp := t.Mul(mul)
+				if !price.Equal(temp) {
+					price = t.Mul(mul.Add(util.DecimalOne))
+				}
+			}
 		}
 
 		if makeOnly {

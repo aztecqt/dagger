@@ -88,6 +88,32 @@ func (n *Notifier) SendTextByUid(text string, uids ...string) *Message {
 	return nil
 }
 
+// rawText: title, markdown, btnText0, btnUrl0...
+func (n *Notifier) SendActionCardByMob(rawText []string, mobs ...int64) *Message {
+	uids := make([]string, 0)
+	for _, mob := range mobs {
+		uid, ok := n.mobile2UserId(mob)
+		if ok {
+			uids = append(uids, uid)
+		}
+	}
+
+	return n.SendActionCardByUid(rawText, uids...)
+}
+
+func (n *Notifier) SendActionCardByUid(rawText []string, uids ...string) *Message {
+	if len(uids) > 0 {
+		m := new(Message)
+		uidstr := strings.Join(uids, ",")
+		m.initAsActionCard(n, uidstr, rawText)
+		logger.LogInfo(n.logPrefix, "sending action_card msg to user, userid=%s, rawtext=%s", uidstr, rawText)
+		go m.send()
+		return m
+	}
+
+	return nil
+}
+
 func (n *Notifier) SendLinkByMob(url, pic, title, text string, mobs ...int64) *Message {
 	uids := make([]string, 0)
 	for _, mob := range mobs {
@@ -242,6 +268,85 @@ func (n *Notifier) sendLinkMessage(uid string, messageUrl, picUrl, title, text s
 			return resp.TaskId
 		} else {
 			logger.LogImportant(n.logPrefix, "send link msg failed, errCode=%d, errMsg=%s", resp.ErrorCode, resp.ErrorMsg)
+			return 0
+		}
+	} else {
+		return 0
+	}
+}
+
+func (n *Notifier) sendActionCardMessage(uid string, title, markdown string, btnTextsAndUrls []string) int64 {
+	// 最大1000个字符，过长需要拆分
+	lTitle := len(title) + len(markdown)
+	btnTextsAndUrlsArray := [][]string{}
+	temp := []string{}
+	lTotal := lTitle
+	for i := 0; i < len(btnTextsAndUrls); i += 2 {
+		text := btnTextsAndUrls[i]
+		url := btnTextsAndUrls[i+1]
+		lTotal = lTotal + len(text) + len(url)
+		if lTotal < 800 {
+			temp = append(temp, text)
+			temp = append(temp, url)
+		} else {
+			btnTextsAndUrlsArray = append(btnTextsAndUrlsArray, temp)
+			temp = []string{}
+			lTotal = lTitle
+			lTotal = lTotal + len(text) + len(url)
+			temp = append(temp, text)
+			temp = append(temp, url)
+		}
+	}
+
+	if len(temp) > 0 {
+		btnTextsAndUrlsArray = append(btnTextsAndUrlsArray, temp)
+	}
+
+	id := int64(0)
+	for _, v := range btnTextsAndUrlsArray {
+		id = n.doSendActionCardMessage(uid, title, markdown, v)
+	}
+	return id
+}
+
+// title是卡片标题
+// btnTextsAndUrls长度应为偶数，为 按钮文本、按钮url...
+func (n *Notifier) doSendActionCardMessage(uid string, title, markdown string, btnTextsAndUrls []string) int64 {
+	defer util.DefaultRecover()
+	action := "/topapi/message/corpconversation/asyncsend_v2"
+	method := "POST"
+	params := url.Values{}
+	params.Set("access_token", n.accessToken)
+	action = action + "?" + params.Encode()
+	url := rootURL + action
+
+	req := sendActionCardMsgReq{}
+	req.AgentId = n.agentId
+	req.UseridList = uid
+	req.ToAllUser = false
+	req.Msg.MsgType = "action_card"
+	req.Msg.ActionCard.Title = title
+	req.Msg.ActionCard.Markdown = markdown
+	req.Msg.ActionCard.BtnOrientation = "0" // 仅支持纵向
+	if len(btnTextsAndUrls)%2 == 0 {
+		for i := 0; i < len(btnTextsAndUrls)/2; i++ {
+			title := btnTextsAndUrls[i*2]
+			url := btnTextsAndUrls[i*2+1]
+			// 转换为钉钉格式的url，禁用pc侧边栏
+			url = fmt.Sprintf("dingtalk://dingtalkclient/page/link?url=%s&pc_slide=false", url)
+			req.Msg.ActionCard.Btns = append(req.Msg.ActionCard.Btns, actionCardButton{Title: title, Url: url})
+		}
+	}
+
+	b, _ := json.Marshal(req)
+	postStr := string(b)
+
+	resp, err := network.ParseHttpResult[sendMsgResp](n.logPrefix, "sendTextMessage", url, method, postStr, network.JsonHeaders(), nil, nil)
+	if err == nil {
+		if resp.ErrorCode == 0 {
+			return resp.TaskId
+		} else {
+			logger.LogImportant(n.logPrefix, "send text msg failed, errCode=%d, errMsg=%s", resp.ErrorCode, resp.ErrorMsg)
 			return 0
 		}
 	} else {

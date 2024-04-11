@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-30 09:44:46
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-10-03 07:35:00
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-04-01 09:20:34
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\common\orderbook.go
  * @Description: 订单簿
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package common
 
@@ -22,11 +22,22 @@ import (
 )
 
 type Orderbook struct {
-	Asks  *treemap.Map
-	Bids  *treemap.Map
-	mu    sync.Mutex
-	buy1  decimal.Decimal
-	sell1 decimal.Decimal
+	Asks    *treemap.Map
+	Bids    *treemap.Map
+	mu      sync.Mutex
+	buy1Px  decimal.Decimal
+	buy1Sz  decimal.Decimal
+	sell1Px decimal.Decimal
+	sell1Sz decimal.Decimal
+}
+
+func NewOrderBook() *Orderbook {
+	ob := new(Orderbook)
+	ob.Lock()
+	defer ob.Unlock()
+	ob.Asks = util.NewDecimalTreeMap()         // 由小到大排列，卖1放在第1个
+	ob.Bids = util.NewDecimalTreeMapInverted() // 由大到小排列，买1放在第1个
+	return ob
 }
 
 func (ob *Orderbook) Empty() bool {
@@ -41,26 +52,29 @@ func (ob *Orderbook) Unlock() {
 	ob.mu.Unlock()
 }
 
-func (ob *Orderbook) Init() {
-	ob.Lock()
-	defer ob.Unlock()
-	ob.Asks = util.NewDecimalTreeMap()         // 由小到大排列，卖1放在第1个
-	ob.Bids = util.NewDecimalTreeMapInverted() // 由大到小排列，买1放在第1个
+// 最高买价/量
+func (ob *Orderbook) Buy1() (px, sz decimal.Decimal) {
+	return ob.buy1Px, ob.buy1Sz
 }
 
-// 最高买价
-func (ob *Orderbook) Buy1() decimal.Decimal {
-	return ob.buy1
+// 最低卖价/量
+func (ob *Orderbook) Sell1() (px, sz decimal.Decimal) {
+	return ob.sell1Px, ob.sell1Sz
 }
 
-// 最低卖价
-func (ob *Orderbook) Sell1() decimal.Decimal {
-	return ob.sell1
+// 最高买价/量
+func (ob *Orderbook) Buy1Price() decimal.Decimal {
+	return ob.buy1Px
+}
+
+// 最低卖价/量
+func (ob *Orderbook) Sell1Price() decimal.Decimal {
+	return ob.sell1Px
 }
 
 // 中间价
 func (ob *Orderbook) MiddlePrice() decimal.Decimal {
-	return ob.buy1.Add(ob.sell1).Div(decimal.NewFromInt(2))
+	return ob.buy1Px.Add(ob.sell1Px).Div(decimal.NewFromInt(2))
 }
 
 // 根据吃单买入数量，计算吃单均价
@@ -89,7 +103,7 @@ func (ob *Orderbook) GetBuyPriceByAmount(amount decimal.Decimal) decimal.Decimal
 		price := amountPriceAcc.Div(amountAcc)
 		return price
 	} else {
-		return ob.sell1
+		return ob.sell1Px
 	}
 }
 
@@ -119,7 +133,7 @@ func (ob *Orderbook) GetSellPriceByAmount(amount decimal.Decimal) decimal.Decima
 		price := amountPriceAcc.Div(amountAcc)
 		return price
 	} else {
-		return ob.buy1
+		return ob.buy1Px
 	}
 }
 
@@ -128,7 +142,7 @@ func (ob *Orderbook) MaxBuyAmountBySlipPoint(maxSp decimal.Decimal) decimal.Deci
 	ob.Lock()
 	defer ob.Unlock()
 
-	startPx := ob.sell1
+	startPx := ob.sell1Px
 	it := ob.Asks.Iterator()
 	amount := decimal.Zero
 	for it.Next() {
@@ -152,7 +166,7 @@ func (ob *Orderbook) MaxSellAmountBySlipPoint(maxSp decimal.Decimal) decimal.Dec
 	ob.Lock()
 	defer ob.Unlock()
 
-	startPx := ob.buy1
+	startPx := ob.buy1Px
 	it := ob.Bids.Iterator()
 	amount := decimal.Zero
 	for it.Next() {
@@ -225,11 +239,13 @@ func (ob *Orderbook) UpdateAsk(price, amount decimal.Decimal) {
 		ob.Asks.Put(price, amount)
 	}
 
-	k, _ := ob.Asks.Min()
+	k, v := ob.Asks.Min()
 	if k == nil {
-		ob.sell1 = decimal.Zero
+		ob.sell1Px = decimal.Zero
+		ob.sell1Sz = decimal.Zero
 	} else {
-		ob.sell1 = k.(decimal.Decimal)
+		ob.sell1Px = k.(decimal.Decimal)
+		ob.sell1Sz = v.(decimal.Decimal)
 	}
 }
 
@@ -243,18 +259,20 @@ func (ob *Orderbook) UpdateBids(price, amount decimal.Decimal) {
 		ob.Bids.Put(price, amount)
 	}
 
-	k, _ := ob.Bids.Min() // 注意，bids是个反向map
+	k, v := ob.Bids.Min() // 注意，bids是个反向map
 	if k == nil {
-		ob.buy1 = decimal.Zero
+		ob.buy1Px = decimal.Zero
+		ob.buy1Sz = decimal.Zero
 	} else {
-		ob.buy1 = k.(decimal.Decimal)
+		ob.buy1Px = k.(decimal.Decimal)
+		ob.buy1Sz = v.(decimal.Decimal)
 	}
 }
 
 // asks：px,sz,px,sz
 func (ob *Orderbook) Rebuild(asks, bids []decimal.Decimal) {
 	ob.Lock()
-	ob.Unlock()
+	defer ob.Unlock()
 
 	ob.Asks.Clear()
 	ob.Bids.Clear()
@@ -270,18 +288,22 @@ func (ob *Orderbook) Rebuild(asks, bids []decimal.Decimal) {
 		ob.Bids.Put(px, sz)
 	}
 
-	k, _ := ob.Asks.Min()
+	k, v := ob.Asks.Min()
 	if k == nil {
-		ob.sell1 = decimal.Zero
+		ob.sell1Px = decimal.Zero
+		ob.sell1Sz = decimal.Zero
 	} else {
-		ob.sell1 = k.(decimal.Decimal)
+		ob.sell1Px = k.(decimal.Decimal)
+		ob.sell1Sz = v.(decimal.Decimal)
 	}
 
-	k, _ = ob.Bids.Min() // 注意，bids是个反向map
+	k, v = ob.Bids.Min() // 注意，bids是个反向map
 	if k == nil {
-		ob.buy1 = decimal.Zero
+		ob.buy1Px = decimal.Zero
+		ob.buy1Sz = decimal.Zero
 	} else {
-		ob.buy1 = k.(decimal.Decimal)
+		ob.buy1Px = k.(decimal.Decimal)
+		ob.buy1Sz = v.(decimal.Decimal)
 	}
 }
 

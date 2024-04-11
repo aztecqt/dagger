@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-04-07 09:44:45
   - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-12-07 09:34:20
+  - @LastEditTime: 2024-04-09 16:22:57
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\adv\maker.go
  * @Description: 自动化的动态（make）订单，目的是固化一些常用操作，简化策略代码
  * 外部可以随时指定其价格和数量
@@ -65,6 +65,7 @@ func (d *Maker) Init(
 	trader common.CommonTrader,
 	makeonly bool,
 	autoReborn bool,
+	enableModify bool,
 	maxPriceDeviation float64,
 	maxSizeDeviation float64,
 	purpose string) {
@@ -72,7 +73,7 @@ func (d *Maker) Init(
 	d.trader = trader
 	d.makeOnly = makeonly
 	d.autoReborn = autoReborn
-	d.enableModify = true
+	d.enableModify = enableModify
 	d.purpose = purpose
 	d.maxPriceDeviation = maxPriceDeviation
 	d.maxSizeDeviation = maxSizeDeviation
@@ -86,17 +87,19 @@ func (d *Maker) Modify(price, size decimal.Decimal, dir common.OrderDir, reduceO
 	d.size = size
 	d.dir = dir
 	d.reduceOnly = reduceOnly
-	d.enableModify = true // 默认参数
 	d.updateOrder(true)
 }
 
-func (d *Maker) Modify2(price, size decimal.Decimal, dir common.OrderDir, reduceOnly, enableModify bool) {
+func (d *Maker) ModifyWithoutOrderModify(price, size decimal.Decimal, dir common.OrderDir, reduceOnly bool) {
 	d.price = price
 	d.size = size
 	d.dir = dir
 	d.reduceOnly = reduceOnly
-	d.enableModify = enableModify
+
+	temp := d.enableModify
+	d.enableModify = false
 	d.updateOrder(true)
+	d.enableModify = temp
 }
 
 func (d *Maker) Cancel() {
@@ -162,7 +165,7 @@ func (d *Maker) updateOrder(reborn bool) {
 
 	px := d.trader.Market().AlignPrice(d.price, d.dir, d.makeOnly)
 	sz := d.trader.Market().AlignSize(d.size) // 注意！这里的size仅指未成交数量，不包括已成交数量
-	if !px.IsPositive() || !sz.IsPositive() || d.dir == common.OrderDir_None {
+	if !px.IsPositive() || !sz.IsPositive() || d.dir == common.OrderDir_None || !common.PriceInRange(px, d.dir, d.trader) {
 		if d.O != nil {
 			d.O.Cancel()
 		}

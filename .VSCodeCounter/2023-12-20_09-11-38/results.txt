@@ -1,0 +1,232 @@
+Date : 2023-12-20 09:11:38
+Directory : c:\work\svn\quant\go\src\dagger
+Total : 156 files,  664277 codes, 2428 comments, 3587 blanks, all 670292 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| JSON             |         13 |    644,127 |          0 |          0 |    644,127 |
+| Go               |        141 |     19,921 |      2,428 |      3,580 |     25,929 |
+| Go Checksum File |          1 |        184 |          0 |          1 |        185 |
+| Go Module File   |          1 |         45 |          0 |          6 |         51 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                       | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                          |        156 |    664,277 |      2,428 |      3,587 |    670,292 |
+| . (Files)                                                                  |          2 |        229 |          0 |          7 |        236 |
+| api                                                                        |         55 |    649,967 |        741 |      1,014 |    651,722 |
+| api (Files)                                                                |          4 |        401 |         66 |         75 |        542 |
+| api\binanceapi                                                             |          9 |      1,395 |        189 |        233 |      1,817 |
+| api\binanceapi (Files)                                                     |          6 |        421 |         83 |         86 |        590 |
+| api\binanceapi\binancefutureapi                                            |          1 |        345 |         28 |         54 |        427 |
+| api\binanceapi\binancespotapi                                              |          2 |        629 |         78 |         93 |        800 |
+| api\cam                                                                    |         13 |    643,771 |         36 |         88 |    643,895 |
+| api\cam (Files)                                                            |          2 |        574 |         36 |         88 |        698 |
+| api\cam\samples                                                            |         11 |    643,197 |          0 |          0 |    643,197 |
+| api\coingeckoapi                                                           |          1 |         33 |          9 |          7 |         49 |
+| api\etherscanapi                                                           |          2 |        113 |         14 |         17 |        144 |
+| api\jin10                                                                  |          4 |        979 |         18 |         12 |      1,009 |
+| api\jin10 (Files)                                                          |          2 |         49 |         18 |         12 |         79 |
+| api\jin10\samples                                                          |          2 |        930 |          0 |          0 |        930 |
+| api\myweb3                                                                 |          2 |         45 |         14 |         15 |         74 |
+| api\okexv5api                                                              |         10 |      2,021 |        218 |        338 |      2,577 |
+| api\okexv5api (Files)                                                      |          5 |      1,466 |        151 |        255 |      1,872 |
+| api\okexv5api\cached                                                       |          3 |        283 |         41 |         39 |        363 |
+| api\okexv5api\follow                                                       |          2 |        272 |         26 |         44 |        342 |
+| api\proxyprovider                                                          |          5 |        347 |         34 |         80 |        461 |
+| api\twitterapi                                                             |          5 |        862 |        143 |        149 |      1,154 |
+| cex                                                                        |         40 |      7,487 |        869 |      1,407 |      9,763 |
+| cex\adv                                                                    |         13 |      3,192 |        339 |        577 |      4,108 |
+| cex\binance                                                                |          6 |      1,057 |        124 |        204 |      1,385 |
+| cex\common                                                                 |          8 |      1,108 |        142 |        214 |      1,464 |
+| cex\okexv5                                                                 |         13 |      2,130 |        264 |        412 |      2,806 |
+| stratergy                                                                  |          6 |      1,133 |        108 |        198 |      1,439 |
+| stratergy (Files)                                                          |          4 |        692 |         68 |        108 |        868 |
+| stratergy\datamanager                                                      |          2 |        441 |         40 |         90 |        571 |
+| util                                                                       |         53 |      5,461 |        710 |        961 |      7,132 |
+| util (Files)                                                               |         14 |      1,931 |        193 |        320 |      2,444 |
+| util\apikey                                                                |          2 |        198 |         22 |         33 |        253 |
+| util\crypto                                                                |          4 |        266 |        118 |         55 |        439 |
+| util\datavisual                                                            |          2 |        391 |         40 |         52 |        483 |
+| util\dingtalk                                                              |          3 |        510 |         32 |         80 |        622 |
+| util\indacators                                                            |          6 |        349 |         48 |         72 |        469 |
+| util\influxdb                                                              |          2 |        426 |         29 |         67 |        522 |
+| util\logger                                                                |          1 |        185 |         24 |         39 |        248 |
+| util\marketdata                                                            |          4 |        511 |         74 |         99 |        684 |
+| util\mathtools                                                             |          3 |        127 |         26 |         26 |        179 |
+| util\network                                                               |          3 |        190 |         24 |         40 |        254 |
+| util\prettyutil                                                            |          1 |          5 |          7 |          3 |         15 |
+| util\routine                                                               |          1 |         54 |          7 |         10 |         71 |
+| util\signals                                                               |          1 |         22 |         12 |          6 |         40 |
+| util\terminal                                                              |          2 |         83 |         18 |         13 |        114 |
+| util\translate                                                             |          1 |         52 |          5 |         10 |         67 |
+| util\udpsocket                                                             |          2 |        115 |         24 |         26 |        165 |
+| util\webhelper                                                             |          1 |         46 |          7 |         10 |         63 |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                   | language         | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\binancefutureapi\rest.go    | Go               |        345 |         28 |         54 |        427 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\binancespotapi\rest.go      | Go               |        496 |         67 |         75 |        638 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\binancespotapi\websocket.go | Go               |        133 |         11 |         18 |        162 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\defines.go                  | Go               |          9 |          8 |          3 |         20 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\helper.go                   | Go               |         40 |         11 |         10 |         61 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\response_rest.go            | Go               |        193 |         31 |         33 |        257 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\response_websocket.go       | Go               |         65 |         14 |         10 |         89 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\signer.go                   | Go               |         81 |         12 |         20 |        113 |
+| c:\work\svn\quant\go\src\dagger\api\binanceapi\ws_stream.go                | Go               |         33 |          7 |         10 |         50 |
+| c:\work\svn\quant\go\src\dagger\api\cam\defines.go                         | Go               |        368 |         14 |         59 |        441 |
+| c:\work\svn\quant\go\src\dagger\api\cam\rest.go                            | Go               |        206 |         22 |         29 |        257 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\assets.json                | JSON             |      2,825 |          0 |          0 |      2,825 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\basicInfo.json             | JSON             |         64 |          0 |          0 |         64 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\dealRecords.json           | JSON             |    147,009 |          0 |          0 |    147,009 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\details.json               | JSON             |     15,422 |          0 |          0 |     15,422 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\orderRecords.json          | JSON             |    135,009 |          0 |          0 |    135,009 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\orderRecords.usd.json      | JSON             |    135,009 |          0 |          0 |    135,009 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\portfolioList.json         | JSON             |        934 |          0 |          0 |        934 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\positions.json             | JSON             |      3,244 |          0 |          0 |      3,244 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\risk.json                  | JSON             |        101 |          0 |          0 |        101 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\simple_account.json        | JSON             |     56,571 |          0 |          0 |     56,571 |
+| c:\work\svn\quant\go\src\dagger\api\cam\samples\transRecors.json           | JSON             |    147,009 |          0 |          0 |    147,009 |
+| c:\work\svn\quant\go\src\dagger\api\coingeckoapi\rest.go                   | Go               |         33 |          9 |          7 |         49 |
+| c:\work\svn\quant\go\src\dagger\api\etherscanapi\defines.go                | Go               |         16 |          7 |          4 |         27 |
+| c:\work\svn\quant\go\src\dagger\api\etherscanapi\rest.go                   | Go               |         97 |          7 |         13 |        117 |
+| c:\work\svn\quant\go\src\dagger\api\helper.go                              | Go               |         14 |          7 |          5 |         26 |
+| c:\work\svn\quant\go\src\dagger\api\jin10\api.go                           | Go               |         21 |          9 |          6 |         36 |
+| c:\work\svn\quant\go\src\dagger\api\jin10\defines.go                       | Go               |         28 |          9 |          6 |         43 |
+| c:\work\svn\quant\go\src\dagger\api\jin10\samples\economics.json           | JSON             |        875 |          0 |          0 |        875 |
+| c:\work\svn\quant\go\src\dagger\api\jin10\samples\events.json              | JSON             |         55 |          0 |          0 |         55 |
+| c:\work\svn\quant\go\src\dagger\api\myweb3\deines.go                       | Go               |         29 |          7 |          7 |         43 |
+| c:\work\svn\quant\go\src\dagger\api\myweb3\rest.go                         | Go               |         16 |          7 |          8 |         31 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\cached\defines.go            | Go               |          2 |          7 |          2 |         11 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\cached\klines.go             | Go               |        157 |         17 |         20 |        194 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\cached\position_history.go   | Go               |        124 |         17 |         17 |        158 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\follow\response.go           | Go               |        166 |          7 |         34 |        207 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\follow\rest.go               | Go               |        106 |         19 |         10 |        135 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\response_private.go          | Go               |        248 |         38 |         39 |        325 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\response_public.go           | Go               |        272 |         22 |         50 |        344 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\rest.go                      | Go               |        469 |         44 |         83 |        596 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\signer.go                    | Go               |        103 |         12 |         23 |        138 |
+| c:\work\svn\quant\go\src\dagger\api\okexv5api\websocket.go                 | Go               |        374 |         35 |         60 |        469 |
+| c:\work\svn\quant\go\src\dagger\api\pinger.go                              | Go               |         44 |         13 |          8 |         65 |
+| c:\work\svn\quant\go\src\dagger\api\proxyprovider\common_defines.go        | Go               |         23 |          6 |          6 |         35 |
+| c:\work\svn\quant\go\src\dagger\api\proxyprovider\iproyal_api.go           | Go               |         88 |          9 |         22 |        119 |
+| c:\work\svn\quant\go\src\dagger\api\proxyprovider\iproyal_defines.go       | Go               |         75 |          8 |         15 |         98 |
+| c:\work\svn\quant\go\src\dagger\api\proxyprovider\proxyline_api.go         | Go               |         99 |          6 |         24 |        129 |
+| c:\work\svn\quant\go\src\dagger\api\proxyprovider\proxyline_defines.go     | Go               |         62 |          5 |         13 |         80 |
+| c:\work\svn\quant\go\src\dagger\api\twitterapi\api_defines.go              | Go               |         70 |         15 |         13 |         98 |
+| c:\work\svn\quant\go\src\dagger\api\twitterapi\bot.go                      | Go               |        252 |         66 |         36 |        354 |
+| c:\work\svn\quant\go\src\dagger\api\twitterapi\bot_defines.go              | Go               |        260 |         19 |         31 |        310 |
+| c:\work\svn\quant\go\src\dagger\api\twitterapi\tweet.go                    | Go               |        146 |         25 |         34 |        205 |
+| c:\work\svn\quant\go\src\dagger\api\twitterapi\userinfo.go                 | Go               |        134 |         18 |         35 |        187 |
+| c:\work\svn\quant\go\src\dagger\api\ws_connection.go                       | Go               |        261 |         30 |         48 |        339 |
+| c:\work\svn\quant\go\src\dagger\api\ws_subscriber.go                       | Go               |         82 |         16 |         14 |        112 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\bandDealer.go                      | Go               |        199 |         27 |         47 |        273 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\breakDealer.go                     | Go               |        466 |         53 |         87 |        606 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\breakDealerV2.go                   | Go               |        439 |         49 |         71 |        559 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\deal_statistic.go                  | Go               |         95 |         19 |         19 |        133 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\grid.go                            | Go               |        390 |         29 |         68 |        487 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\historyfundingfee.go               | Go               |        120 |         14 |         21 |        155 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\historyprice.go                    | Go               |         76 |          7 |          8 |         91 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\maker.go                           | Go               |        155 |         25 |         27 |        207 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\position_manager.go                | Go               |        325 |         35 |         56 |        416 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\priceMap2Position.go               | Go               |         43 |          7 |         10 |         60 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\reversedGrid.go                    | Go               |        406 |         30 |         67 |        503 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\taker.go                           | Go               |        167 |         18 |         38 |        223 |
+| c:\work\svn\quant\go\src\dagger\cex\adv\twDealer.go                        | Go               |        311 |         26 |         58 |        395 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\defines.go                     | Go               |         94 |         11 |          9 |        114 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\exchange.go                    | Go               |        339 |         30 |         72 |        441 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\helper.go                      | Go               |         64 |         17 |          9 |         90 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\spot_market.go                 | Go               |        198 |         17 |         40 |        255 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\spot_order.go                  | Go               |        196 |         31 |         39 |        266 |
+| c:\work\svn\quant\go\src\dagger\cex\binance\spot_trader.go                 | Go               |        166 |         18 |         35 |        219 |
+| c:\work\svn\quant\go\src\dagger\cex\common\balancemgr.go                   | Go               |         45 |         12 |         15 |         72 |
+| c:\work\svn\quant\go\src\dagger\cex\common\defines.go                      | Go               |        252 |         15 |         48 |        315 |
+| c:\work\svn\quant\go\src\dagger\cex\common\helper.go                       | Go               |        133 |         24 |         16 |        173 |
+| c:\work\svn\quant\go\src\dagger\cex\common\instrumentmgr.go                | Go               |         78 |          8 |         13 |         99 |
+| c:\work\svn\quant\go\src\dagger\cex\common\interface.go                    | Go               |        196 |         40 |         40 |        276 |
+| c:\work\svn\quant\go\src\dagger\cex\common\order.go                        | Go               |        143 |         11 |         28 |        182 |
+| c:\work\svn\quant\go\src\dagger\cex\common\orderbook.go                    | Go               |        260 |         22 |         52 |        334 |
+| c:\work\svn\quant\go\src\dagger\cex\common\others.go                       | Go               |          1 |         10 |          2 |         13 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\common_market.go                | Go               |        229 |         22 |         42 |        293 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\common_order.go                 | Go               |        264 |         32 |         46 |        342 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\contract_observer.go            | Go               |         97 |         12 |         14 |        123 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\contract_order.go               | Go               |         44 |         12 |          9 |         65 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\defines.go                      | Go               |         53 |         14 |         11 |         78 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\exchange.go                     | Go               |        656 |         55 |        115 |        826 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\fundingfee_observer.go          | Go               |        127 |         14 |         25 |        166 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\future_market.go                | Go               |        156 |         17 |         33 |        206 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\future_trader.go                | Go               |        199 |         28 |         41 |        268 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\helper.go                       | Go               |         66 |         14 |         15 |         95 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\spot_market.go                  | Go               |         42 |         14 |         15 |         71 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\spot_order.go                   | Go               |         30 |         12 |          9 |         51 |
+| c:\work\svn\quant\go\src\dagger\cex\okexv5\spot_trader.go                  | Go               |        167 |         18 |         37 |        222 |
+| c:\work\svn\quant\go\src\dagger\go.mod                                     | Go Module File   |         45 |          0 |          6 |         51 |
+| c:\work\svn\quant\go\src\dagger\go.sum                                     | Go Checksum File |        184 |          0 |          1 |        185 |
+| c:\work\svn\quant\go\src\dagger\stratergy\dataline.go                      | Go               |        300 |         35 |         50 |        385 |
+| c:\work\svn\quant\go\src\dagger\stratergy\datamanager\influx.go            | Go               |        269 |         27 |         61 |        357 |
+| c:\work\svn\quant\go\src\dagger\stratergy\datamanager\redis.go             | Go               |        172 |         13 |         29 |        214 |
+| c:\work\svn\quant\go\src\dagger\stratergy\defines.go                       | Go               |        237 |         10 |         41 |        288 |
+| c:\work\svn\quant\go\src\dagger\stratergy\stratergy.go                     | Go               |         16 |         10 |          4 |         30 |
+| c:\work\svn\quant\go\src\dagger\stratergy\terminal.go                      | Go               |        139 |         13 |         13 |        165 |
+| c:\work\svn\quant\go\src\dagger\util\apikey\protocol.go                    | Go               |         83 |          9 |         13 |        105 |
+| c:\work\svn\quant\go\src\dagger\util\apikey\requester.go                   | Go               |        115 |         13 |         20 |        148 |
+| c:\work\svn\quant\go\src\dagger\util\chromedp_helper.go                    | Go               |        154 |         24 |         31 |        209 |
+| c:\work\svn\quant\go\src\dagger\util\code_path_recorder.go                 | Go               |         16 |         10 |          6 |         32 |
+| c:\work\svn\quant\go\src\dagger\util\crypto\aes.go                         | Go               |         98 |         16 |         10 |        124 |
+| c:\work\svn\quant\go\src\dagger\util\crypto\des.go                         | Go               |        131 |         71 |         38 |        240 |
+| c:\work\svn\quant\go\src\dagger\util\crypto\keys.go                        | Go               |          2 |          9 |          3 |         14 |
+| c:\work\svn\quant\go\src\dagger\util\crypto\rsa.go                         | Go               |         35 |         22 |          4 |         61 |
+| c:\work\svn\quant\go\src\dagger\util\csv.go                                | Go               |         63 |          8 |         14 |         85 |
+| c:\work\svn\quant\go\src\dagger\util\datavisual\datagroup.go               | Go               |        165 |         26 |         29 |        220 |
+| c:\work\svn\quant\go\src\dagger\util\datavisual\layout.go                  | Go               |        226 |         14 |         23 |        263 |
+| c:\work\svn\quant\go\src\dagger\util\dingtalk\defines.go                   | Go               |         75 |          8 |         16 |         99 |
+| c:\work\svn\quant\go\src\dagger\util\dingtalk\message.go                   | Go               |        134 |         15 |         20 |        169 |
+| c:\work\svn\quant\go\src\dagger\util\dingtalk\notifier.go                  | Go               |        301 |          9 |         44 |        354 |
+| c:\work\svn\quant\go\src\dagger\util\helper.go                             | Go               |        122 |         21 |         29 |        172 |
+| c:\work\svn\quant\go\src\dagger\util\helper_file.go                        | Go               |        206 |         20 |         32 |        258 |
+| c:\work\svn\quant\go\src\dagger\util\helper_math.go                        | Go               |        371 |         22 |         59 |        452 |
+| c:\work\svn\quant\go\src\dagger\util\helper_profile.go                     | Go               |         30 |          8 |          5 |         43 |
+| c:\work\svn\quant\go\src\dagger\util\helper_string.go                      | Go               |        393 |         19 |         57 |        469 |
+| c:\work\svn\quant\go\src\dagger\util\helper_time.go                        | Go               |        173 |         19 |         24 |        216 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\bband.go                   | Go               |         81 |          8 |         14 |        103 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\interface.go               | Go               |         12 |          7 |          4 |         23 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\minmax.go                  | Go               |         66 |          8 |         14 |         88 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\mmwband.go                 | Go               |         87 |          8 |         16 |        111 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\sma.go                     | Go               |         45 |          8 |         10 |         63 |
+| c:\work\svn\quant\go\src\dagger\util\indacators\stddev.go                  | Go               |         58 |          9 |         14 |         81 |
+| c:\work\svn\quant\go\src\dagger\util\influxdb\helper.go                    | Go               |        344 |         20 |         54 |        418 |
+| c:\work\svn\quant\go\src\dagger\util\influxdb\walker.go                    | Go               |         82 |          9 |         13 |        104 |
+| c:\work\svn\quant\go\src\dagger\util\key_group.go                          | Go               |         38 |          7 |         11 |         56 |
+| c:\work\svn\quant\go\src\dagger\util\logger\logger.go                      | Go               |        185 |         24 |         39 |        248 |
+| c:\work\svn\quant\go\src\dagger\util\marketdata\driver.go                  | Go               |         16 |          7 |          4 |         27 |
+| c:\work\svn\quant\go\src\dagger\util\marketdata\klineDriver.go             | Go               |        145 |         10 |         28 |        183 |
+| c:\work\svn\quant\go\src\dagger\util\marketdata\tickerDriver.go            | Go               |        209 |         24 |         39 |        272 |
+| c:\work\svn\quant\go\src\dagger\util\marketdata\tradesDriver.go            | Go               |        141 |         33 |         28 |        202 |
+| c:\work\svn\quant\go\src\dagger\util\mathtools\deduplicator.go             | Go               |         38 |          7 |          8 |         53 |
+| c:\work\svn\quant\go\src\dagger\util\mathtools\dynamicMap.go               | Go               |         38 |          7 |          7 |         52 |
+| c:\work\svn\quant\go\src\dagger\util\mathtools\freq_calculator.go          | Go               |         51 |         12 |         11 |         74 |
+| c:\work\svn\quant\go\src\dagger\util\minio_client.go                       | Go               |         44 |          7 |          9 |         60 |
+| c:\work\svn\quant\go\src\dagger\util\network\htmlhelper.go                 | Go               |         40 |          7 |         11 |         58 |
+| c:\work\svn\quant\go\src\dagger\util\network\http.go                       | Go               |         97 |         10 |         21 |        128 |
+| c:\work\svn\quant\go\src\dagger\util\network\util.go                       | Go               |         53 |          7 |          8 |         68 |
+| c:\work\svn\quant\go\src\dagger\util\prettyutil\helper.go                  | Go               |          5 |          7 |          3 |         15 |
+| c:\work\svn\quant\go\src\dagger\util\redis_client.go                       | Go               |        276 |         11 |         35 |        322 |
+| c:\work\svn\quant\go\src\dagger\util\routine\taskcountctrl.go              | Go               |         54 |          7 |         10 |         71 |
+| c:\work\svn\quant\go\src\dagger\util\signals\push_n_hold.go                | Go               |         22 |         12 |          6 |         40 |
+| c:\work\svn\quant\go\src\dagger\util\sys_linux.go                          | Go               |         16 |          8 |          4 |         28 |
+| c:\work\svn\quant\go\src\dagger\util\sys_windows.go                        | Go               |         29 |          9 |          4 |         42 |
+| c:\work\svn\quant\go\src\dagger\util\terminal\helper.go                    | Go               |         65 |          8 |          8 |         81 |
+| c:\work\svn\quant\go\src\dagger\util\terminal\interface.go                 | Go               |         18 |         10 |          5 |         33 |
+| c:\work\svn\quant\go\src\dagger\util\translate\baidu.go                    | Go               |         52 |          5 |         10 |         67 |
+| c:\work\svn\quant\go\src\dagger\util\udpsocket\message.go                  | Go               |          4 |         10 |          3 |         17 |
+| c:\work\svn\quant\go\src\dagger\util\udpsocket\socket.go                   | Go               |        111 |         14 |         23 |        148 |
+| c:\work\svn\quant\go\src\dagger\util\webhelper\helper.go                   | Go               |         46 |          7 |         10 |         63 |
+| Total                                                                      |                  |    664,277 |      2,428 |      3,587 |    670,292 |
++----------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

@@ -87,8 +87,8 @@ func (b *TWDealer) Init(
 	b.dir = common.OrderDir_None
 	b.mkOpen = new(Maker)
 	b.mkClose = new(Maker)
-	b.mkOpen.Init(trader, true, false, 0, 0, "open")
-	b.mkClose.Init(trader, true, false, 0, 0, "close")
+	b.mkOpen.Init(trader, true, false, true, 0, 0, "open")
+	b.mkClose.Init(trader, true, false, true, 0, 0, "close")
 	b.mkOpen.SetDealFn(b.onOpenDeal)
 	b.mkClose.SetDealFn(b.onCloseDeal)
 
@@ -365,11 +365,11 @@ func (b *TWDealer) markPrice() float64 {
 }
 
 func (b *TWDealer) buy1() float64 {
-	return b.trader.Market().OrderBook().Buy1().InexactFloat64()
+	return b.trader.Market().OrderBook().Buy1Price().InexactFloat64()
 }
 
 func (b *TWDealer) sell1() float64 {
-	return b.trader.Market().OrderBook().Sell1().InexactFloat64()
+	return b.trader.Market().OrderBook().Sell1Price().InexactFloat64()
 }
 
 func (b *TWDealer) posPrice() float64 {

@@ -1,0 +1,21 @@
+{
+		"type": null,
+		"symbol": null
+}
+
+{
+    "code": "000000",
+    "message": null,
+    "messageDetail": null,
+    "data": [
+        {
+            "symbol": null,
+            "origClientOrderId": null,
+            "orderId": null,
+            "clientOrderId": null,
+            "status": "CANCELED",
+            "rejectReason": null
+        }
+    ],
+    "success": true
+}

@@ -368,7 +368,7 @@ func (g *ReversedGrid) generatePlan(forceRegen bool) {
 	} else {
 		if g.longOnly() {
 			if g.long() == 0 {
-				sell1 := g.trader.Market().OrderBook().Sell1().InexactFloat64()
+				sell1 := g.trader.Market().OrderBook().Sell1Price().InexactFloat64()
 				if sell1 < g.basePrice {
 					g.basePrice = sell1
 					needGen = true
@@ -376,7 +376,7 @@ func (g *ReversedGrid) generatePlan(forceRegen bool) {
 			}
 		} else if g.shortOnly() {
 			if g.short() == 0 {
-				buy1 := g.trader.Market().OrderBook().Buy1().InexactFloat64()
+				buy1 := g.trader.Market().OrderBook().Buy1Price().InexactFloat64()
 				if buy1 > g.basePrice {
 					g.basePrice = buy1
 					needGen = true

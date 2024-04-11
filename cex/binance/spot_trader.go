@@ -10,6 +10,7 @@ package binance
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -132,16 +133,26 @@ func (t *SpotTrader) Ready() bool {
 	return t.market.Ready() && t.baseBalance.Ready() && t.quoteBalance.Ready() && exchangeReady && !t.errorlock
 }
 
-func (t *SpotTrader) ReadyStr() string {
-	return fmt.Sprintf(
-		"%s %s_ok:%v, %s_ok:%v, exchange_ok: %v, no-errlock: %v",
-		t.market.ReadyStr(),
-		t.market.BaseCurrency(),
-		t.baseBalance.Ready(),
-		t.market.QuoteCurrency(),
-		t.quoteBalance.Ready(),
-		exchangeReady,
-		!t.errorlock)
+func (t *SpotTrader) UnreadyReason() string {
+	if !t.market.Ready() {
+		return t.market.UnreadyReason()
+	} else if !t.baseBalance.Ready() {
+		return fmt.Sprintf("base balance(%s) not ready", t.market.BaseCurrency())
+	} else if !t.quoteBalance.Ready() {
+		return fmt.Sprintf("quote balance(%s) not ready", t.market.QuoteCurrency())
+	} else if !exchangeReady {
+		return "exchange not ready"
+	} else {
+		return ""
+	}
+}
+
+func (t *SpotTrader) BuyPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
+}
+
+func (t *SpotTrader) SellPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
 }
 
 func (t *SpotTrader) MakeOrder(
@@ -155,7 +166,7 @@ func (t *SpotTrader) MakeOrder(
 		o := new(SpotOrder)
 		if o.Init(t, price, amount, dir, makeOnly, purpose) {
 			t.muOrders.Lock()
-			t.orders[o.CltOrderId] = o
+			t.orders[o.CltOrderId.(string)] = o
 			t.muOrders.Unlock()
 			o.AddObserver(t)   // 先内部处理
 			o.AddObserver(obs) // 再外部处理
@@ -165,7 +176,7 @@ func (t *SpotTrader) MakeOrder(
 			return nil
 		}
 	} else {
-		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. ReadyStr=%s", t.ReadyStr())
+		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. reason=%s", t.UnreadyReason())
 		time.Sleep(time.Second)
 		return nil
 	}
@@ -191,7 +202,7 @@ func (t *SpotTrader) FeeMaker() decimal.Decimal {
 	return decimal.Zero
 }
 
-func (t *SpotTrader) AvilableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
+func (t *SpotTrader) AvailableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
 	if dir == common.OrderDir_Buy {
 		// 可买数量为当前可用Quote除以购买价格，向下取整
 		amount := t.quoteBalance.Available().Div(price)

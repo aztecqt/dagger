@@ -117,6 +117,15 @@ func InitInflux(name string, cfg influxdb.ConnConfig) *Influx {
 
 	inf.Start()
 	influxIns = inf
+
+	for {
+		if inf.connected() {
+			break
+		} else {
+			time.Sleep(time.Millisecond * 10)
+		}
+	}
+
 	return inf
 }
 
@@ -126,6 +135,10 @@ func (m *Influx) Start() {
 
 func (m *Influx) Stop() {
 	m.chStop <- 0
+}
+
+func (m *Influx) connected() bool {
+	return m.ifdbConn != nil
 }
 
 func (m *Influx) AddDeal(gtype, gname, dealType string, deal common.Deal) {
@@ -207,19 +220,10 @@ func (*Influx) getDataGroupKey(gtype, gname string) string {
 func (i *Influx) update() {
 	ticker := time.NewTicker(time.Millisecond * 500)
 
-	// 调试一下端口泄露问题，定期断开连接试试
-	writeCount := 0
-
 	for {
 		select {
 		case <-ticker.C:
 			i.writeInflux()
-			writeCount++
-			if writeCount >= 1000 {
-				i.ifdbConn.Close()
-				i.ifdbConn = nil
-				writeCount = 0
-			}
 		case <-i.chStop:
 			i.writeInflux()
 		}

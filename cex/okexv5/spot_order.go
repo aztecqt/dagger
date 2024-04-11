@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-20 09:36:11
- * @LastEditors: aztec
- * @LastEditTime: 2023-02-24 11:56:48
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-12 16:43:48
  * @FilePath: \dagger\cex\okexv5\spot_order.go
  * @Description:okexv5的现货订单
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5
 
@@ -29,7 +29,8 @@ func (o *SpotOrder) Init(
 	makeOnly bool,
 	purpose string) bool {
 	o.trader = trader
-	if o.CommonOrder.Init(trader, trader.exchange.instrumentMgr, trader.market.instId, price, amount, dir, makeOnly, false, purpose) {
+	o.CltOrderId = NewClientOrderId(o.Purpose)
+	if o.CommonOrder.Init(trader, trader.ex.instrumentMgr, trader.market.instId, price, amount, dir, makeOnly, false, purpose) {
 		o.CommonOrder.getPosSide = o.getPosSide
 		o.CommonOrder.tradeMode = o.tradeMode
 		return true
@@ -44,7 +45,7 @@ func (o *SpotOrder) getPosSide() string {
 }
 
 func (o *SpotOrder) tradeMode() string {
-	return "cash"
+	return string(o.trader.ex.excfg.SpotTradeMode)
 }
 
 // #endregion 提供给CommonOrder

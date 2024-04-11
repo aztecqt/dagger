@@ -10,13 +10,28 @@ package util
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aztecqt/dagger/util/logger"
 )
 
 // 东八区
-var East8 = time.FixedZone("CST", 8*3600)
+var East8 = time.FixedZone("CCT", 8*3600)
+
+// 美国东部时间
+var UsEastern = time.FixedZone("EST", -5*3600)
+
+// 中国北京时间
+func BeijingZone() *time.Location {
+	z, err := time.LoadLocation("Asia/Beijing")
+	if err == nil {
+		return z
+	} else {
+		logger.LogPanic("", err.Error())
+		return nil
+	}
+}
 
 // 美国东部时间
 func AmericaNYZone() *time.Location {
@@ -29,15 +44,44 @@ func AmericaNYZone() *time.Location {
 	}
 }
 
-func DateOfTime(t time.Time) time.Time {
+func HourOfTime(t time.Time) time.Time {
 	y, m, d := t.Date()
+	h := t.Hour()
 	name, _ := t.Zone()
-	str := fmt.Sprintf("%04d-%02d-%02d 00:00:00 %s", y, m, d, name)
-	date, e := time.Parse("2006-01-02 15:04:05 MST", str)
+	str := fmt.Sprintf("%04d-%02d-%02d %02d:00:00 %s", y, m, d, h, name)
+	hour, e := time.Parse("2006-01-02 15:04:05 MST", str)
 	if e != nil {
 		fmt.Println(e.Error())
 	}
+	return hour
+}
+
+// 是否是同一小时（忽略时区）
+func IsSameHour(t0, t1 time.Time) bool {
+	y0, m0, d0 := t0.Date()
+	y1, m1, d1 := t1.Date()
+	h0 := t0.Hour()
+	h1 := t1.Hour()
+	return y0 == y1 && m0 == m1 && d0 == d1 && h0 == h1
+}
+
+func DateOfTime(t time.Time) time.Time {
+	str := t.String()
+	i0 := 11
+	i1 := strings.Index(str[i0:], " ") + i0
+	str = strings.Replace(str, str[i0:i1], "00:00:00", 1)
+	if i := strings.Index(str, " m="); i > 0 {
+		str = str[:i]
+	}
+	date, _ := time.Parse("2006-01-02 15:04:05 -0700 MST", str)
 	return date
+}
+
+// 是否同一天（忽略时区）
+func IsSameDate(t0, t1 time.Time) bool {
+	y0, m0, d0 := t0.Date()
+	y1, m1, d1 := t1.Date()
+	return y0 == y1 && m0 == m1 && d0 == d1
 }
 
 func MonthOfTime(t time.Time) time.Time {
@@ -182,6 +226,12 @@ func String2Duration(s string) (time.Duration, error) {
 	} else {
 		return time.Duration(0), errors.New("empty string")
 	}
+}
+
+// 对齐时间
+// 将当前时间向下对齐到最近的整数倍interval
+func AlignTime(t time.Time, intervalMs int64) time.Time {
+	return time.UnixMilli((t.UnixMilli() / intervalMs) * intervalMs)
 }
 
 // 计算时间开销

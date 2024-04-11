@@ -17,6 +17,7 @@ import (
 	"github.com/aztecqt/dagger/util/logger"
 
 	"github.com/aztecqt/dagger/api/okexv5api"
+	"github.com/aztecqt/dagger/api/okexv5api/cachedok"
 	"github.com/aztecqt/dagger/cex/common"
 	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
@@ -43,7 +44,8 @@ type Exchange struct {
 	ws *okexv5api.WsClient
 
 	// 配置
-	excfg ExchangeConfig
+	excfg        ExchangeConfig
+	singleMargin bool
 
 	// 所有行情和交易器
 	futureMarkets      map[string] /*instId*/ *FutureMarket
@@ -56,6 +58,8 @@ type Exchange struct {
 	spotMarketsSlice []common.SpotMarket
 	spotTradersSlice []common.SpotTrader
 
+	finance *Finance
+
 	fundingFeeObserver *FundingFeeObserver
 
 	// contractType->observer
@@ -64,28 +68,44 @@ type Exchange struct {
 	// 交易品种
 	instrumentMgr *common.InstrumentMgr
 
-	// 用户权益
+	// 用户权益，主要针对现货，系统会自主计算币种余额，并跟交易所对齐
 	balanceMgr *common.BalanceMgr
 
+	// 交易所返回的账号信息，这里主要是为了取统一账户的几个关键数据
+	accountBal okexv5api.AccountBalanceResp
+
 	// 仓位
-	ctPositions map[string] /*instId*/ *common.PositionImpl
-	muPosition  sync.RWMutex
+	// instId->pos
+	ctPositions       map[string]*common.PositionImpl
+	muPosition        sync.RWMutex
+	positionInstTypes map[string]int
+
+	// 最大可用，分为AvailBuy和AvailSell
+	// 对于现货/杠杆，AvailBuy/AvailSell就是可用U/可用币（杠杆的话还包括借币的额度）
+	// 对于合约，就是开多/开空所能使用的最大保证金数量
+	// 现货可以直接算出这些值，但诸如组合保证金模式下的合约、杠杆等，很难计算这些值，所以改用交易所接口
+	maxAvailable               map[string]okexv5api.MaxAvailableSizeResp
+	spotInstIdsForMaxAvail     []string
+	contractInstIdsForMaxAvail []string
+	muMaxAvailable             sync.RWMutex
 
 	// 订单。订单保存在trader中，ex不需要持有
 	// ex负责分发现货订单更新
-	orderSnapshotFns map[string] /*instId*/ OnOrderSnapshotFn
+	// instId->fn
+	orderSnapshotFns map[string]OnOrderSnapshotFn
 	muOSFn           sync.RWMutex
 
 	// 所有交易对的行情信息的拉取和通知。根据配置决定是否启用
 	// 行情推送给注册过的回调函数
-	tickerCallbacks    map[string][]func(t okexv5api.TickerResp)
-	muTickerCallback   sync.Mutex
-	tickerRestInstType map[string]int
+	tickerCallbacks           map[string][]func(tk okexv5api.TickerResp)
+	tickerCallbacksOfInstType map[string][]func(tks []okexv5api.TickerResp)
+	muTickerCallback          sync.Mutex
+	tickerRestInstType        map[string]int
 }
 
 func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb func(e error)) {
 	logger.LogImportant(logPrefix, "exchange starting...")
-	e.excfg.init()
+	e.excfg = newExchangeConfig()
 	if excfg != nil {
 		e.excfg = *excfg
 	}
@@ -103,10 +123,13 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 	e.balanceMgr = common.NewBalanceMgr()
 	e.instrumentMgr = common.NewInstrumentMgr(logPrefix)
 	e.ctPositions = make(map[string]*common.PositionImpl)
+	e.positionInstTypes = make(map[string]int)
 	e.orderSnapshotFns = make(map[string]OnOrderSnapshotFn)
 	e.contractObservers = make(map[string]*ContractObserver)
 	e.tickerCallbacks = make(map[string][]func(t okexv5api.TickerResp))
+	e.tickerCallbacksOfInstType = make(map[string][]func(tks []okexv5api.TickerResp))
 	e.tickerRestInstType = make(map[string]int)
+	e.maxAvailable = make(map[string]okexv5api.MaxAvailableSizeResp)
 
 	// 初始化api
 	logger.LogImportant(logPrefix, "init api...")
@@ -146,7 +169,7 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 		wg.Add(2)
 
 		// 订阅account
-		// account数据由exchange统一订阅，然后各个FutureTrader通过二次订阅获取到自己想要的数据
+		// account数据由exchange统一订阅并处理
 		go e.updateAccount(&wg)
 
 		// 订阅position，处理逻辑跟account一样
@@ -154,6 +177,14 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 
 		// 订阅订单，处理逻辑类似。区别是instId放在每个order数据单元里，而不是消息头部
 		go e.updateOrders()
+
+		// 订阅市场爆仓订单
+		go e.updateLiquidationOrders()
+
+		// 单币种证金模式下，maxAvailable可以直接计算出来，其他模式下需要从api获取
+		if !e.isSingleMarginMode() {
+			go e.updateMaxAvalilable()
+		}
 
 		wg.Wait()
 	}
@@ -171,8 +202,39 @@ func (e *Exchange) Instruments() []*common.Instruments {
 	return e.instrumentMgr.GetAll()
 }
 
-func (e *Exchange) GetInstrument(id string) *common.Instruments {
-	return e.instrumentMgr.Get(id)
+func (e *Exchange) GetSpotInstrument(baseCcy, quoteCcy string) *common.Instruments {
+	return e.instrumentMgr.Get(SpotTypeToInstId(baseCcy, quoteCcy))
+}
+
+func (e *Exchange) GetFutureInstrument(symbol, contractType string) *common.Instruments {
+	return e.instrumentMgr.Get(CCyCttypeToInstId(symbol, contractType))
+}
+
+func (e *Exchange) GetUniAccRisk() common.UniAccRisk {
+	// 根据全仓账户的维持保证金率来计算
+	// 目前三档的标准是写死的。将来有需求，可以改为配置
+	risk := common.UniAccRisk{
+		Details:        make(map[string]string),
+		PositionValue:  e.accountBal.PositionValue,
+		MaintainMargin: e.accountBal.MaintainMargin,
+		TotalMargin:    e.accountBal.AdjEq,
+	}
+
+	uniMmr := e.accountBal.MarginRatio.InexactFloat64()
+	if uniMmr > 10 {
+		risk.Level = common.UniAccRiskLevel_Safe
+	} else if uniMmr > 3 {
+		risk.Level = common.UniAccRiskLevel_Warning
+	} else {
+		risk.Level = common.UniAccRiskLevel_Danger
+	}
+
+	risk.Details["margin"] = fmt.Sprintf("$%.2f", e.accountBal.AdjEq.InexactFloat64())
+	risk.Details["maintain margin"] = fmt.Sprintf("$%.2f", e.accountBal.MaintainMargin.InexactFloat64())
+	risk.Details["mmr"] = fmt.Sprintf("%.1f%%", e.accountBal.MarginRatio.InexactFloat64()*100)
+	risk.Details["total equity"] = fmt.Sprintf("$%.2f", e.accountBal.TotalEq.InexactFloat64())
+	risk.Details["leverage"] = fmt.Sprintf("%.2f", e.accountBal.PositionValue.Div(e.accountBal.AdjEq).InexactFloat64())
+	return risk
 }
 
 func (e *Exchange) UseFutureMarket(symbol string, contractType string) common.FutureMarket {
@@ -193,7 +255,7 @@ func (e *Exchange) UseFutureMarket(symbol string, contractType string) common.Fu
 			return nil
 		} else {
 			m := new(FutureMarket)
-			m.Init(e, instId, e.excfg.DepthFromTicker, e.excfg.TickerFromRest)
+			m.Init(e, *inst, e.excfg.DepthFromTicker, e.excfg.TickerFromRest)
 			e.futureMarkets[instId] = m
 			e.futureMarketsSlice = append(e.futureMarketsSlice, m)
 			return m
@@ -211,6 +273,10 @@ func (e *Exchange) UseFutureTrader(symbol string, contractType string, lever int
 		}
 	}
 
+	if contractType == "usdt_swap" || contractType == "usd_swap" {
+		e.positionInstTypes["SWAP"] = 1
+	}
+
 	instId := CCyCttypeToInstId(symbol, contractType)
 	t, ok := e.futureTraders[instId]
 	if ok {
@@ -225,6 +291,23 @@ func (e *Exchange) UseFutureTrader(symbol string, contractType string, lever int
 			t.Init(e, orderTag(), m, lever)
 			e.futureTraders[instId] = t
 			e.futureTradersSlice = append(e.futureTradersSlice, t)
+
+			// 准备刷新其最大可用（U本位查一次就好）
+			if strings.Contains(instId, "USDT") {
+				e.contractInstIdsForMaxAvail = append(e.contractInstIdsForMaxAvail, "BTC-USDT-SWAP")
+			} else {
+				e.contractInstIdsForMaxAvail = append(e.contractInstIdsForMaxAvail, instId)
+			}
+
+			// 等最大可用就绪
+			for {
+				if _, ok := e.getMaxAvailable(instId); ok {
+					break
+				} else {
+					time.Sleep(time.Millisecond * 100)
+				}
+			}
+
 			return t
 		}
 	}
@@ -232,6 +315,10 @@ func (e *Exchange) UseFutureTrader(symbol string, contractType string, lever int
 
 func (e *Exchange) UseSpotMarket(baseCcy string, quoteCcy string) common.SpotMarket {
 	instId := SpotTypeToInstId(baseCcy, quoteCcy)
+
+	if e.excfg.TickerFromRest {
+		e.tickerRestInstType["SPOT"] = 1
+	}
 
 	m, ok := e.spotMarkets[instId]
 	if ok {
@@ -243,7 +330,7 @@ func (e *Exchange) UseSpotMarket(baseCcy string, quoteCcy string) common.SpotMar
 			return nil
 		} else {
 			m := new(SpotMarket)
-			m.Init(e, instId, inst.BaseCcy, inst.QuoteCcy, e.excfg.DepthFromTicker, e.excfg.TickerFromRest)
+			m.Init(e, *inst, inst.BaseCcy, inst.QuoteCcy, e.excfg.DepthFromTicker, e.excfg.TickerFromRest)
 			e.spotMarkets[instId] = m
 			e.spotMarketsSlice = append(e.spotMarketsSlice, m)
 			return m
@@ -258,49 +345,76 @@ func (e *Exchange) UseSpotTrader(baseCcy string, quoteCcy string) common.SpotTra
 		return t
 	} else {
 		t := new(SpotTrader)
-		mi := e.UseSpotMarket(baseCcy, quoteCcy)
-		if mi == nil {
+		mkt := e.UseSpotMarket(baseCcy, quoteCcy)
+		if mkt == nil {
 			return nil
 		} else {
-			m := mi.(*SpotMarket)
-			t.Init(e, orderTag(), m)
+			skmt := mkt.(*SpotMarket)
+			t.Init(e, orderTag(), skmt)
 			e.spotTraders[instId] = t
 			e.spotTradersSlice = append(e.spotTradersSlice, t)
+
+			// 准备刷新其最大可用
+			e.spotInstIdsForMaxAvail = append(e.spotInstIdsForMaxAvail, instId)
+
+			// 等最大可用就绪
+			for {
+				if _, ok := e.getMaxAvailable(instId); ok {
+					break
+				} else {
+					time.Sleep(time.Millisecond * 100)
+				}
+			}
+
 			return t
 		}
 	}
 }
 
-func (e *Exchange) UseFundingFeeInfoObserver(maxLength int) common.FundingFeeObserver {
+// 获取金融接口
+func (e *Exchange) GetFinance() common.Finance {
+	if e.finance == nil {
+		e.finance = &Finance{}
+		e.finance.init()
+	}
+
+	return e.finance
+}
+
+// 获取全部合约仓位
+func (e *Exchange) GetAllPositions() []common.Position {
+	e.muPosition.Lock()
+	defer e.muPosition.Unlock()
+	positions := make([]common.Position, 0, len(e.ctPositions))
+	for _, pi := range e.ctPositions {
+		positions = append(positions, pi)
+	}
+	return positions
+}
+
+// 获取全部资产
+func (e *Exchange) GetAllBalances() []common.Balance {
+	balImpls := e.balanceMgr.GetAllBalances()
+	bals := make([]common.Balance, 0, len(balImpls))
+	for _, bi := range balImpls {
+		bals = append(bals, bi)
+	}
+	return bals
+}
+
+// 使用FundingfeeObserver，则必须启用ticker_from_rest
+func (e *Exchange) UseFundingFeeInfoObserver() common.FundingFeeObserver {
 	if e.fundingFeeObserver == nil {
+		if !e.excfg.TickerFromRest {
+			logger.LogPanic(logPrefix, "usage of fundingfee-observer reqire ticker_from_rest")
+		}
+
+		// 将现货和对应合约加入ticker拉取
+		e.tickerRestInstType["SPOT"] = 1
+		e.tickerRestInstType["SWAP"] = 1
+
 		e.fundingFeeObserver = new(FundingFeeObserver)
 		e.fundingFeeObserver.init(e)
-
-		// 从所有swap合约中，挑选出日成交量前xx名
-		resp, err := okexv5api.GetTickers("SWAP")
-		if err == nil && resp.Code == "0" {
-			vol2InstId := util.NewFloatTreeMapInverted()
-			for _, ticker := range resp.Data {
-				if !strings.Contains(ticker.InstId, "USDT") {
-					price := util.String2DecimalPanic(ticker.Last).InexactFloat64()
-					vol24Ccy := util.String2DecimalPanic(ticker.VolCcy24h).InexactFloat64()
-					vol24Usd := vol24Ccy * price
-					vol2InstId.Put(vol24Usd, ticker.InstId)
-				}
-			}
-
-			it := vol2InstId.Iterator()
-			count := 0
-			for it.Next() {
-				e.fundingFeeObserver.AddType(it.Value().(string))
-				count++
-				if count >= maxLength {
-					break
-				}
-			}
-		} else {
-			logger.LogInfo(logPrefix, "get all tickers failed, err=%s", err.Error())
-		}
 	}
 
 	return e.fundingFeeObserver
@@ -394,95 +508,39 @@ func (e *Exchange) GetDealHistory(instId string, t0, t1 time.Time) []common.Deal
 }
 
 func (e *Exchange) GetSpotKline(baseCcy, quoteCcy string, t0, t1 time.Time, intervalSec int) []common.KUnit {
+	return GetSpotKline(baseCcy, quoteCcy, t0, t1, intervalSec)
+}
+
+func (e *Exchange) GetFutureKline(symbol, contractType string, t0, t1 time.Time, intervalSec int) []common.KUnit {
+	return GetFutureKline(symbol, contractType, t0, t1, intervalSec)
+}
+
+func GetSpotKline(baseCcy, quoteCcy string, t0, t1 time.Time, intervalSec int) []common.KUnit {
 	instId := SpotTypeToInstId(baseCcy, quoteCcy)
 	return GetKline(instId, t0, t1, intervalSec)
 }
 
-func (e *Exchange) GetFutureKline(symbol, contractType string, t0, t1 time.Time, intervalSec int) []common.KUnit {
+func GetFutureKline(symbol, contractType string, t0, t1 time.Time, intervalSec int) []common.KUnit {
 	instId := CCyCttypeToInstId(symbol, contractType)
 	return GetKline(instId, t0, t1, intervalSec)
 }
 
 func GetKline(instId string, t0, t1 time.Time, intervalSec int) []common.KUnit {
-	bar := "1m"
-	switch intervalSec {
-	case 60:
-		bar = "1m"
-	case 60 * 3:
-		bar = "3m"
-	case 60 * 5:
-		bar = "5m"
-	case 60 * 15:
-		bar = "15m"
-	case 60 * 30:
-		bar = "30m"
-	case 3600:
-		bar = "1H"
-	case 3600 * 2:
-		bar = "2H"
-	case 3600 * 4:
-		bar = "4H"
-	case 86400:
-		bar = "1D"
-	case 86400 * 7:
-		bar = "1W"
-	default:
-		logger.LogPanic(logPrefix, "invalid kline intervalsec for okx: %d", intervalSec)
-	}
-
-	for {
-		tEnd := t1
-		temp := make([]common.KUnit, 0)
-		valid := true
-		for {
-			resp, err := okexv5api.GetKlineBefore(instId, tEnd, bar, 0)
-			if err != nil {
-				logger.LogImportant(logPrefix, err.Error())
-				valid = false
-				break
-			} else if resp.Code != "0" {
-				logger.LogImportant(logPrefix, resp.Msg)
-				return []common.KUnit{}
-			} else {
-				if len(resp.Data) == 0 {
-					break
-				}
-
-				for _, ku := range resp.Data {
-					ku2 := common.KUnit{
-						Time:         time.UnixMilli(ku.TS),
-						OpenPrice:    ku.Open,
-						ClosePrice:   ku.Close,
-						HighestPrice: ku.High,
-						LowestPrice:  ku.Low,
-						VolumeUSD:    ku.VolumeUSD,
-					}
-
-					temp = append(temp, ku2)
-					tEnd = ku2.Time
-					if tEnd.Before(t0) {
-						break
-					}
-				}
-
-				if tEnd.Before(t0) {
-					break
-				}
-			}
+	if kusRaw, ok := cachedok.GetKline(instId, t0, t1, intervalSec, nil); ok {
+		kus := make([]common.KUnit, 0)
+		for _, ku := range kusRaw {
+			kus = append(kus, common.KUnit{
+				Time:         ku.Time,
+				OpenPrice:    ku.Open,
+				ClosePrice:   ku.Close,
+				HighestPrice: ku.High,
+				LowestPrice:  ku.Low,
+				VolumeUSD:    ku.VolumeUSD,
+			})
 		}
-
-		if valid && len(temp) > 0 {
-			rst := make([]common.KUnit, 0, len(temp))
-			for i := len(temp) - 1; i >= 0; i-- {
-				rst = append(rst, temp[i])
-			}
-
-			return rst
-		} else {
-			logger.LogImportant(logPrefix, "get kline failed, instId=%s, t0=%s, t1=%s", instId, t0.Format(time.DateTime), t1.Format(time.DateTime))
-			time.Sleep(time.Second * 3)
-		}
+		return kus
 	}
+	return nil
 }
 
 func (e *Exchange) Exit() {
@@ -502,6 +560,7 @@ func (e *Exchange) updateAccount(wg *sync.WaitGroup) {
 	accOk := false
 	s := e.ws.SubscribeAccountBalance(func(resp interface{}) {
 		r := resp.(okexv5api.AccountBalanceWsResp)
+		e.accountBal = r.Data[0] // 整个账户数据存储下来备用
 		arr := r.Data[0].Details
 
 		// 解析并推送
@@ -517,7 +576,7 @@ func (e *Exchange) updateAccount(wg *sync.WaitGroup) {
 				rights := util.String2DecimalPanic(arr[i].Eq)
 				frozen := util.String2DecimalPanic(arr[i].Frozen)
 				updateTime := util.ConvetUnix13StrToTimePanic(arr[i].UTime)
-				b.RefreshRights(rights, frozen, updateTime)
+				b.Refresh(rights, frozen, updateTime)
 			}
 		}()
 
@@ -544,7 +603,9 @@ func (e *Exchange) findPosition(instId string) *common.PositionImpl {
 	var p *common.PositionImpl
 
 	if _, ok := e.ctPositions[instId]; !ok {
-		e.ctPositions[instId] = common.NewPositionImpl(instId)
+		symbol := InstId2Symbol(instId)
+		contractType := InstId2ContractType(instId)
+		e.ctPositions[instId] = common.NewPositionImpl(instId, symbol, contractType)
 	}
 	p = e.ctPositions[instId]
 
@@ -553,12 +614,13 @@ func (e *Exchange) findPosition(instId string) *common.PositionImpl {
 
 func (e *Exchange) updatePosition(wg *sync.WaitGroup) {
 	index := 0
-	timeout := time.NewTicker(time.Second * 20)
+	timeout := time.NewTicker(time.Second * 20) // 20秒收不到仓位，重新订阅
+	tRest := time.NewTicker(time.Minute)        // 1分钟固定rest更新
 	posOk := false
 
+	// 订阅websocket
 	s := e.ws.SubscribePosition(func(resp interface{}) {
 		r := resp.(okexv5api.PositionWsResp)
-		arr := r.Data
 
 		// 解析并推送
 		func() {
@@ -575,22 +637,7 @@ func (e *Exchange) updatePosition(wg *sync.WaitGroup) {
 				e.muPosition.RUnlock()
 			}
 
-			for i := 0; i < len(arr); i++ {
-				d := arr[i]
-				if d.MgnMode == "cross" && (d.InstType == "SWAP" || d.InstType == "FUTURES") {
-					position := e.findPosition(d.InstId)
-					size := util.String2DecimalPanic(d.Pos)
-					avgPx := util.String2DecimalPanicUnless(d.AvgPx, "")
-					time := util.ConvetUnix13StrToTimePanic(d.UTime)
-					if d.PosSide == "net" {
-						// 仅支持双向模式
-					} else if d.PosSide == "long" {
-						position.RefreshLong(size, avgPx, time)
-					} else if d.PosSide == "short" {
-						position.RefreshShort(size, avgPx, time)
-					}
-				}
-			}
+			e.processPositionUnits(r.Data)
 		}()
 
 		if !posOk {
@@ -600,9 +647,49 @@ func (e *Exchange) updatePosition(wg *sync.WaitGroup) {
 	})
 
 	for {
-		<-timeout.C
-		logger.LogInfo(logPrefix, "position time out, re-subscribe it")
-		s.Reset()
+		select {
+		case <-timeout.C:
+			logger.LogInfo(logPrefix, "position time out, re-subscribe it")
+			s.Reset()
+		case <-tRest.C:
+			// 目前只取永续合约的仓位
+			if resp, err := okexv5api.GetPositions("SWAP", ""); err == nil {
+				if resp.Code == "0" {
+					e.processPositionUnits(resp.Data)
+				} else {
+					logger.LogImportant(logPrefix, "get position from rest failed: code=%v, msg=%v", resp.Code, resp.Msg)
+				}
+			} else {
+				logger.LogImportant(logPrefix, "get positions from rest failed: %s", err.Error())
+			}
+		}
+
+	}
+}
+
+func (e *Exchange) processPositionUnits(posUnits []okexv5api.PositionUnit) {
+	for i := 0; i < len(posUnits); i++ {
+		d := posUnits[i]
+		if d.MgnMode == "cross" && (d.InstType == "SWAP" || d.InstType == "FUTURES") {
+			position := e.findPosition(d.InstId)
+			size := util.String2DecimalPanic(d.Pos)
+			avgPx := util.String2DecimalPanicUnless(d.AvgPx, "")
+			time := util.ConvetUnix13StrToTimePanic(d.UTime)
+			if d.PosSide == "net" {
+				// 仅支持双向模式
+				if size.IsPositive() {
+					position.RefreshLong(size, avgPx, time)
+					position.RefreshShort(decimal.Zero, decimal.Zero, time)
+				} else {
+					position.RefreshShort(size.Neg(), avgPx, time)
+					position.RefreshLong(decimal.Zero, decimal.Zero, time)
+				}
+			} else if d.PosSide == "long" {
+				position.RefreshLong(size, avgPx, time)
+			} else if d.PosSide == "short" {
+				position.RefreshShort(size, avgPx, time)
+			}
+		}
 	}
 }
 
@@ -657,9 +744,48 @@ func (e *Exchange) updateOrders() {
 	}
 }
 
+func (e *Exchange) updateMaxAvalilable() {
+	// 每3秒刷新一次
+	for {
+		e.updateMaxAvalilableOfInstIds(e.spotInstIdsForMaxAvail)
+		e.updateMaxAvalilableOfInstIds(e.contractInstIdsForMaxAvail)
+		time.Sleep(time.Second * 3)
+	}
+}
+
+func (e *Exchange) updateMaxAvalilableOfInstIds(instIds []string) bool {
+	allOk := true
+	for i := 0; i < len(instIds); i += 5 {
+		instIdGroup := strings.Join(instIds[i:util.MinInt(i+5, len(instIds))], ",")
+		if resp, err := okexv5api.GetMaxAvailableSize(instIdGroup, string(e.excfg.SpotTradeMode), false); err != nil {
+			allOk = false
+			logger.LogImportant(logPrefix, "get max available of %s failed: %s", instIdGroup, err.Error())
+		} else {
+			if resp.Code != "0" {
+				allOk = false
+				logger.LogImportant(logPrefix, "get max available of %s failed: %s(%s)", instIdGroup, resp.Msg, resp.Code)
+			} else {
+				e.muMaxAvailable.Lock()
+				for _, masr := range resp.Data {
+					e.maxAvailable[masr.InstId] = masr
+				}
+				e.muMaxAvailable.Unlock()
+			}
+		}
+		time.Sleep(time.Millisecond * 50)
+	}
+	return allOk
+}
+
 // #endregion
 
 // #region 其他
+// 是否为单币种保证金模式。
+// 单币种保证金模式跟跨币种、组合保证金模式的处理方式有很多不同
+func (e *Exchange) isSingleMarginMode() bool {
+	return e.singleMargin
+}
+
 func (e *Exchange) initInstruments() {
 	logger.LogImportant(logPrefix, "fetching instruments...SPOT")
 	e.processInstruments("SPOT")
@@ -667,6 +793,33 @@ func (e *Exchange) initInstruments() {
 	e.processInstruments("SWAP")
 	logger.LogImportant(logPrefix, "fetching instruments...FUTURES")
 	e.processInstruments("FUTURES")
+}
+
+func (e *Exchange) updateLiquidationOrders() {
+	if !e.excfg.SubscribeLiquidationOrders {
+		return
+	}
+
+	s := e.ws.SubscribeLiquidationOrders("SWAP", func(i interface{}) {
+		resp := i.(okexv5api.LiquidationOrderWsResp)
+		for _, v := range resp.Data {
+			if m, ok := e.futureMarkets[v.InstId]; ok {
+				for _, lod := range v.Details {
+					m.onLiquidationOrder(lod.BrokenPrice, lod.Size, util.ValueIf(lod.Side == "buy", common.OrderDir_Buy, common.OrderDir_Sell))
+				}
+			}
+		}
+	})
+
+	// 固定10分钟重新订阅一次
+	tResub := time.NewTicker(time.Minute * 10)
+
+	for {
+		select {
+		case <-tResub.C:
+			s.Reset()
+		}
+	}
 }
 
 func (e *Exchange) processInstruments(instType string) {
@@ -690,11 +843,13 @@ func (e *Exchange) processInstruments(instType string) {
 			if strings.Contains(instId, "USD-SWAP") {
 				// usd合约
 				ins.CtSymbol = ins.CtSettleCcy
-				ins.CtType = "usd_swap"
+				ins.CtType = common.ContractType_UsdSwap
+				ins.IsUsdtContract = false
 			} else if strings.Contains(instId, "USDT-SWAP") {
 				// usdt合约
 				ins.CtSymbol = ins.CtValCcy
-				ins.CtType = "usdt_swap"
+				ins.CtType = common.ContractType_UsdtSwap
+				ins.IsUsdtContract = true
 			} else {
 				// 交割合约暂不支持
 			}
@@ -721,12 +876,33 @@ func (e *Exchange) findOrGetInstrument(instType, instId string) *common.Instrume
 func (e *Exchange) checkAccountConfig() {
 	resp, err := okexv5api.GetAccountConfig()
 	if err == nil {
-		if resp.Data[0].AccLevel != "2" { // "2"代表单币种保证金模式
-			logger.LogPanic(logPrefix, "check account config failed：目前仅支持单币种保证金模式，请修改账户配置")
-		} else if resp.Data[0].PosMode != "long_short_mode" {
-			logger.LogPanic(logPrefix, "check account config failed：目前仅支持双向持仓模式，请修改账户配置")
+		okxCfg := resp.Data[0]
+		if e.excfg.AccLevel != okexv5api.AccLevel(okxCfg.AccLevel) {
+			logger.LogPanic(logPrefix, "check account config failed：账户交易模式不匹配。需要：%s, 实际：%s。请修改账户配置", e.excfg.AccLevel, okxCfg.AccLevel)
 		} else {
-			logger.LogImportant(logPrefix, "check account config success")
+			if okxCfg.AccLevel == okexv5api.AccLevel_SingleCcy {
+				e.singleMargin = true
+				logger.LogImportant(logPrefix, "Ocurrent account mode: single-currency margin")
+			} else if okxCfg.AccLevel == okexv5api.AccLevel_MultiCcy {
+				e.singleMargin = false
+				logger.LogImportant(logPrefix, "current account mode: multi-currency margin")
+			} else if okxCfg.AccLevel == okexv5api.AccLevel_Portfolio {
+				e.singleMargin = false
+				logger.LogImportant(logPrefix, "current account mode: portfolio margin")
+			} else {
+				// 非保证金模式不支持
+				logger.LogPanic(logPrefix, "unsupported account mode")
+			}
+		}
+
+		if okxCfg.PosMode == "long_short_mode" {
+			e.excfg.PositionMode = okexv5api.PositonMode_LS
+			logger.LogImportant(logPrefix, "current position mode: long_short_mode")
+		} else if okxCfg.PosMode == "net_mode" {
+			e.excfg.PositionMode = okexv5api.PositionMode_Net
+			logger.LogImportant(logPrefix, "current position mode: net_mode")
+		} else {
+			logger.LogPanic(logPrefix, "check account config failed：仓位模式不支持，请修改账户配置")
 		}
 	} else {
 		logger.LogPanic(logPrefix, "check account config failed! err:%s", err.Error())
@@ -792,18 +968,43 @@ func (e *Exchange) registerTickerCallback(instId string, fn func(t okexv5api.Tic
 	}
 }
 
+func (e *Exchange) registerTickerCallbackOfInstType(instType string, fn func(tks []okexv5api.TickerResp)) {
+	e.muTickerCallback.Lock()
+	defer e.muTickerCallback.Unlock()
+
+	if cbs, ok := e.tickerCallbacksOfInstType[instType]; ok {
+		cbs = append(cbs, fn)
+		e.tickerCallbacksOfInstType[instType] = cbs
+	} else {
+		cbs := []func(tks []okexv5api.TickerResp){fn}
+		e.tickerCallbacksOfInstType[instType] = cbs
+	}
+}
+
 func (e *Exchange) updateTickersByRest() {
 	ticker := time.NewTicker(time.Millisecond * 500)
 	for {
 		<-ticker.C
-		var toInvokeFn [][]func(t okexv5api.TickerResp)
-		var toInvokeTk []okexv5api.TickerResp
 		for instType := range e.tickerRestInstType {
 			if resp, err := okexv5api.GetTickers(instType); err == nil {
 				for _, tk := range resp.Data {
-					if cbs, ok := e.tickerCallbacks[tk.InstId]; ok {
-						toInvokeFn = append(toInvokeFn, cbs)
-						toInvokeTk = append(toInvokeTk, tk)
+					// 回调
+					e.muTickerCallback.Lock()
+					var cbs []func(tk okexv5api.TickerResp)
+					if v, ok := e.tickerCallbacks[tk.InstId]; ok {
+						cbs = v
+					}
+					e.muTickerCallback.Unlock()
+
+					for _, fn := range cbs {
+						fn(tk)
+					}
+				}
+
+				// 回调
+				if cbs, ok := e.tickerCallbacksOfInstType[instType]; ok {
+					for _, fn := range cbs {
+						fn(resp.Data)
 					}
 				}
 				logger.LogInfo(logPrefix, "get %d tickers", len(resp.Data)) // debug
@@ -811,15 +1012,17 @@ func (e *Exchange) updateTickersByRest() {
 				logger.LogImportant(logPrefix, "get ticker by instType failed, err=%s", err.Error())
 			}
 		}
-
-		// 调用
-		l := len(toInvokeFn)
-		for i := 0; i < l; i++ {
-			for _, fn := range toInvokeFn[i] {
-				fn(toInvokeTk[i])
-			}
-		}
 	}
+}
+
+func (e *Exchange) getMaxAvailable(instId string) (okexv5api.MaxAvailableSizeResp, bool) {
+	// usdt合约只查询一次，统一按btc来
+	if strings.Contains(instId, "USDT-SWAP") {
+		instId = "BTC-USDT-SWAP"
+	}
+
+	v, ok := e.maxAvailable[instId]
+	return v, ok
 }
 
 // #endregion

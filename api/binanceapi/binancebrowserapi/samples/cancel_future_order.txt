@@ -1,0 +1,49 @@
+{
+		*"symbol": "SSVUSDT",
+		"insertTime": 1708595150573,
+		"type": "LIMIT",
+		"side": "BUY",
+		"price": 30,
+		"avgPrice": 0,
+		"executedPrice": 0,
+		"executedQty": 0,
+		"origQty": "0.33",
+		"stopPrice": 0,
+		"operate": "NEW",
+		"status": "NEW",
+		*"orderId": 1124903149,
+		"clientOrderId": "web_hIbPtlU3laMgAJR9f9me",
+		"orderType": "LIMIT",
+		"origType": "LIMIT",
+		"timeInForce": "GTC",
+		"goodTillDate": 0,
+		"bidNotional": 9.9,
+		"askNotional": 0,
+		"workingType": "CONTRACT_PRICE",
+		"positionSide": "BOTH",
+		"reduceOnly": false,
+		"strategyId": 0,
+		"strategySubId": 0,
+		"strategyType": null,
+		"closePosition": false,
+		"activatePrice": null,
+		"callbackRate": null,
+		"priceMatch": "NONE",
+		"priceRate": null,
+		"updateTime": 1708595152223
+	}
+
+    {
+		"code": "000000",
+		"message": null,
+		"messageDetail": null,
+		"data": {
+			"symbol": "SSVUSDT",
+			"origClientOrderId": null,
+			"orderId": "1124903149",
+			"clientOrderId": "web_hIbPtlU3laMgAJR9f9me",
+			"status": "CANCELED",
+			"rejectReason": null
+		},
+		"success": true
+	}

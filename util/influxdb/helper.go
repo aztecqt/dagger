@@ -14,9 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aztecqt/dagger/util/logger"
-
 	"github.com/aztecqt/dagger/util"
+	"github.com/aztecqt/dagger/util/logger"
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/influxdata/influxdb/client/v2"
 )
@@ -24,11 +23,9 @@ import (
 var logPrefix = "influxdb-helper"
 
 type ConnConfig struct {
-	Addr              string `json:"addr"`
-	UserName          string `json:"username"`
-	Password          string `json:"password"`
-	DataBase          string `json:"db"`
-	RetentionPolicies string `json:"rp"`
+	Addr     string `json:"addr"`
+	UserName string `json:"username"`
+	Password string `json:"password"`
 }
 
 func CreateConn(cfg ConnConfig) client.Client {
@@ -39,6 +36,8 @@ func CreateConn(cfg ConnConfig) client.Client {
 	}); err == nil {
 		if _, _, err := conn.Ping(time.Second * 10); err == nil {
 			return conn
+		} else {
+			logger.LogImportant(logPrefix, err.Error())
 		}
 		return nil
 	} else {
@@ -109,7 +108,7 @@ func Write(conn client.Client, db, rp, mm string, tm time.Time, tags, fields []i
 			}
 		}
 
-		batchPoint, err := client.NewBatchPoints(client.BatchPointsConfig{Database: db})
+		batchPoint, err := client.NewBatchPoints(client.BatchPointsConfig{Database: db, RetentionPolicy: rp})
 		if err != nil {
 			logger.LogImportant(logPrefix, "influx creat batchPoint failed, err=%s", err.Error())
 		}
@@ -291,9 +290,24 @@ func GetMeasurementsWithTags(conn client.Client, dbName string) map[string]*hash
 }
 
 // 获取一个数据表中的最新一条数据的时间
-func GetLatestDataTime(conn client.Client, dbName, rp, mn string) time.Time {
+func GetLatestDataTime(conn client.Client, dbName, rp, mn string, tags map[string]string) time.Time {
 	t := time.Time{}
-	q := fmt.Sprintf("select * from \"%s\".\"%s\".\"%s\" ORDER BY time DESC limit 1", dbName, rp, mn)
+	tagSelector := ""
+	if tags != nil && len(tags) > 0 {
+		tagIndex := 0
+		for k, v := range tags {
+			if tagIndex == 0 {
+				tagSelector += "WHERE "
+			} else {
+				tagSelector += "AND "
+			}
+
+			tagSelector += fmt.Sprintf("\"%s\"='%s' ", k, v)
+			tagIndex++
+		}
+	}
+	q := fmt.Sprintf("select * from \"%s\".\"%s\".\"%s\" %s ORDER BY time DESC limit 1", dbName, rp, mn, tagSelector)
+	logger.LogImportant(logPrefix, q)
 	resp, err := conn.Query(client.NewQuery(q, "", ""))
 	if err != nil {
 		logger.LogImportant(logPrefix, "GetLatestDataTime1: %s", err.Error())

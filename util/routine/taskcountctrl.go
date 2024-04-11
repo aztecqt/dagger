@@ -13,7 +13,7 @@ import (
 )
 
 type TaskCountCtrl struct {
-	sync.Mutex
+	mu           sync.Mutex
 	taskCount    int
 	maxTaskCount int
 }
@@ -26,9 +26,9 @@ func NewTaskCountCtrl(maxCount int) *TaskCountCtrl {
 func (t *TaskCountCtrl) WaitNextTask() {
 	for {
 		if t.taskCount < t.maxTaskCount {
-			t.Lock()
+			t.mu.Lock()
 			t.taskCount++
-			t.Unlock()
+			t.mu.Unlock()
 			return
 		} else {
 			time.Sleep(time.Millisecond * 10)
@@ -37,8 +37,8 @@ func (t *TaskCountCtrl) WaitNextTask() {
 }
 
 func (t *TaskCountCtrl) Done() {
-	t.Lock()
-	defer t.Unlock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.taskCount--
 }
 

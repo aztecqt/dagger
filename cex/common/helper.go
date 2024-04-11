@@ -10,9 +10,7 @@
 package common
 
 import (
-	"fmt"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/aztecqt/dagger/util/logger"
@@ -20,14 +18,6 @@ import (
 	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
-
-// 生成ClientOrderId
-var accClientOrderId int32
-
-func NewClientOrderId(postfix string) string {
-	newId := atomic.AddInt32(&accClientOrderId, 1)
-	return util.ToLetterNumberOnly(fmt.Sprintf("%05d%s", newId, postfix), 32)
-}
 
 // 计算订单的成交明细
 func CalculateOrderDeal(filled, avgPrice, filledNew, avgPriceNew decimal.Decimal) (price decimal.Decimal, amount decimal.Decimal) {
@@ -159,7 +149,7 @@ func WaitTraderReady(trader CommonTrader, logPrefix string) {
 			logger.LogInfo(logPrefix, "trader %s is ready", trader.Market().Type())
 			break
 		} else {
-			logger.LogInfo(logPrefix, trader.ReadyStr())
+			logger.LogInfo(logPrefix, trader.UnreadyReason())
 		}
 	}
 }
@@ -168,5 +158,16 @@ func WaitTraderReady(trader CommonTrader, logPrefix string) {
 func WaitMarketReady(market CommonMarket) {
 	for !market.Ready() {
 		time.Sleep(time.Millisecond * 100)
+	}
+}
+
+// 价格是否在上下限内
+func PriceInRange(px decimal.Decimal, dir OrderDir, t CommonTrader) bool {
+	if dir == OrderDir_Buy {
+		px0, px1 := t.BuyPriceRange()
+		return px.GreaterThanOrEqual(px0) && px.LessThanOrEqual(px1)
+	} else {
+		px0, px1 := t.SellPriceRange()
+		return px.GreaterThanOrEqual(px0) && px.LessThanOrEqual(px1)
 	}
 }

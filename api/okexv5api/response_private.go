@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-04-06 13:19:27
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-12-17 16:45:34
+ * @LastEditTime: 2024-03-28 11:02:13
  * @FilePath: \stratergyc:\work\svn\quant\go\src\dagger\api\okexv5api\response_private.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
@@ -12,38 +12,91 @@
 package okexv5api
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 
+// 账号等级
+type AccLevel string
+
+const (
+	AccLevel_NoMargin  AccLevel = "1" // 非保证金模式
+	AccLevel_SingleCcy          = "2" // 单币种保证金模式
+	AccLevel_MultiCcy           = "3" // 跨币种保证金模式
+	AccLevel_Portfolio          = "4" // 组合保证金模式
+)
+
+// 现货对冲模式
+type SpotOffsetType string
+
+const (
+	SpotOffsetType_Usdt SpotOffsetType = "1" // 现货对冲模式：USDT
+	SpotOffsetType_Coin                = "2" // 现货对冲模式：币
+	SpotOffsetType_None                = "3" // 非现货对冲模式
+)
+
+// 交易模式
+type TradeMode string
+
+const (
+	TradeMode_Cross    TradeMode = "cross"    // 全仓
+	TradeMode_Cash               = "cash"     // 非保证金模式
+	TradeMode_Isolated           = "isolated" // 逐仓
+)
+
+// 仓位模式
+type PositionMode string
+
+const (
+	PositonMode_LS   PositionMode = "long_short_mode" // 开平仓模式
+	PositionMode_Net              = "net_mode"
+)
+
 // 查询账户配置
-type accountConfigRestResp struct {
-	Code string `json:"code"`
+type AccountConfig struct {
+	UID            string `json:"uid"`
+	AccLevel       string `json:"acctLv"`         // 见AccLevel
+	PosMode        string `json:"posMode"`        // 仓位模式，long_short_mode/net_mode
+	Level          string `json:"level"`          // 真实等级
+	LevelTmp       string `json:"levelTmp"`       // 体验等级
+	AutoLoan       bool   `json:"autoLoan"`       // 自动借币
+	SpotOffsetType string `json:"spotOffsetType"` // 现货对冲模式：1=U模式，2=币模式，3=非现货对冲
+}
+
+type AccountConfigRestResp struct {
+	Code string          `json:"code"`
+	Data []AccountConfig `json:"data"`
+}
+
+// 设置/获取杠杆倍率返回
+type GetSetLeverageRestResp struct {
+	CommonRestResp
 	Data []struct {
-		UID      string `json:"uid"`
-		AccLevel string `json:"acctLv"`
-		PosMode  string `json:"posMode"`
-		Level    string `json:"level"`
-		LevelTmp string `json:"levelTmp"`
+		LeverStr string `json:"lever"`
+		MgnMode  string `json:"mgnMode"`
+		InstId   string `json:"instId"`
+		PosSide  string `json:"posSide"`
+		Lever    int
 	} `json:"data"`
 }
 
-// 设置杠杆倍率返回
-type SetLeverRateRestResp struct {
-	Code string `json:"code"`
-	Msg  string `json:"msg"`
-	Data []struct {
-		Lever   string `json:"lever"`
-		MgnMode string `json:"mgnMode"`
-		InstId  string `json:"instId"`
-		PosSide string `json:"posSide"`
-	} `json:"data"`
+func (r *GetSetLeverageRestResp) parse() {
+	for i, _ := range r.Data {
+		r.Data[i].Lever = util.String2IntPanic(r.Data[i].LeverStr)
+	}
 }
 
-// 账户信息
+// 账户资产信息（交易账户）
 type AccountBalanceResp struct {
+	AdjEq          decimal.Decimal `json:"adjEq"`       // 有效保证金
+	MaintainMargin decimal.Decimal `json:"mmr"`         // 维持保证金
+	MarginRatio    decimal.Decimal `json:"mgnRatio"`    // 维持保证金率
+	PositionValue  decimal.Decimal `json:"notionalUsd"` // 仓位总价值（除以有效保证金=杠杆率）
+	TotalEq        decimal.Decimal `json:"totalEq"`     // 总权益
+
 	Details []struct {
 		Currency string `json:"ccy"`
 		UTime    string `json:"uTime"`
@@ -62,7 +115,7 @@ type AccountBalanceWsResp struct {
 	Data []AccountBalanceResp `json:"data"`
 }
 
-// 账户信息（资金账户）
+// 账户资产信息（资金账户）
 type AssetBalanceResp struct {
 	Currency  string `json:"ccy"`
 	Balance   string `json:"bal"`
@@ -73,6 +126,31 @@ type AssetBalanceResp struct {
 type AssetBalanceRestResp struct {
 	CommonRestResp
 	Data []AssetBalanceResp `json:"data"`
+}
+
+// 最大可买卖/开仓（组合保证金模式下，衍生品全仓模式不支持）
+type MaxSizeResp struct {
+	Ccy           string          `json:"ccy"`
+	InstId        string          `json:"instId"`
+	AvailableBuy  decimal.Decimal `json:"maxBuy"`
+	AvailableSell decimal.Decimal `json:"maxSell"`
+}
+
+type MaxSizeRestResp struct {
+	CommonRestResp
+	Data []MaxSizeResp `json:"data"`
+}
+
+// 最大可用
+type MaxAvailableSizeResp struct {
+	InstId        string          `json:"instId"`
+	AvailableBuy  decimal.Decimal `json:"availBuy"`
+	AvailableSell decimal.Decimal `json:"availSell"`
+}
+
+type MaxAvailableSizeRestResp struct {
+	CommonRestResp
+	Data []MaxAvailableSizeResp `json:"data"`
 }
 
 // 划转请求
@@ -137,20 +215,217 @@ type WithdrawHistoryResp struct {
 }
 
 // 仓位
+type PositionUnit struct {
+	InstType string `json:"instType"`
+	MgnMode  string `json:"mgnMode"`
+	PosSide  string `json:"posSide"`
+	InstId   string `json:"instId"`
+	TradeId  string `json:"tradeId"`
+	UTime    string `json:"uTime"`
+	Pos      string `json:"pos"`
+	AvailPos string `json:"availPos"`
+	AvgPx    string `json:"avgPx"`
+	LiqPx    string `json:"liqPx"`
+	MarkPx   string `json:"markPx"`
+}
+
 type PositionWsResp struct {
-	Data []struct {
-		InstType string `json:"instType"`
-		MgnMode  string `json:"mgnMode"`
-		PosSide  string `json:"posSide"`
-		InstId   string `json:"instId"`
-		TradeId  string `json:"tradeId"`
-		UTime    string `json:"uTime"`
-		Pos      string `json:"pos"`
-		AvailPos string `json:"availPos"`
-		AvgPx    string `json:"avgPx"`
-		LiqPx    string `json:"liqPx"`
-		MarkPx   string `json:"markPx"`
-	} `json:"data"`
+	Data []PositionUnit `json:"data"`
+}
+
+type PositionRestResp struct {
+	CommonRestResp
+	Data []PositionUnit `json:"data"`
+}
+
+// 账单类型
+const BillTypeRawString = `1：划转
+2：交易
+3：交割
+4：自动换币
+5：强平
+6：保证金划转
+7：扣息
+8：资金费
+9：自动减仓
+10：穿仓补偿
+11：系统换币
+12：策略划拨
+13：对冲减仓
+14：大宗交易
+15：一键借币
+22：一键还债
+24：价差交易
+250：跟单人分润支出
+251：跟单人分润退还`
+
+const BillSubTypeRawString = `1：买入
+2：卖出
+3：开多
+4：开空
+5：平多
+6：平空
+9：市场借币扣息
+11：转入
+12：转出
+14：尊享借币扣息
+160：手动追加保证金
+161：手动减少保证金
+162：自动追加保证金
+114：自动换币买入
+115：自动换币卖出
+118：系统换币转入
+119：系统换币转出
+100：强减平多
+101：强减平空
+102：强减买入
+103：强减卖出
+104：强平平多
+105：强平平空
+106：强平买入
+107：强平卖出
+108：穿仓补偿
+110：强平换币转入
+111：强平换币转出
+125：自动减仓平多
+126：自动减仓平空
+127：自动减仓买入
+128：自动减仓卖出
+131：对冲买入
+132：对冲卖出
+170：到期行权（实值期权买方）
+171：到期被行权（实值期权卖方）
+172：到期作废（非实值期权的买方和卖方）
+112：交割平多
+113：交割平空
+117：交割/行权穿仓补偿
+173：资金费支出
+174：资金费收入
+200：系统转入
+201：手动转入
+202：系统转出
+203：手动转出
+204：大宗交易买
+205：大宗交易卖
+206：大宗交易开多
+207：大宗交易开空
+208：大宗交易平多
+209：大宗交易平空
+210：一键借币的手动借币
+211：一键借币的手动还币
+212：一键借币的自动借币
+213：一键借币的自动还币
+16：强制还币
+17：强制借币还息
+224：还债转入
+225：还债转出
+236：兑换主流币用户账户转入
+237：兑换主流币用户账户转出
+250：永续分润支出
+251：永续分润退还
+280：现货分润支出
+281：现货分润退还
+270：价差交易买
+271：价差交易卖
+272：价差交易开多
+273：价差交易开空
+274：价差交易平多
+275：价差交易平空
+290：系统转出小额资产
+`
+
+var BillTypes map[string]string
+var BillSubTypes map[string]string
+
+// 账单
+type Bill struct {
+	BillId           string          `json:"billId"`   // 账单Id
+	InstId           string          `json:"instId"`   // instId
+	Type             string          `json:"type"`     // 账单类型
+	SubType          string          `json:"subType"`  // 账单子类型
+	TimeStampStr     string          `json:"ts"`       // 时间戳
+	Ccy              string          `json:"ccy"`      // 账单币种
+	Size             decimal.Decimal `json:"sz"`       // 数量
+	Balance          decimal.Decimal `json:"bal"`      // 账户层面余额数量
+	BalanceChange    decimal.Decimal `json:"balChg"`   // 账户层面余额变动
+	Pnl              decimal.Decimal `json:"pnl"`      // 收益
+	Fee              decimal.Decimal `json:"fee"`      // 手续费
+	Price            decimal.Decimal `json:"px"`       // 价格（见文档）
+	ExecType         string          `json:"execType"` //T=taker，M=maker
+	Interest         decimal.Decimal `json:"interest"` // 利息
+	OrderIdStr       string          `json:"ordId"`    // 订单ID
+	From             string          `json:"from"`     // 资金划转来源
+	To               string          `json:"to"`       // 资金划转去向
+	FillTimeStampStr string          `json:"fillTime"` // 成交时间
+	TradeIdStr       string          `json:"tradeId"`  // 成交Id
+	ClOrdId          string          `json:"clOrdId"`  // 自定义订单Id
+
+	Time        time.Time
+	FillTime    time.Time
+	OrderId     int64
+	TradeId     int64
+	TypeText    string
+	SubTypeText string
+	BaseCcy     string
+	QuoteCcy    string
+}
+
+func (b *Bill) parse() {
+	b.Ccy = strings.ToLower(b.Ccy)
+
+	ss := strings.Split(b.InstId, "-")
+	if len(ss) >= 2 {
+		b.BaseCcy = strings.ToLower(ss[0])
+		b.QuoteCcy = strings.ToLower(ss[1])
+	}
+
+	b.Time = time.UnixMilli(util.String2Int64Panic(b.TimeStampStr))
+	b.FillTime = time.UnixMilli(util.String2Int64Panic(b.FillTimeStampStr))
+	b.OrderId = util.String2Int64Panic(b.OrderIdStr)
+	b.TradeId = util.String2Int64Panic(b.TradeIdStr)
+
+	if BillTypes == nil {
+		BillTypes = make(map[string]string)
+		ss0 := strings.Split(BillTypeRawString, "\n")
+		for _, v := range ss0 {
+			if ss1 := strings.Split(v, "："); len(ss1) == 2 {
+				BillTypes[ss1[0]] = ss1[1]
+			}
+		}
+	}
+
+	if BillSubTypes == nil {
+		BillSubTypes = make(map[string]string)
+		ss0 := strings.Split(BillSubTypeRawString, "\n")
+		for _, v := range ss0 {
+			if ss1 := strings.Split(v, "："); len(ss1) == 2 {
+				BillSubTypes[ss1[0]] = ss1[1]
+			}
+		}
+	}
+
+	if v, ok := BillTypes[b.Type]; ok {
+		b.TypeText = v
+	} else {
+		b.TypeText = b.Type
+	}
+
+	if v, ok := BillSubTypes[b.SubType]; ok {
+		b.SubTypeText = v
+	} else {
+		b.SubTypeText = b.SubType
+	}
+}
+
+type BillRestResp struct {
+	CommonRestResp
+	Data []Bill `json:"data"`
+}
+
+func (b *BillRestResp) parse() {
+	for i := range b.Data {
+		b.Data[i].parse()
+	}
 }
 
 // #region 订单相关
@@ -322,3 +597,71 @@ func (p *PositionHistoryResp) parse() {
 }
 
 // #endregion 订单相关
+
+// 余币宝余额
+type FinanceSavingBalance struct {
+	Ccy        string          `json:"ccy"`        // 币种
+	Amount     decimal.Decimal `json:"amt"`        // 数量
+	Earnings   decimal.Decimal `json:"earnings"`   // 持仓收益
+	Rate       decimal.Decimal `json:"rate"`       // 最新出借利率
+	LoanAmt    decimal.Decimal `json:"loanAmt"`    // 已出借数量
+	PendingAmt decimal.Decimal `json:"pendingAmt"` // 未出借数量
+}
+
+type FinanceSavingBalanceResp struct {
+	CommonRestResp
+	Data []FinanceSavingBalance `json:"data"`
+}
+
+// 申购/赎回结果
+type FinanceSavingPurchaseRedemptResult struct {
+	Ccy    string          `json:"ccy"`  // 币种
+	Amount decimal.Decimal `json:"amt"`  // 数量
+	Side   string          `json:"side"` // 操作类型purchase：申购 redempt：赎回
+	Rate   decimal.Decimal `json:"rate"` // 申购年利率
+}
+
+type FinanceSavingPurchageRedemptResultResp struct {
+	CommonRestResp
+	Date []FinanceSavingPurchaseRedemptResult `json:"data"`
+}
+
+// 市场借贷信息
+type MarketLendingRateSummary struct {
+	Ccy       string          `json:"ccy"`       // 币种，如 BTC
+	AvgAmt    decimal.Decimal `json:"avgAmt"`    // 过去24小时平均借贷量
+	AvgAmtUsd decimal.Decimal `json:"avgAmtUsd"` // 过去24小时平均借贷美元价值
+	AvgRate   decimal.Decimal `json:"avgRate"`   // 过去24小时平均借出利率
+	PreRate   decimal.Decimal `json:"preRate"`   // 上一次借贷年利率
+	EstRate   decimal.Decimal `json:"estRate"`   // 下一次预估借贷年利率
+}
+
+type MarketLendingRateSummaryResp struct {
+	CommonRestResp
+	Data []MarketLendingRateSummary `json:"data"`
+}
+
+// 市场借贷利率历史
+type MarketLendingRateHistory struct {
+	Ccy    string          `json:"ccy"`  // 币种
+	Amount decimal.Decimal `json:"amt"`  // 市场总出借数量
+	Rate   decimal.Decimal `json:"rate"` // 出借年利率
+	TsStr  string          `json:"ts"`   // 操作类型purchase：申购 redempt：赎回
+	Time   time.Time
+}
+
+func (m *MarketLendingRateHistory) parse() {
+	ts := util.String2Int64Panic(m.TsStr)
+	m.Time = time.UnixMilli(ts)
+}
+
+type MarketLendingRateHistoryResp struct {
+	CommonRestResp
+	Date []MarketLendingRateHistory `json:"data"`
+}
+
+func (m *MarketLendingRateHistoryResp) parse() {
+	for i := range m.Date {
+		m.Date[i].parse()
+	}
+}

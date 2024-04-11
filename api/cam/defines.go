@@ -8,8 +8,10 @@
 package cam
 
 import (
+	"encoding/base64"
 	"encoding/binary"
-	"io"
+	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -50,6 +52,7 @@ type BasicInfo struct {
 	BaseAsset string          `json:"asset_base_str"`    // 基础资产类型
 	NetAsset  decimal.Decimal `json:"net_asset"`         // 净资产
 	Nav       decimal.Decimal `json:"nav"`               // 单位净值
+	Nav24hAgo decimal.Decimal `json:"nav_24h_ago"`       // 单位净值(24小时之前的值)
 	Pnl7      decimal.Decimal `json:"last_7d_pnl_base"`  // 7日年化
 	Pnl30     decimal.Decimal `json:"last_30d_pnl_base"` // 30日年化
 }
@@ -326,21 +329,167 @@ type DealRecord struct {
 	InstId     string // 符合交易所规范的instrumentId
 }
 
-func serializeString(w io.Writer, str string) {
-	n := uint8(len(str))
-	binary.Write(w, binary.LittleEndian, n)
-	binary.Write(w, binary.LittleEndian, []byte(str))
-}
-
-func deserializeString(r io.Reader) (string, bool) {
-	n := uint8(0)
-	if binary.Read(r, binary.LittleEndian, &n) == nil {
-		buf := make([]byte, n)
-		if binary.Read(r, binary.LittleEndian, buf) == nil {
-			return string(buf), true
+func (d *DealRecord) Encode() string {
+	getSymbolTypeVal := func(symbolType string) byte {
+		if symbolType == "spot" {
+			return 1
+		} else if symbolType == "swap" {
+			return 2
+		} else {
+			return 0
 		}
 	}
-	return "", false
+	getTradeDirVal := func(dir string) byte {
+		if dir == "b" {
+			return 1
+		} else if dir == "s" {
+			return 2
+		} else {
+			return 0
+		}
+	}
+	getDealTypeVal := func(dealType string) byte {
+		if dealType == "maker" {
+			return 1
+		} else if dealType == "taker" {
+			return 2
+		} else {
+			return 0
+		}
+	}
+	getCoinsBySymbol := func(symbol string) (string, string) {
+		base := ""
+		quote := ""
+		words := strings.Split(symbol, "/")
+		if len(words) > 0 {
+			symbol = words[len(words)-1]
+			words = strings.Split(symbol, ".")
+			if len(words) >= 2 {
+				base = words[0]
+				quote = words[1]
+			}
+		}
+		return base, quote
+	}
+	orderId := d.OrderId
+	words := strings.Split(orderId, "-")
+	if len(words) > 0 {
+		orderId = words[len(words)-1]
+	}
+	baseCoin, quoteCoin := getCoinsBySymbol(d.Symbol)
+	ord, _ := strconv.ParseUint(orderId, 10, 64)
+	amount, _ := d.Amount.Float64()
+	price, _ := d.Price.Float64()
+	fee, _ := d.Fee.Float64()
+	dataLen := 35
+	bytes := make([]byte, 128)
+	binary.BigEndian.PutUint64(bytes, ord)                             //订单号
+	binary.LittleEndian.PutUint64(bytes[8:], math.Float64bits(amount)) //amount
+	binary.LittleEndian.PutUint64(bytes[16:], math.Float64bits(price)) //price
+	binary.LittleEndian.PutUint64(bytes[24:], math.Float64bits(fee))   //fee amount
+	bytes[32] = getSymbolTypeVal(d.SymbolType)                         //SymbolType  0:spot, 1:swap
+	bytes[33] = getTradeDirVal(d.Dir)                                  //Dir 0:buy, 1:sell
+	bytes[34] = getDealTypeVal(d.DealType)                             //DealType 0:maker, 1:taker
+
+	eBytes := []byte(d.Exchange)
+	bytes[dataLen] = byte(len(eBytes))
+	dataLen++
+	copy(bytes[dataLen:], eBytes)
+	dataLen = dataLen + len(eBytes)
+
+	eBaseCoin := []byte(baseCoin)
+	bytes[dataLen] = byte(len(eBaseCoin))
+	dataLen++
+	copy(bytes[dataLen:], eBaseCoin)
+	dataLen = dataLen + len(eBaseCoin)
+
+	eQuoteCoin := []byte(quoteCoin)
+	bytes[dataLen] = byte(len(eQuoteCoin))
+	dataLen++
+	copy(bytes[dataLen:], eQuoteCoin)
+	dataLen = dataLen + len(eQuoteCoin)
+
+	eFeeCoin := []byte(d.FeeCcy)
+	bytes[dataLen] = byte(len(eFeeCoin))
+	dataLen++
+	copy(bytes[dataLen:], eFeeCoin)
+	dataLen = dataLen + len(eFeeCoin)
+
+	return base64.StdEncoding.EncodeToString(bytes[:dataLen])
+}
+
+func (d *DealRecord) Decode(data string) bool {
+	getSymbolTypeStr := func(symbolType byte) string {
+		if symbolType == 1 {
+			return "spot"
+		} else if symbolType == 2 {
+			return "swap"
+		} else {
+			return "null"
+		}
+	}
+	getTradeDirStr := func(dir byte) string {
+		if dir == 1 {
+			return "b"
+		} else if dir == 2 {
+			return "s"
+		} else {
+			return "null"
+		}
+	}
+	getDealTypeStr := func(dealType byte) string {
+		if dealType == 1 {
+			return "maker"
+		} else if dealType == 2 {
+			return "taker"
+		} else {
+			return "null"
+		}
+	}
+
+	bytes, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return false
+	}
+
+	d.OrderId = strconv.FormatUint(binary.BigEndian.Uint64(bytes), 10)
+	d.Amount = decimal.NewFromFloat(math.Float64frombits(binary.LittleEndian.Uint64(bytes[8:])))
+	d.Price = decimal.NewFromFloat(math.Float64frombits(binary.LittleEndian.Uint64(bytes[16:])))
+	d.Fee = decimal.NewFromFloat(math.Float64frombits(binary.LittleEndian.Uint64(bytes[24:])))
+	d.SymbolType = getSymbolTypeStr(bytes[32])
+	d.Dir = getTradeDirStr(bytes[33])
+	d.DealType = getDealTypeStr(bytes[34])
+	var pos byte = 35
+	d.Exchange = string(bytes[pos+1 : pos+bytes[pos]+1])
+	pos = pos + bytes[pos] + 1
+
+	baseCoin := string(bytes[pos+1 : pos+bytes[pos]+1])
+	pos = pos + bytes[pos] + 1
+
+	quoteCoin := string(bytes[pos+1 : pos+bytes[pos]+1])
+	pos = pos + bytes[pos] + 1
+
+	d.FeeCcy = string(bytes[pos+1 : pos+bytes[pos]+1])
+
+	prefix := ""
+	suffix := ""
+	if d.Exchange == "BINANCE" {
+		if d.SymbolType == "swap" {
+			prefix = "binancef/"
+			suffix = ".td"
+		} else {
+			prefix = "binance/"
+		}
+	} else if d.Exchange == "OKX" {
+		if d.SymbolType == "swap" {
+			prefix = "okswap/"
+			suffix = ".td"
+		} else {
+			prefix = "okspot/"
+		}
+	}
+	d.Symbol = prefix + baseCoin + "." + quoteCoin + suffix
+	return true
 }
 
 func (o *DealRecord) Parse() {

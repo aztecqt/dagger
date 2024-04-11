@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-01 15:56:40
- * @LastEditors: aztec
- * @LastEditTime: 2023-01-02 16:17:38
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-12 16:49:12
  * @FilePath: \dagger\cex\okexv5\helper.go
  * @Description: okexv5的帮助函数
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5
 
@@ -74,6 +74,23 @@ func SpotTypeToInstId(baseCcy, quoteCcy string) string {
 	return fmt.Sprintf("%s-%s", strings.ToUpper(baseCcy), strings.ToUpper(quoteCcy))
 }
 
+// BTC-USDT -> btc, usdt
+func InstIdToSpotType(instId string) (baseCcy, quoteCcy string) {
+	ss := strings.Split(instId, "-")
+	return strings.ToLower(ss[0]), strings.ToLower(ss[1])
+}
+
+// BTC-USDT-SWAP/BTC-USD-SWAP -> BTC-USDT
+func FutureInstId2SpotInstId(instId string) string {
+	ss := strings.Split(instId, "-")
+	if len(ss) >= 2 {
+		return ss[0] + "-" + ss[1]
+	}
+
+	return ""
+}
+
+// BTC-USDT-SWAP -> btc
 func InstIdToCcy(instId string) string {
 	ss := strings.Split(instId, "-")
 	return strings.ToLower(ss[0])

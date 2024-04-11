@@ -1,0 +1,42 @@
+{
+  "symbol": "SSVUSDT",
+  "type": "LIMIT",
+  "side": "BUY",
+  "positionSide": "BOTH",
+  "quantity": 0.33,
+  "reduceOnly": false,
+  "price": "30",
+  "timeInForce": "GTC",
+  "placeType": "order-form"
+}
+
+{
+    "code": "000000",
+    "message": null,
+    "messageDetail": null,
+    "data": {
+        "symbol": "SSVUSDT",
+        "orderId": 1124903149,
+        "clientOrderId": "web_hIbPtlU3laMgAJR9f9me",
+        "price": "30.000000",
+        "avgPrice": "0",
+        "origQty": "0.33",
+        "executedQty": "0.00",
+        "cumQty": "0.00",
+        "status": "NEW",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "side": "BUY",
+        "positionSide": "BOTH",
+        "updateTime": 1708595150573,
+        "rejectReason": null,
+        "priceRate": null,
+        "activatePrice": null,
+        "priceProtect": false,
+        "goodTillDate": 0,
+        "reduceOnly": false,
+        "cumQuote": "0.00000000",
+        "selfProtectionMode": "EXPIRE_NONE"
+    },
+    "success": true
+}

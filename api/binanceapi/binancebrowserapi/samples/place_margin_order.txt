@@ -1,0 +1,35 @@
+{
+  "side": "BUY",
+  "symbol": "SSVUSDT",
+  "quantity": "1",
+  "price": "30",
+  "type": "LIMIT",
+  "timeInForce": "GTC",
+  "sideEffectType": "NO_SIDE_EFFECT"
+}
+
+{
+    "code": "000000",
+    "message": null,
+    "messageDetail": null,
+    "data": {
+        "symbol": "SSVUSDT",
+        "orderId": "272676062",
+        "clientOrderId": "web_a03a9bf2fc0249378a12d187fb2a7c3b",
+        "transactTime": "1708681088444",
+        "price": "30.00000000",
+        "origQty": "1.00000000",
+        "executedQty": "0.00000000",
+        "cummulativeQuoteQty": "0.00000000",
+        "status": "NEW",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "side": "BUY",
+        "fills": null,
+        "marginBuyBorrowAsset": null,
+        "marginBuyBorrowAmount": null,
+        "orderOcoResponse": null,
+        "selfTradePreventionMode": null
+    },
+    "success": true
+}

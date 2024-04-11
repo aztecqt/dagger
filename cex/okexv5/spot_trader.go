@@ -11,10 +11,13 @@ package okexv5
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
+	"github.com/aztecqt/dagger/api/okexv5api"
 	"github.com/aztecqt/dagger/cex/common"
+	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 
 	"github.com/shopspring/decimal"
@@ -22,7 +25,7 @@ import (
 
 type SpotTrader struct {
 	market    *SpotMarket
-	exchange  *Exchange
+	ex        *Exchange
 	orderTag  string
 	logPrefix string
 
@@ -40,7 +43,7 @@ type SpotTrader struct {
 
 func (t *SpotTrader) Init(ex *Exchange, orderTag string, m *SpotMarket) {
 	t.market = m
-	t.exchange = ex
+	t.ex = ex
 	t.orderTag = orderTag
 	t.orders = make(map[string]*SpotOrder)
 	t.logPrefix = fmt.Sprintf("%s-Trader-%s", logPrefix, m.instId)
@@ -88,7 +91,7 @@ func (t *SpotTrader) Init(ex *Exchange, orderTag string, m *SpotMarket) {
 
 func (t *SpotTrader) Uninit() {
 	t.finished = true
-	t.exchange.UnregOrderSnapshot(t.market.instId)
+	t.ex.UnregOrderSnapshot(t.market.instId)
 	t.market.Uninit()
 	logger.LogImportant(logPrefix, "spot trader(%s) uninited", t.market.instId)
 }
@@ -127,7 +130,6 @@ func (t *SpotTrader) String() string {
 		bb.WriteString(o.String())
 	}
 	t.muOrders.RUnlock()
-
 	return bb.String()
 }
 
@@ -135,16 +137,28 @@ func (t *SpotTrader) Ready() bool {
 	return t.market.Ready() && t.baseBalance.Ready() && t.quoteBalance.Ready() && exchangeReady && !t.errorlock
 }
 
-func (t *SpotTrader) ReadyStr() string {
-	return fmt.Sprintf(
-		"%s %s_ok:%v, %s_ok:%v, exchange_ok: %v, no-errlock: %v",
-		t.market.ReadyStr(),
-		t.market.baseCcy,
-		t.baseBalance.Ready(),
-		t.market.quoteCcy,
-		t.quoteBalance.Ready(),
-		exchangeReady,
-		!t.errorlock)
+func (t *SpotTrader) UnreadyReason() string {
+	if !t.market.Ready() {
+		return t.market.UnreadyReason()
+	} else if !t.baseBalance.Ready() {
+		return fmt.Sprintf("base balance(%s) not ready", t.market.BaseCurrency())
+	} else if !t.quoteBalance.Ready() {
+		return fmt.Sprintf("quote balance(%s) not ready", t.market.QuoteCurrency())
+	} else if !exchangeReady {
+		return "exchange not ready"
+	} else if t.errorlock {
+		return "locked by error"
+	} else {
+		return ""
+	}
+}
+
+func (t *SpotTrader) BuyPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
+}
+
+func (t *SpotTrader) SellPriceRange() (min, max decimal.Decimal) {
+	return decimal.Zero, decimal.NewFromInt(math.MaxInt32)
 }
 
 func (t *SpotTrader) MakeOrder(
@@ -158,7 +172,7 @@ func (t *SpotTrader) MakeOrder(
 		o := new(SpotOrder)
 		if o.Init(t, price, amount, dir, makeOnly, purpose) {
 			t.muOrders.Lock()
-			t.orders[o.CltOrderId] = o
+			t.orders[o.CltOrderId.(string)] = o
 			t.muOrders.Unlock()
 			o.AddObserver(t)   // 先内部处理
 			o.AddObserver(obs) // 再外部处理
@@ -168,7 +182,7 @@ func (t *SpotTrader) MakeOrder(
 			return nil
 		}
 	} else {
-		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. ReadyStr=%s", t.ReadyStr())
+		logger.LogInfo(t.logPrefix, "trader not ready, can't Makeorder. reason=%s", t.UnreadyReason())
 		time.Sleep(time.Second)
 		return nil
 	}
@@ -194,15 +208,41 @@ func (t *SpotTrader) FeeMaker() decimal.Decimal {
 	return decimal.Zero
 }
 
-func (t *SpotTrader) AvilableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
-	if dir == common.OrderDir_Buy {
-		// 可买数量为当前可用Quote除以购买价格，向下取整
-		amount := t.quoteBalance.Available().Div(price)
-		amount = t.market.AlignSize(amount)
-		return amount
+func (t *SpotTrader) AvailableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
+	if price.IsZero() {
+		price = util.ValueIf(dir == common.OrderDir_Buy, t.market.orderBook.Sell1Price(), t.market.orderBook.Buy1Price())
+	}
+
+	tdMode := t.ex.excfg.SpotTradeMode
+	if tdMode == okexv5api.TradeMode_Cash {
+		// 非保证金模式（真·现货）
+		if dir == common.OrderDir_Buy {
+			// 可买数量为当前可用Quote除以购买价格，向下取整
+			amount := t.quoteBalance.Available().Div(price)
+			amount = t.market.AlignSize(amount)
+			return amount
+		} else {
+			// 可卖数量为当前可用Base
+			return t.baseBalance.Available()
+		}
+	} else if tdMode == okexv5api.TradeMode_Cross {
+		if maxAvail, ok := t.ex.getMaxAvailable(t.market.instId); ok {
+			if dir == common.OrderDir_Buy {
+				// 可买数量类似上面
+				amount := maxAvail.AvailableBuy.Div(price)
+				amount = t.market.AlignSize(amount)
+				return amount
+			} else {
+				// 可卖数量为maxAvail里的sell
+				return maxAvail.AvailableSell
+			}
+		} else {
+			logger.LogImportant(t.logPrefix, "get max available from ex failed")
+			return decimal.Zero
+		}
 	} else {
-		// 可卖数量为当前可用Base
-		return t.baseBalance.Available()
+		logger.LogPanic(t.logPrefix, "invalid trade mode: %s", tdMode)
+		return decimal.Zero
 	}
 }
 

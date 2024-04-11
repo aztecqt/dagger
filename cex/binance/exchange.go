@@ -17,8 +17,9 @@ import (
 	"github.com/aztecqt/dagger/util/logger"
 
 	"github.com/aztecqt/dagger/api/binanceapi"
-	"github.com/aztecqt/dagger/api/binanceapi/binancefutureapi"
 	"github.com/aztecqt/dagger/api/binanceapi/binancespotapi"
+	"github.com/aztecqt/dagger/api/binanceapi/cachedbn"
+
 	"github.com/aztecqt/dagger/cex/common"
 	"github.com/emirpasic/gods/sets/hashset"
 )
@@ -249,8 +250,16 @@ func (e *Exchange) Instruments() []*common.Instruments {
 	return e.instrumentMgr.GetAll()
 }
 
-func (e *Exchange) GetInstrument(id string) *common.Instruments {
-	return e.instrumentMgr.Get(id)
+func (e *Exchange) GetSpotInstrument(baseCcy, quoteCcy string) *common.Instruments {
+	return e.instrumentMgr.Get(SpotTypeToInstId(baseCcy, quoteCcy))
+}
+
+func (e *Exchange) GetFutureInstrument(symbol, contractType string) *common.Instruments {
+	return nil
+}
+
+func (e *Exchange) GetUniAccRisk() common.UniAccRisk {
+	return common.UniAccRisk{Level: common.UniAccRiskLevel_Safe}
 }
 
 func (e *Exchange) UseFutureMarket(symbol string, contractType string) common.FutureMarket {
@@ -302,7 +311,19 @@ func (e *Exchange) UseSpotTrader(baseCcy string, quoteCcy string) common.SpotTra
 	}
 }
 
-func (e *Exchange) UseFundingFeeInfoObserver(maxLength int) common.FundingFeeObserver {
+func (e *Exchange) GetFinance() common.Finance {
+	return nil
+}
+
+func (e *Exchange) GetAllPositions() []common.Position {
+	return []common.Position{}
+}
+
+func (e *Exchange) GetAllBalances() []common.Balance {
+	return []common.Balance{}
+}
+
+func (e *Exchange) UseFundingFeeInfoObserver() common.FundingFeeObserver {
 	return nil
 }
 
@@ -340,11 +361,49 @@ func (e *Exchange) GetSpotDealHistory(baseCcy, quoteCcy string, t0, t1 time.Time
 }
 
 func (e *Exchange) GetSpotKline(baseCcy, quoteCcy string, t0, t1 time.Time, intervalSec int) []common.KUnit {
-	return GetKline(SpotTypeToInstId(baseCcy, quoteCcy), t0, t1, intervalSec, binancespotapi.GetKline)
+	return GetSpotKline(baseCcy, quoteCcy, t0, t1, intervalSec)
 }
 
 func (e *Exchange) GetFutureKline(symbol, contractType string, t0, t1 time.Time, intervalSec int) []common.KUnit {
-	return GetKline(CCyCttypeToInstId(symbol, contractType), t0, t1, intervalSec, binancefutureapi.GetKline_Usdt)
+	return GetFutureKline(symbol, contractType, t0, t1, intervalSec)
+}
+
+func GetSpotKline(baseCcy, quoteCcy string, t0, t1 time.Time, intervalSec int) []common.KUnit {
+	if kusRaw, ok := cachedbn.GetSpotKline(SpotTypeToInstId(baseCcy, quoteCcy), t0, t1, intervalSec, nil); ok {
+		kus := make([]common.KUnit, 0)
+		for _, ku := range kusRaw {
+			kus = append(
+				kus,
+				common.KUnit{
+					Time:         ku.Time,
+					OpenPrice:    ku.Open,
+					ClosePrice:   ku.Close,
+					HighestPrice: ku.High,
+					LowestPrice:  ku.Low,
+				})
+		}
+		return kus
+	}
+	return nil
+}
+
+func GetFutureKline(symbol, contractType string, t0, t1 time.Time, intervalSec int) []common.KUnit {
+	if kusRaw, ok := cachedbn.GetFutureKline(CCyCttypeToInstId(symbol, contractType), t0, t1, intervalSec, nil); ok {
+		kus := make([]common.KUnit, 0)
+		for _, ku := range kusRaw {
+			kus = append(
+				kus,
+				common.KUnit{
+					Time:         ku.Time,
+					OpenPrice:    ku.Open,
+					ClosePrice:   ku.Close,
+					HighestPrice: ku.High,
+					LowestPrice:  ku.Low,
+				})
+		}
+		return kus
+	}
+	return nil
 }
 
 func GetKline(

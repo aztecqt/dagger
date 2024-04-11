@@ -9,12 +9,15 @@ package util
 
 import (
 	"bytes"
+	"compress/flate"
+	"compress/zlib"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aztecqt/dagger/util/logger"
 )
@@ -53,11 +56,25 @@ func ObjectToFile(filePath string, obj interface{}) bool {
 	}
 }
 
-func StringToFile(filePath string, content string) {
+func StringToFile(filePath string, content string) bool {
 	MakeSureDirForFile(filePath)
 	if file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666); err == nil {
 		file.WriteString(content)
 		file.Close()
+		return true
+	} else {
+		return false
+	}
+}
+
+func BytesToFile(filePath string, b []byte) bool {
+	MakeSureDirForFile(filePath)
+	if file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666); err == nil {
+		file.Write(b)
+		file.Close()
+		return true
+	} else {
+		return false
 	}
 }
 
@@ -66,33 +83,49 @@ type Deserializable interface {
 }
 
 // 从一个二进制文件中反序列化一组对象
-func FileDeserializeToObjectList[T Deserializable](
+func FileDeserializeToObjects[T Deserializable](
 	filePath string,
 	fnNewObj func() T,
-	fnOnNewObj func(o T) bool) {
+	fnOnNewObj func(o T) bool) bool {
 
 	if file, err := os.OpenFile(filePath, os.O_RDONLY, 0666); err == nil {
-		if st, err := file.Stat(); err == nil {
-			b := make([]byte, st.Size())
-			file.Read(b)
-			buf := bytes.NewBuffer(b)
-
-			// 把数据都读出来
-			for {
-				t := fnNewObj()
-				if t.Deserialize(buf) {
-					goon := fnOnNewObj(t)
-					if !goon {
-						break
-					}
-				} else {
+		// 把数据都读出来
+		for {
+			t := fnNewObj()
+			if t.Deserialize(file) {
+				goon := fnOnNewObj(t)
+				if !goon {
 					break
 				}
+			} else {
+				break
 			}
 		}
+		return true
 	} else {
-		fmt.Println(err.Error())
+		return false
 	}
+}
+
+// 从一个reader反序列化一组对象
+func DeserializeToObjects[T Deserializable](
+	reader io.Reader,
+	fnNewObj func() T,
+	fnOnNewObj func(o T) bool) bool {
+
+	// 把数据都读出来
+	for {
+		t := fnNewObj()
+		if t.Deserialize(reader) {
+			goon := fnOnNewObj(t)
+			if !goon {
+				break
+			}
+		} else {
+			break
+		}
+	}
+	return true
 }
 
 func MakeSureDirForFile(filePath string) bool {
@@ -255,3 +288,185 @@ func LoadTempBuffer(key string) string {
 		return ""
 	}
 }
+
+// #region compress
+const CompressBufferSize = 1024 * 1024 * 16
+
+type CompressedFile struct {
+	inputFile        *os.File
+	decompressReader io.ReadCloser
+}
+
+func (c CompressedFile) Read(p []byte) (n int, err error) {
+	return c.decompressReader.Read(p)
+}
+
+func (c CompressedFile) Close() error {
+	c.inputFile.Close()
+	return c.decompressReader.Close()
+}
+
+// 压缩文件(flate方式)
+// level=1~9
+func CompressFile_Flate(srcPath, dstPath string, level int) (bool, int64) {
+	t0 := time.Now()
+	if f0, err := os.OpenFile(srcPath, os.O_RDONLY, os.ModePerm); err == nil {
+		defer f0.Close()
+		os.Remove(dstPath)
+		if f1, err := os.OpenFile(dstPath, os.O_CREATE|os.O_RDWR, os.ModePerm); err == nil {
+			defer f1.Close()
+			if wr, err := flate.NewWriter(f1, level); err == nil {
+				defer wr.Close()
+				buf := make([]byte, CompressBufferSize)
+				len := 0
+				for {
+					if n, _ := f0.Read(buf); n > 0 {
+						len += n
+						if _, err := wr.Write(buf[:n]); err != nil {
+							return false, 0
+						}
+					} else {
+						break
+					}
+				}
+				t1 := time.Now()
+				return true, t1.UnixMilli() - t0.UnixMilli()
+			} else {
+				return false, 0
+			}
+		} else {
+			return false, 0
+		}
+	} else {
+		return false, 0
+	}
+}
+
+// 解压缩文件（flate方式）
+func DecompressFile_Flate(srcPath, dstPath string) bool {
+	if b, _ := LoadCompressedFile_Flate(srcPath); b != nil {
+		if os.WriteFile(dstPath, b.Bytes(), os.ModePerm) == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
+// 打开压缩文件（flate方式）
+func OpenCompressedFile_Flate(path string) (*CompressedFile, error) {
+	if f, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm); err == nil {
+		return &CompressedFile{inputFile: f, decompressReader: flate.NewReader(f)}, nil
+	} else {
+		return nil, err
+	}
+}
+
+// 加载压缩文件（flate方式）
+func LoadCompressedFile_Flate(path string) (*bytes.Buffer, int64) {
+	t0 := time.Now()
+	if f, err := OpenCompressedFile_Flate(path); err == nil {
+		defer f.Close()
+		buf := make([]byte, CompressBufferSize)
+		b := bytes.NewBuffer(nil)
+		for {
+			if n, _ := f.Read(buf); n > 0 {
+				if _, err := b.Write(buf[:n]); err != nil {
+					return nil, 0
+				}
+			} else {
+				break
+			}
+		}
+
+		t1 := time.Now()
+		return b, t1.UnixMilli() - t0.UnixMilli()
+	} else {
+		return nil, 0
+	}
+}
+
+// 压缩文件(zlib方式)
+func CompressFile_Zlib(srcPath, dstPath string) (bool, int64) {
+	t0 := time.Now()
+	if f0, err := os.OpenFile(srcPath, os.O_RDONLY, os.ModePerm); err == nil {
+		defer f0.Close()
+		os.Remove(dstPath)
+		if f1, err := os.OpenFile(dstPath, os.O_CREATE|os.O_RDWR, os.ModePerm); err == nil {
+			defer f1.Close()
+			if wr := zlib.NewWriter(f1); wr != nil {
+				defer wr.Close()
+				buf := make([]byte, CompressBufferSize)
+				len := 0
+				for {
+					if n, _ := f0.Read(buf); n > 0 {
+						len += n
+						if _, err := wr.Write(buf[:n]); err != nil {
+							return false, 0
+						}
+					} else {
+						break
+					}
+				}
+				t1 := time.Now()
+				return true, t1.UnixMilli() - t0.UnixMilli()
+			} else {
+				return false, 0
+			}
+		} else {
+			return false, 0
+		}
+	} else {
+		return false, 0
+	}
+}
+
+// 解压缩文件（zlib方式）
+func DecompressFile_Zlib(srcPath, dstPath string) bool {
+	if b, _ := LoadCompressedFile_Zlib(srcPath); b != nil {
+		if os.WriteFile(dstPath, b.Bytes(), os.ModePerm) == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
+// 打开压缩文件（zlib方式）
+func OpenCompressedFile_Zlib(path string) (*CompressedFile, error) {
+	if f, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm); err == nil {
+		if r, err := zlib.NewReader(f); err == nil {
+			return &CompressedFile{inputFile: f, decompressReader: r}, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+}
+
+// 加载压缩文件（zlib方式）
+func LoadCompressedFile_Zlib(path string) (*bytes.Buffer, int64) {
+	t0 := time.Now()
+	if f, err := OpenCompressedFile_Zlib(path); err == nil {
+		defer f.Close()
+		buf := make([]byte, CompressBufferSize)
+		b := bytes.NewBuffer(nil)
+		for {
+			if n, _ := f.Read(buf); n > 0 {
+				if _, err := b.Write(buf[:n]); err != nil {
+					return nil, 0
+				}
+			} else {
+				break
+			}
+		}
+
+		t1 := time.Now()
+		return b, t1.UnixMilli() - t0.UnixMilli()
+	} else {
+		return nil, 0
+	}
+}
+
+// #endregion

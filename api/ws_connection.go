@@ -7,7 +7,7 @@
  * 对ws的封装，包括conn的默认配置、订阅、重连等逻辑。不包含具体业务逻辑
  * 具体实现时，可组合这个struct以获取其能力
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package api
 
@@ -172,6 +172,35 @@ func (ws *WsConnection) Send(msg string) {
 	}
 }
 
+// 发送ping
+func (ws *WsConnection) SendPing(data []byte) {
+	ws.muConn.Lock()
+	defer ws.muConn.Unlock()
+	defer util.DefaultRecover()
+	if ws.Conn != nil {
+		ws.Conn.WriteMessage(websocket.PingMessage, nil)
+		if err := ws.Conn.WriteMessage(websocket.PingMessage, data); err == nil {
+			logger.LogInfo(ws.logPrefix, "sended ping: %s", string(data))
+		} else {
+			logger.LogImportant(ws.logPrefix, "send ping failed: %s", err.Error())
+		}
+	}
+}
+
+// 发送pong
+func (ws *WsConnection) SendPong(data []byte) {
+	ws.muConn.Lock()
+	defer ws.muConn.Unlock()
+	defer util.DefaultRecover()
+	if ws.Conn != nil {
+		if err := ws.Conn.WriteMessage(websocket.PongMessage, data); err == nil {
+			logger.LogInfo(ws.logPrefix, "sended pong: %s", string(data))
+		} else {
+			logger.LogImportant(ws.logPrefix, "send pong failed: %s", err.Error())
+		}
+	}
+}
+
 // 接收消息
 func (ws *WsConnection) readMessage() {
 	for {
@@ -195,6 +224,12 @@ func (ws *WsConnection) readMessage() {
 						} else {
 							logger.LogImportant(ws.logPrefix, "readMessage decode error: %s", err.Error())
 						}
+					case websocket.PingMessage:
+						// 收到ping自动回复pong
+						logger.LogInfo(ws.logPrefix, "recved ping:%s", string(msgData))
+						ws.SendPong(msgData)
+					case websocket.PongMessage:
+						logger.LogInfo(ws.logPrefix, "recved pong:%s", string(msgData))
 					}
 
 					msg := WSRawMsg{LocalTime: time.Now(), Data: msgData, Str: msgStr}
@@ -243,7 +278,7 @@ func (ws *WsConnection) keepSubscribing() {
 		} else if ws.subLogin.Successed() {
 			processOthers = true
 		} else if !ws.subLogin.Subscribing() && !ws.subLogin.Successed() {
-			ws.subLogin.startSubscribing(ws)
+			ws.subLogin.startSubscribing()
 		}
 
 		// 然后保证其他订阅器成功
@@ -251,7 +286,7 @@ func (ws *WsConnection) keepSubscribing() {
 			ws.muSubs.Lock()
 			for _, s := range ws.subOthers {
 				if !s.Subscribing() && !s.Successed() {
-					s.startSubscribing(ws)
+					s.startSubscribing()
 				}
 			}
 
@@ -281,6 +316,14 @@ func (ws *WsConnection) keepConnecting() {
 		} else {
 			break
 		}
+	}
+}
+
+// 定期发送ping
+func (ws *WsConnection) keepPinging() {
+	for {
+		ws.SendPing(nil)
+		time.Sleep(time.Second * 3)
 	}
 }
 

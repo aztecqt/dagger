@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-03 19:39:28
- * @LastEditors: aztec
- * @LastEditTime: 2023-03-02 11:58:15
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-11 16:53:41
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\okexv5\common_order.go
  * @Description: okexv5订单。合约订单和现货订单分别“继承”自这个struct
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5
 
@@ -102,7 +102,7 @@ func (o *CommonOrder) create() {
 	logger.LogInfo(o.LogPrefix, "creating [%s]", o.String())
 	resp, err := okexv5api.MakeOrder(
 		o.InstId,
-		o.CltOrderId,
+		o.CltOrderId.(string),
 		orderTag(),
 		side,
 		o.posSide,
@@ -147,7 +147,7 @@ func (o *CommonOrder) cancel() {
 		}()
 
 		logger.LogInfo(o.LogPrefix, "canceling [%s]", o.String())
-		resp, err := okexv5api.CancelOrder(o.InstId, o.CltOrderId, 0)
+		resp, err := okexv5api.CancelOrder(o.InstId, o.CltOrderId.(string), 0)
 		if err == nil {
 			if resp.Data[0].SCode != "0" {
 				o.ErrMsg = fmt.Sprintf("code:%s, msg:%s", resp.Data[0].SCode, resp.Data[0].SMsg)
@@ -184,8 +184,8 @@ func (o *CommonOrder) modify(newPrice, newSize decimal.Decimal) {
 				newPrice,
 				o.Dir,
 				o.MakeOnly,
-				o.Trader.Market().OrderBook().Buy1(),
-				o.Trader.Market().OrderBook().Sell1())
+				o.Trader.Market().OrderBook().Buy1Price(),
+				o.Trader.Market().OrderBook().Sell1Price())
 		}
 
 		if newSize.IsPositive() {
@@ -199,7 +199,7 @@ func (o *CommonOrder) modify(newPrice, newSize decimal.Decimal) {
 
 		if newSize.IsPositive() || newPrice.IsPositive() {
 			logger.LogInfo(o.LogPrefix, "modifying [%s], newPrice=%v, newSize=%v", o.String(), newPrice, newSize)
-			resp, err := okexv5api.AmendOrder(o.InstId, o.CltOrderId, NewAmendId(), 0, newPrice, newSize)
+			resp, err := okexv5api.AmendOrder(o.InstId, o.CltOrderId.(string), NewAmendId(), 0, newPrice, newSize)
 			if err == nil {
 				if resp.Data[0].SCode != "0" {
 					o.ErrMsg = fmt.Sprintf("code:%s, msg:%s", resp.Data[0].SCode, resp.Data[0].SMsg)
@@ -292,7 +292,7 @@ func (o *CommonOrder) refreshImm() {
 
 func (o *CommonOrder) doRestRefresh() {
 	logger.LogInfo(o.LogPrefix, "geting order info from rest...")
-	resp, err := okexv5api.GetOrderInfo(o.InstId, 0, o.CltOrderId)
+	resp, err := okexv5api.GetOrderInfo(o.InstId, 0, o.CltOrderId.(string))
 	b, _ := json.Marshal(resp)
 	logger.LogInfo(o.LogPrefix, "getted order info from rest, resp=%s", string(b))
 

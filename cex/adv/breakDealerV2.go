@@ -151,10 +151,10 @@ func (d *BreakDealerV2) Init(
 	d.pm.Init(d.trader, d.onDeal, d.logPrefix, false, false)
 	d.pm.SetTaker(true, true)
 	d.mkTakeProfit = new(Maker)
-	d.mkTakeProfit.Init(d.trader, true, false, 0, 0, "take-profit")
+	d.mkTakeProfit.Init(d.trader, true, false, true, 0, 0, "take-profit")
 	d.mkTakeProfit.SetDealFn(d.onDeal)
 	d.mkRetreat = new(Maker)
-	d.mkRetreat.Init(d.trader, true, false, 0, 0, "retreat")
+	d.mkRetreat.Init(d.trader, true, false, true, 0, 0, "retreat")
 	d.mkRetreat.SetDealFn(d.onDeal)
 
 	for !d.trader.Ready() {
@@ -164,8 +164,8 @@ func (d *BreakDealerV2) Init(
 	// 检查账户资金是否足够
 	maxl := float64(d.maxLong())
 	maxs := float64(d.maxShort())
-	aval := d.trader.AvilableAmount(common.OrderDir_Buy, decimal.Zero).InexactFloat64()
-	avas := d.trader.AvilableAmount(common.OrderDir_Sell, decimal.Zero).InexactFloat64()
+	aval := d.trader.AvailableAmount(common.OrderDir_Buy, decimal.Zero).InexactFloat64()
+	avas := d.trader.AvailableAmount(common.OrderDir_Sell, decimal.Zero).InexactFloat64()
 
 	if maxl > aval {
 		logger.LogPanic(d.logPrefix, "can't open %v long, only %v avilable", maxl, aval)
@@ -382,13 +382,13 @@ func (d *BreakDealerV2) update_Retreat() {
 
 	// 盘口挂单平仓
 	if d.isLong() {
-		px := d.trader.Market().OrderBook().Buy1().Mul(decimal.NewFromFloat(0.99))
+		px := d.trader.Market().OrderBook().Buy1Price().Mul(decimal.NewFromFloat(0.99))
 		rsz := d.long()
 		sz := math.Min(d.maxRealPositionSize/5, rsz)
 		sz = math.Max(sz, 1)
 		d.mkRetreat.Modify(px, decimal.NewFromFloat(sz), common.OrderDir_Sell, true)
 	} else if d.isShort() {
-		px := d.trader.Market().OrderBook().Sell1().Mul(decimal.NewFromFloat(1.01))
+		px := d.trader.Market().OrderBook().Sell1Price().Mul(decimal.NewFromFloat(1.01))
 		rsz := d.short()
 		sz := math.Min(d.maxRealPositionSize/5, rsz)
 		sz = math.Max(sz, 1)

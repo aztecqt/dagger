@@ -172,10 +172,85 @@ var Color_White = Color{R: 255, G: 255, B: 255}
 var Color_WhiteSmoke = Color{R: 245, G: 245, B: 245}
 var Color_Yellow = Color{R: 255, G: 255, B: 0}
 
+// HSL颜色
+type HSL struct {
+	h int
+	s float64
+	l float64
+}
+
+func (h HSL) ToColor() Color {
+	r := 0
+	g := 0
+	b := 0
+
+	if h.s == 0 {
+		v := int(h.l * 255)
+		r = v
+		g = v
+		b = v
+	} else {
+		v1 := 0.0
+		v2 := 0.0
+		hue := float64(h.h) / 360.0
+
+		v2 = util.ValueIf(h.l < 0.5, (h.l * (1 + h.s)), ((h.l + h.s) - (h.l * h.s)))
+		v1 = 2*h.l - v2
+
+		r = int(255 * HueToRGB(v1, v2, hue+(1.0/3)))
+		g = int(255 * HueToRGB(v1, v2, hue))
+		b = int(255 * HueToRGB(v1, v2, hue-(1.0/3)))
+	}
+
+	return Color{R: r, G: g, B: b}
+}
+
+func HueToRGB(v1, v2, vH float64) float64 {
+	if vH < 0 {
+		vH += 1
+	}
+
+	if vH > 1 {
+		vH -= 1
+	}
+
+	if (6 * vH) < 1 {
+		return (v1 + (v2-v1)*6*vH)
+	}
+
+	if (2 * vH) < 1 {
+		return v2
+	}
+
+	if (3 * vH) < 2 {
+		return (v1 + (v2-v1)*((2.0/3)-vH)*6)
+	}
+
+	return v1
+}
+
+// 色表
+type ColorGroup struct {
+	Colors []Color
+}
+
+// s=饱和度，l=亮度
+func NewColorGroup(count int, s, l float64) ColorGroup {
+	cg := ColorGroup{}
+	for i := 0; i < count; i++ {
+		step := 255.0 / (count + 1)
+		h := step * i
+		hsl := HSL{h: h % 255, s: s, l: l}
+		cg.Colors = append(cg.Colors, hsl.ToColor())
+	}
+	return cg
+}
+
 // 描述一条线的名字、颜色等
 // 名字对应DataGroup里Line的名字
 type LineConfig struct {
 	Field        string `json:"field"`
+	FieldText    string `json:"field_txt"`
 	lineColor    Color
 	LineColorStr string `json:"color"`
 	IsMain       bool   `json:"ismain"`
@@ -211,18 +286,21 @@ func NewPaneConfig(name string) *PaneConfig {
 	return p
 }
 
-func (p *PaneConfig) AddLineConfig(field string, color Color, isMain bool, tag string) {
+func (p *PaneConfig) AddLineConfig(field string, color Color, isMain bool, tag string) *LineConfig {
 	lc := LineConfig{Field: field, lineColor: color, IsMain: isMain, Tag: tag}
 	lc.LineColorStr = lc.lineColor.String()
 	p.Lines = append(p.Lines, lc)
+	return &p.Lines[len(p.Lines)-1]
 }
 
-func (p *PaneConfig) AddPointConfig(field string, tag string) {
+func (p *PaneConfig) AddPointConfig(field string, tag string) *PointConfig {
 	p.Points = append(p.Points, PointConfig{Field: field, Tag: tag})
+	return &p.Points[len(p.Points)-1]
 }
 
-func (p *PaneConfig) AddTimeEventConfig(field string, tag string) {
+func (p *PaneConfig) AddTimeEventConfig(field string, tag string) *TimeEventConfig {
 	p.TimeEvents = append(p.TimeEvents, TimeEventConfig{Field: field, Tag: tag})
+	return &p.TimeEvents[len(p.TimeEvents)-1]
 }
 
 // 页面布局方式

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"os"
 	"time"
 
 	"github.com/aztecqt/dagger/util"
@@ -26,6 +27,10 @@ type rawTicker struct {
 }
 
 func (t *rawTicker) Deserialize(r io.Reader) bool {
+	if r == nil {
+		return false
+	}
+
 	if e := binary.Read(r, binary.LittleEndian, &t.TimeStamp); e != nil {
 		return false
 	}
@@ -94,11 +99,26 @@ func (d *TickerDriver) Init(fastMode bool, rootDir string, t0, t1 time.Time, int
 		tickers := make([]rawTicker, 0)
 		for d := dt0; d.Unix() <= dt1.Unix(); d = d.AddDate(0, 0, 1) {
 			path := fmt.Sprintf("%s/%s/%s.ticker", rootDir, symbol, d.Format(time.DateOnly))
+			pathZipped := path + ".zlib"
+			var file io.ReadCloser
+
+			if f, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm); err == nil {
+				file = f
+				defer file.Close()
+				fmt.Printf("ticker driver loaded %s\n", path)
+			} else {
+				if f, err := util.OpenCompressedFile_Zlib(pathZipped); err == nil {
+					file = f
+					defer file.Close()
+					fmt.Printf("ticker driver loaded %s\n", pathZipped)
+				}
+			}
+
 			lastTimeStamp := int64(0)
 			lastBuy := -1.0
 			lastSell := -1.0
-			util.FileDeserializeToObjectList(
-				path,
+			util.DeserializeToObjects(
+				file,
 				func() *rawTicker { return &rawTicker{} },
 				func(t *rawTicker) bool {
 					timeok := false

@@ -8,6 +8,7 @@
 package binancefutureapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -228,6 +229,45 @@ func GetBookTicker(symbol string, ac APIClass) (*[]binanceapi.BookTicker, error)
 	}
 }
 
+// 24小时价格变动（好奇怪的名字）
+func Get24hrTicker(ac APIClass, symbols ...string) (*[]binanceapi.Ticker24hr, error) {
+	action := "/fapi/v1/ticker/24hr"
+	method := "GET"
+	paramStr := ""
+	single := false
+	params := url.Values{}
+	if len(symbols) > 0 {
+		if len(symbols) == 1 {
+			params.Set("symbol", symbols[0])
+			single = true
+		} else {
+			d, _ := json.Marshal(symbols)
+			symbolsstr := string(d)
+			params.Set("symbols", symbolsstr)
+		}
+	}
+	paramStr = params.Encode()
+	action = action + "?" + paramStr
+	url := rootUrl + action
+	if single {
+		rst, err := network.ParseHttpResult[binanceapi.Ticker24hr](restLogPrefix, "GetFuture24hrTicker", realUrlMissingInUnified(url, ac), method, "", nil, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+		if err == nil {
+			respArry := []binanceapi.Ticker24hr{*rst}
+			return &respArry, nil
+		} else {
+			return nil, err
+		}
+
+	} else {
+		rst, err := network.ParseHttpResult[[]binanceapi.Ticker24hr](restLogPrefix, "GetFuture24hrTicker", realUrlMissingInUnified(url, ac), method, "", nil, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+		return rst, err
+	}
+}
+
 func GetKline_Usdt(symbol, interval string, t0, t1 time.Time, limit int) (*binanceapi.KLine, error) {
 	return GetKline(symbol, interval, t0, t1, limit, API_ClassicUsdt)
 }
@@ -239,7 +279,15 @@ func GetKline_Usd(symbol, interval string, t0, t1 time.Time, limit int) (*binanc
 // 取K线
 // 返回：[[开盘时间，开盘价，最高，最低，收盘价，成交额]]
 func GetKline(symbol, interval string, t0, t1 time.Time, limit int, ac APIClass) (*binanceapi.KLine, error) {
-	action := "/fapi/v1/klines"
+	return getKlineFromEndpoint("/fapi/v1/klines", symbol, interval, t0, t1, limit, ac)
+}
+
+// 取溢价指数K线
+func GetPremiumIndexKline(symbol, interval string, t0, t1 time.Time, limit int, ac APIClass) (*binanceapi.KLine, error) {
+	return getKlineFromEndpoint("/fapi/v1/premiumIndexKlines", symbol, interval, t0, t1, limit, ac)
+}
+
+func getKlineFromEndpoint(action, symbol, interval string, t0, t1 time.Time, limit int, ac APIClass) (*binanceapi.KLine, error) {
 	method := "GET"
 	params := url.Values{}
 	params.Set("symbol", symbol)
@@ -266,12 +314,12 @@ func GetKline(symbol, interval string, t0, t1 time.Time, limit int, ac APIClass)
 }
 
 // 取历史费率信息
-func GetHistoryFundingRate(symbol string, t0, t1 time.Time, ac APIClass) (*[]binanceapi.FundingFee, error) {
+func GetHistoryFundingRate(symbol string, t0, t1 time.Time, limit int, ac APIClass) (*[]binanceapi.FundingFee, error) {
 	action := "/fapi/v1/fundingRate"
 	method := "GET"
 	params := url.Values{}
 	params.Set("symbol", symbol)
-	params.Set("limit", "1000")
+	params.Set("limit", strconv.FormatInt(int64(limit), 10))
 	if !t0.IsZero() {
 		params.Set("startTime", strconv.FormatInt(t0.UnixMilli(), 10))
 	}
@@ -284,6 +332,24 @@ func GetHistoryFundingRate(symbol string, t0, t1 time.Time, ac APIClass) (*[]bin
 	rst, err := network.ParseHttpResult[[]binanceapi.FundingFee](restLogPrefix, "GetHistoryFundingRate", realUrlMissingInUnified(url, ac), method, "", nil, func(resp *http.Response, body []byte) {
 		binanceapi.ProcessResponse(resp, body, apiType(ac))
 	}, binanceapi.ErrorCallback)
+	return rst, err
+}
+
+// 获取最新资金费率/指数价格
+func GetPremiumIndex(symbol string, ac APIClass) (*binanceapi.PremiumIndexResp, error) {
+	action := "/fapi/v1/premiumIndex"
+	method := "GET"
+	params := url.Values{}
+	params.Set("symbol", symbol)
+	paramsStr := params.Encode()
+	action = action + "?" + paramsStr
+	url := rootUrl + action
+	rst, err := network.ParseHttpResult[binanceapi.PremiumIndexResp](restLogPrefix, "GetPremiumIndex", realUrlMissingInUnified(url, ac), method, "", nil, func(resp *http.Response, body []byte) {
+		binanceapi.ProcessResponse(resp, body, apiType(ac))
+	}, binanceapi.ErrorCallback)
+	if err == nil {
+		rst.Parse()
+	}
 	return rst, err
 }
 

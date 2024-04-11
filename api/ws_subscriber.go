@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-03-27 17:49:32
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-08-26 13:12:25
+ * @LastEditTime: 2024-03-02 18:02:15
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\api\ws_subscriber.go
  * @Description:
  *
@@ -50,7 +50,7 @@ func (s *WsSubscriber) Init(name string, text string, isSubscriber bool, gen Sub
 	s.onRecv = make(chan WSRawMsg)
 }
 
-func (s *WsSubscriber) startSubscribing(ws *WsConnection) {
+func (s *WsSubscriber) startSubscribing() {
 	s.status = Subscriber_status_subscribing
 }
 

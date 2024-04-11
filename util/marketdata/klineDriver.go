@@ -66,7 +66,7 @@ func LoadKLine(rootDir string, t0, t1 time.Time, symbol string) *KLine {
 	kline := &KLine{Symbol: symbol}
 	for d := dt0; d.Unix() <= dt1.Unix(); d = d.AddDate(0, 0, 1) {
 		path := fmt.Sprintf("%s/%s/%s.1min.kline", rootDir, symbol, d.Format(time.DateOnly))
-		util.FileDeserializeToObjectList(
+		util.FileDeserializeToObjects(
 			path,
 			func() *KlineUnit { return &KlineUnit{} },
 			func(ku *KlineUnit) bool {

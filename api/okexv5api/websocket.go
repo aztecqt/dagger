@@ -1,15 +1,15 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-26 21:29:35
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2023-09-14 15:24:26
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-02-13 11:47:02
  * @FilePath: \market_collectorc:\work\svn\quant\go\src\dagger\api\okexv5api\websocket.go
  * @Description: okexv5的ws
  * 关于消息处理。okexv5的行情数据，大都在头部的arg节点下包含instID，这种消息可以按照instID进行分发
  * 因此外部可以通过instID进行订阅
  * 而另一些ws数据没有这个字段（比如订单、仓位、权益等私有数据），因此处理方法有所不同
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5api
 
@@ -39,14 +39,14 @@ type WsClient struct {
 	rawRespFns map[string]api.OnRecvWSRawMsg
 
 	// 外部回调(instID-fn)
-	tickerRespFns      map[string]api.OnRecvWSMsg
-	markPriceRespFns   map[string]api.OnRecvWSMsg
-	priceLimitRespFns  map[string]api.OnRecvWSMsg
-	tradesRespFns      map[string]api.OnRecvWSMsg
-	depth5RespFns      map[string]api.OnRecvWSMsg
-	depth50tbtRespFns  map[string]api.OnRecvWSMsg
-	fundingRateRespFns map[string][]api.OnRecvWSMsg
-	muFns              sync.Mutex
+	tickerRespFns            map[string]api.OnRecvWSMsg
+	markPriceRespFns         map[string]api.OnRecvWSMsg
+	priceLimitRespFns        map[string]api.OnRecvWSMsg
+	tradesRespFns            map[string]api.OnRecvWSMsg
+	depthRespFns             map[string]api.OnRecvWSMsg
+	fundingRateRespFns       map[string][]api.OnRecvWSMsg
+	liquidationOrdersRespFns map[string]api.OnRecvWSMsg
+	muFns                    sync.Mutex
 
 	// 外部回调
 	accountBalanceRespFn api.OnRecvWSMsg
@@ -70,9 +70,11 @@ func (ws *WsClient) Start() {
 	ws.rawRespFns["mark-price"] = ws.rawRespMarkPrice
 	ws.rawRespFns["price-limit"] = ws.rawRespPriceLimit
 	ws.rawRespFns["trades"] = ws.rawRespTrades
-	ws.rawRespFns["books5"] = ws.rawRespDepth5
-	ws.rawRespFns["books50-l2-tbt"] = ws.rawRespDepth50tbt
+	ws.rawRespFns["books"] = ws.rawRespDepth
+	ws.rawRespFns["books5"] = ws.rawRespDepth
+	ws.rawRespFns["books50-l2-tbt"] = ws.rawRespDepth
 	ws.rawRespFns["funding-rate"] = ws.rawRespFundingRate
+	ws.rawRespFns["liquidation-orders"] = ws.rawRespLiquidationOrders
 	ws.rawRespFns["account"] = ws.rawRespAccountBalance
 	ws.rawRespFns["positions"] = ws.rawRespPosition
 	ws.rawRespFns["orders"] = ws.rawRespOrders
@@ -82,9 +84,9 @@ func (ws *WsClient) Start() {
 	ws.markPriceRespFns = make(map[string]api.OnRecvWSMsg)
 	ws.priceLimitRespFns = make(map[string]api.OnRecvWSMsg)
 	ws.tradesRespFns = make(map[string]api.OnRecvWSMsg)
-	ws.depth5RespFns = make(map[string]api.OnRecvWSMsg)
-	ws.depth50tbtRespFns = make(map[string]api.OnRecvWSMsg)
+	ws.depthRespFns = make(map[string]api.OnRecvWSMsg)
 	ws.fundingRateRespFns = make(map[string][]api.OnRecvWSMsg)
+	ws.liquidationOrdersRespFns = make(map[string]api.OnRecvWSMsg)
 }
 
 // #region public channels
@@ -113,6 +115,34 @@ func (ws *WsClient) unsubscribePublicChannelWithInstID(channel string, instID st
 		false,
 		nil,
 		[]string{"unsubscribe", channel, instID})
+	ws.publicWsConn.Subscribe(&s)
+}
+
+func (ws *WsClient) subscribePublicChannelWithInstType(channel string, instType string, fn api.OnRecvWSMsg, fnMap *map[string]api.OnRecvWSMsg) *api.WsSubscriber {
+	s := api.WsSubscriber{}
+	s.Init(
+		fmt.Sprintf("%s(%s)", channel, instType),
+		fmt.Sprintf(`{"op":"subscribe","args":[{"channel":"%s","instType":"%s"}]}`, channel, instType),
+		true,
+		nil,
+		[]string{"subscribe", channel, instType})
+	ws.publicWsConn.Subscribe(&s)
+
+	ws.muFns.Lock()
+	(*fnMap)[instType] = fn
+	ws.muFns.Unlock()
+
+	return &s
+}
+
+func (ws *WsClient) unsubscribePublicChannelWithInstType(channel string, instType string) {
+	s := api.WsSubscriber{}
+	s.Init(
+		fmt.Sprintf("%s(%s)", channel, instType),
+		fmt.Sprintf(`{"op":"unsubscribe","args":[{"channel":"%s","instType":"%s"}]}`, channel, instType),
+		false,
+		nil,
+		[]string{"unsubscribe", channel, instType})
 	ws.publicWsConn.Subscribe(&s)
 }
 
@@ -185,9 +215,19 @@ func (ws *WsClient) UnsubscribeTrades(instID string) {
 	ws.unsubscribePublicChannelWithInstID("trades", instID)
 }
 
+// 深度数据(400档增量)
+func (ws *WsClient) SubscribeDepth(instID string, fn api.OnRecvWSMsg) *api.WsSubscriber {
+	s := ws.subscribePublicChannelWithInstID("books", instID, fn, &ws.depthRespFns)
+	return s
+}
+
+func (ws *WsClient) UnsubscribeDepth(instID string) {
+	ws.unsubscribePublicChannelWithInstID("books", instID)
+}
+
 // 深度数据(5档)
 func (ws *WsClient) SubscribeDepth5(instID string, fn api.OnRecvWSMsg) *api.WsSubscriber {
-	s := ws.subscribePublicChannelWithInstID("books5", instID, fn, &ws.depth5RespFns)
+	s := ws.subscribePublicChannelWithInstID("books5", instID, fn, &ws.depthRespFns)
 	return s
 }
 
@@ -197,7 +237,7 @@ func (ws *WsClient) UnsubscribeDepth5(instID string) {
 
 // 深度数据(50档，需要vip4)
 func (ws *WsClient) SubscribeDepth50tbt(instID string, fn api.OnRecvWSMsg) *api.WsSubscriber {
-	s := ws.subscribePublicChannelWithInstID("books50-l2-tbt", instID, fn, &ws.depth50tbtRespFns)
+	s := ws.subscribePublicChannelWithInstID("books50-l2-tbt", instID, fn, &ws.depthRespFns)
 	return s
 }
 
@@ -213,6 +253,16 @@ func (ws *WsClient) SubscribeFundingrate(instID string, fn api.OnRecvWSMsg) *api
 
 func (ws *WsClient) UnsubscribeFundingrate(instID string) {
 	ws.unsubscribePublicChannelWithInstID("funding-rate", instID)
+}
+
+// 市场爆仓(这个频道根据instType订阅，而不是instId。这里用instType代替instId)
+func (ws *WsClient) SubscribeLiquidationOrders(instType string, fn api.OnRecvWSMsg) *api.WsSubscriber {
+	s := ws.subscribePublicChannelWithInstType("liquidation-orders", instType, fn, &ws.liquidationOrdersRespFns)
+	return s
+}
+
+func (ws *WsClient) UnsubscribeLiquidationOrders(instType string) {
+	ws.unsubscribePublicChannelWithInstType("liquidation-orders", instType)
 }
 
 // #endregion
@@ -248,10 +298,10 @@ func (ws *WsClient) SubscribeAccountBalance(fn api.OnRecvWSMsg) *api.WsSubscribe
 	s := api.WsSubscriber{}
 	s.Init(
 		"account",
-		`{"op": "subscribe","args": [{"channel":"account"}]}`,
+		`{"op": "subscribe","args": [{"channel": "account"}]}`,
 		true,
 		nil,
-		[]string{"subscribe", "account"})
+		[]string{`"event":"subscribe","arg":{"channel":"account"`})
 	ws.privateWsConn.Subscribe(&s)
 	ws.accountBalanceRespFn = fn
 	return &s
@@ -273,10 +323,10 @@ func (ws *WsClient) SubscribePosition(fn api.OnRecvWSMsg) *api.WsSubscriber {
 	s := api.WsSubscriber{}
 	s.Init(
 		"positions",
-		`{"op": "subscribe","args": [{"channel":"positions","instType":"ANY"}]}`,
+		`{"op": "subscribe","args": [{"channel": "positions","instType": "ANY"}]}`,
 		true,
 		nil,
-		[]string{"subscribe", "positions", "ANY"})
+		[]string{`"event":"subscribe","arg":{"channel":"positions"`})
 	ws.privateWsConn.Subscribe(&s)
 	ws.positionRespFn = fn
 	return &s
@@ -335,6 +385,7 @@ func (ws *WsClient) rawRespTicker(msg api.WSRawMsg) {
 	r := TickerWsResp{}
 	err := json.Unmarshal(msg.Data, &r)
 	if err == nil {
+		r.parse()
 		fn := ws.findFromFnMap(ws.tickerRespFns, r.Arg.InstId)
 		if fn != nil {
 			fn(r)
@@ -380,23 +431,11 @@ func (ws *WsClient) rawRespTrades(msg api.WSRawMsg) {
 	}
 }
 
-func (ws *WsClient) rawRespDepth5(msg api.WSRawMsg) {
+func (ws *WsClient) rawRespDepth(msg api.WSRawMsg) {
 	r := DepthWsResp{}
 	err := json.Unmarshal(msg.Data, &r)
 	if err == nil {
-		if fn := ws.findFromFnMap(ws.depth5RespFns, r.Arg.InstId); fn != nil {
-			fn(r)
-		}
-	} else {
-		ws.logUnmarshalError(wsLogPrefixPublic, r, err, msg.Str)
-	}
-}
-
-func (ws *WsClient) rawRespDepth50tbt(msg api.WSRawMsg) {
-	r := DepthWsResp{}
-	err := json.Unmarshal(msg.Data, &r)
-	if err == nil {
-		if fn := ws.findFromFnMap(ws.depth50tbtRespFns, r.Arg.InstId); fn != nil {
+		if fn := ws.findFromFnMap(ws.depthRespFns, r.Arg.InstId); fn != nil {
 			fn(r)
 		}
 	} else {
@@ -408,10 +447,24 @@ func (ws *WsClient) rawRespFundingRate(msg api.WSRawMsg) {
 	r := FundingRateWsResp{}
 	err := json.Unmarshal(msg.Data, &r)
 	if err == nil {
+		r.parse()
 		if fns, ok := ws.fundingRateRespFns[r.Arg.InstId]; ok {
 			for _, fn := range fns {
 				fn(r)
 			}
+		}
+	} else {
+		ws.logUnmarshalError(wsLogPrefixPublic, r, err, msg.Str)
+	}
+}
+
+func (ws *WsClient) rawRespLiquidationOrders(msg api.WSRawMsg) {
+	r := LiquidationOrderWsResp{}
+	err := json.Unmarshal(msg.Data, &r)
+	if err == nil {
+		r.parse()
+		if fn := ws.findFromFnMap(ws.liquidationOrdersRespFns, r.Arg.InstType); fn != nil {
+			fn(r)
 		}
 	} else {
 		ws.logUnmarshalError(wsLogPrefixPublic, r, err, msg.Str)

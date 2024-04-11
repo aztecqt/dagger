@@ -8,8 +8,12 @@
 package util
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/shopspring/decimal"
@@ -17,6 +21,8 @@ import (
 
 var DecimalOne = decimal.NewFromInt(1)
 var DecimalTwo = decimal.NewFromInt(2)
+var DecimalTen = decimal.NewFromInt(10)
+var Decimal100 = decimal.NewFromInt(100)
 var DecimalNegOne = decimal.NewFromInt(-1)
 
 type Relation int
@@ -277,11 +283,52 @@ func DecimalTick(d decimal.Decimal) decimal.Decimal {
 	return ticker
 }
 
+// 对齐decimal到指定精度
+func AlignDecimal(d decimal.Decimal, tick decimal.Decimal, alignUp bool) decimal.Decimal {
+	aligned := tick.Mul(decimal.NewFromInt(d.Div(tick).IntPart()))
+	if alignUp && !aligned.Equal(d) {
+		aligned = aligned.Add(tick)
+	}
+	return aligned
+}
+
 // 获取float的最小精度
 func FloatTick(f float64) float64 {
 	d := decimal.NewFromFloat(f)
 	t := DecimalTick(d)
 	return t.InexactFloat64()
+}
+
+// 对齐float到指定精度
+func AlignFloat(val float64, tick float64, alignUp bool) float64 {
+	aligned := 0.0
+
+	if alignUp {
+		aligned = math.Ceil((val+tick/10)/tick) * tick
+	} else {
+		aligned = math.Floor((val+tick/10)/tick)*tick + tick/2
+	}
+
+	str := fmt.Sprintf("%v", aligned)
+	dot := strings.Index(str, ".")
+	d := int(math.Log10(tick))
+	pos := dot - d + 2
+	l := len(str)
+	if l <= pos {
+		return aligned
+	} else {
+		cnext := str[pos]
+		str = str[:pos]
+		if v, err := strconv.ParseFloat(str, 64); err == nil {
+			aligned = v
+		}
+
+		if cnext == '9' {
+			return aligned + tick
+		} else {
+			return aligned
+		}
+	}
 }
 
 func ClampDecimal(v, a, b decimal.Decimal) decimal.Decimal {
@@ -449,3 +496,41 @@ func Approach(fn func(x float64) float64, initX, stepX, minX, maxX, targetY, min
 		lessLast = lessNow
 	}
 }
+
+// #region 统计学算子
+// Spearman相关系数
+func SpearmanCorr(x, y []float64) float64 {
+	// 创建一个映射表，用于保存排序后的等级
+	rankMapX := make(map[float64]int)
+	rankMapY := make(map[float64]int)
+
+	// 将数据排序并保存等级
+	sortedX := make([]float64, len(x))
+	copy(sortedX, x)
+	sort.Float64s(sortedX)
+	for i, val := range sortedX {
+		rankMapX[val] = i + 1
+	}
+
+	sortedY := make([]float64, len(y))
+	copy(sortedY, y)
+	sort.Float64s(sortedY)
+	for i, val := range sortedY {
+		rankMapY[val] = i + 1
+	}
+
+	// 计算等级差
+	var rankDiffSum float64
+	for i := range x {
+		rankDiff := float64(rankMapX[x[i]] - rankMapY[y[i]])
+		rankDiffSum += rankDiff * rankDiff
+	}
+
+	// 计算Spearman相关系数
+	n := float64(len(x))
+	spearman := 1 - (6*rankDiffSum)/(n*(n*n-1))
+
+	return spearman
+}
+
+// #endregion

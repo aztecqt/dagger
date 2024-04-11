@@ -9,6 +9,7 @@ package network
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/aztecqt/dagger/util"
@@ -34,7 +35,7 @@ type PuppeteerCookie struct {
 func (p PuppeteerCookie) ToCookie() http.Cookie {
 	c := http.Cookie{
 		Name:     p.Name,
-		Value:    p.Value,
+		Value:    url.QueryEscape(p.Value),
 		Domain:   p.Domain,
 		Path:     p.Path,
 		Expires:  time.Unix(int64(p.ExpiresRaw), 0),

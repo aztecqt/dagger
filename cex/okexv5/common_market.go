@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-19 11:06:38
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-10-03 12:15:39
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-03-29 09:39:43
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\okexv5\common_market.go
  * @Description:
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5
 
@@ -38,38 +38,27 @@ type CommonMarket struct {
 	priceOK bool
 	depthOK bool
 
-	// 深度变化回调。策略的主要驱动之一
+	// 深度变化回调
 	depthObserversSet *hashset.Set
 	depthObservers    []interface{}
 
 	subscribing bool
 }
 
-func (m *CommonMarket) Init(ex *Exchange, instID string, depthFromTicker, tickerFromRest bool) {
+func (m *CommonMarket) Init(ex *Exchange, inst common.Instruments, depthFromTicker, tickerFromRest bool) {
 	m.ex = ex
 	m.ws = ex.ws
-	m.instId = instID
-	m.inst = *ex.instrumentMgr.Get(instID)
+	m.instId = inst.Id
+	m.inst = inst
 	m.depthFromTicker = depthFromTicker
 	m.tickerFromRest = tickerFromRest
-	m.orderBook = new(common.Orderbook)
-	m.orderBook.Init()
+	m.orderBook = common.NewOrderBook()
 	m.priceOK = false
 	m.depthOK = false
 
 	m.depthObserversSet = hashset.New()
-	m.depthObservers = nil
+
 	m.subscribing = false
-}
-
-func (m *CommonMarket) AddDepthObserver(obs common.DepthObserver) {
-	m.depthObserversSet.Add(obs)
-	m.depthObservers = m.depthObserversSet.Values()
-}
-
-func (m *CommonMarket) RemoveDepthObserver(obs common.DepthObserver) {
-	m.depthObserversSet.Remove(obs)
-	m.depthObservers = m.depthObserversSet.Values()
 }
 
 func (m *CommonMarket) subscribe(instID string) {
@@ -177,12 +166,12 @@ func (m *CommonMarket) unsubscribe(instID string) {
 }
 
 func (m *CommonMarket) onTickerResp(ticker okexv5api.TickerResp) {
-	m.latestPrice = util.String2DecimalPanic(ticker.Last) // 最新成交价
+	m.latestPrice = ticker.Last // 最新成交价
 
 	// ticker模拟深度
 	if m.depthFromTicker {
-		buy1 := util.String2DecimalPanic(ticker.Buy1)
-		sell1 := util.String2DecimalPanic(ticker.Sell1)
+		buy1 := ticker.Buy1
+		sell1 := ticker.Sell1
 		m.orderBook.Clear()
 		m.orderBook.UpdateBids(buy1, decimal.NewFromInt(1))
 		m.orderBook.UpdateAsk(sell1, decimal.NewFromInt(1))
@@ -253,6 +242,20 @@ func (m *CommonMarket) depthCheckSum() uint32 {
 }
 
 // #region 实现common.Common_Market
+func (m *CommonMarket) TradingTime() common.TradingTimes {
+	return nil
+}
+
+func (m *CommonMarket) AddDepthObserver(o common.DepthObserver) {
+	m.depthObserversSet.Add(o)
+	m.depthObservers = m.depthObserversSet.Values()
+}
+
+func (m *CommonMarket) RemoveDepthObserver(o common.DepthObserver) {
+	m.depthObserversSet.Remove(o)
+	m.depthObservers = m.depthObserversSet.Values()
+}
+
 func (m *CommonMarket) Type() string {
 	return m.instId
 }
@@ -273,7 +276,7 @@ func (m *CommonMarket) AlignPrice(price decimal.Decimal, dir common.OrderDir, ma
 	if price.IsZero() {
 		return price
 	} else {
-		return m.ex.instrumentMgr.AlignPrice(m.instId, price, dir, makeOnly, m.orderBook.Buy1(), m.orderBook.Sell1())
+		return m.ex.instrumentMgr.AlignPrice(m.instId, price, dir, makeOnly, m.orderBook.Buy1Price(), m.orderBook.Sell1Price())
 	}
 }
 
@@ -286,7 +289,7 @@ func (m *CommonMarket) AlignSize(size decimal.Decimal) decimal.Decimal {
 }
 
 func (m *CommonMarket) MinSize() decimal.Decimal {
-	return m.ex.instrumentMgr.MinSize(m.instId, m.orderBook.Buy1())
+	return m.ex.instrumentMgr.MinSize(m.instId, m.orderBook.Buy1Price())
 }
 
 // #endregion

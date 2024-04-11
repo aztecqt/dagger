@@ -1,12 +1,12 @@
 /*
  * @Author: aztec
  * @Date: 2022-05-27 10:14:00
- * @LastEditors: Please set LastEditors
+  - @LastEditors: Please set LastEditors
  * @FilePath: \dagger\util\apikey\requester.go
  * @Description: 从apikey服务器请求一个符合条件的Key
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package apikey
 
@@ -104,9 +104,7 @@ func (r *Requester) onRecvUDPMessage(op string, data []byte, addr *net.UDPAddr) 
 
 		// TODO：更安全的处理方式
 		if !ack.Result {
-			logger.LogPanic(r.logPrefix, "keep apikey failed!")
-		} else {
-			logger.LogInfo(r.logPrefix, "keep apikey success")
+			logger.LogImportant(r.logPrefix, "keep apikey failed!")
 		}
 	}
 }

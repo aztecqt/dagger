@@ -52,7 +52,7 @@ func InitRedis(
 
 	// 建立redis连接
 	r.rc = new(util.RedisClient)
-	r.rc.Init(redisAddr, redisPass, redisDB)
+	r.rc.Init(redisAddr, redisPass, redisDB, false)
 	r.checkKeys()
 	r.Start()
 	return r, r.rc

@@ -9,9 +9,12 @@
 package binanceapi
 
 import (
+	"encoding/binary"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/aztecqt/dagger/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -92,8 +95,95 @@ type BookTicker struct {
 	Ts          int64           `json:"time"`
 }
 
+// 24小时价格变动
+type Ticker24hr struct {
+	Symbol      string          `json:"symbol"`
+	LastPrice   decimal.Decimal `json:"lastPrice"`
+	LastQty     decimal.Decimal `json:"lastQty"`
+	OpenPrice   decimal.Decimal `json:"openPrice"`
+	HighPrice   decimal.Decimal `json:"highPrice"`
+	LowPrice    decimal.Decimal `json:"lowPrice"`
+	Volume      decimal.Decimal `json:"volume"`
+	VolumeQuote decimal.Decimal `json:"quoteVolume"`
+	Count       int             `json:"count"`
+}
+
 // K线
 type KLine [][]interface{}
+
+// k线
+type KLineUnit struct {
+	Time      time.Time
+	Open      decimal.Decimal
+	High      decimal.Decimal
+	Low       decimal.Decimal
+	Close     decimal.Decimal
+	VolumeUSD decimal.Decimal
+}
+
+func (ku KLineUnit) Serialize(w io.Writer) {
+	binary.Write(w, binary.LittleEndian, ku.Time.UnixMilli())
+	binary.Write(w, binary.LittleEndian, ku.Open.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.High.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.Low.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.Close.InexactFloat64())
+	binary.Write(w, binary.LittleEndian, ku.VolumeUSD.InexactFloat64())
+}
+
+func (ku *KLineUnit) Deserialize(r io.Reader) bool {
+	ms := int64(0)
+	if binary.Read(r, binary.LittleEndian, &ms) != nil {
+		return false
+	} else {
+		ku.Time = time.UnixMilli(ms)
+	}
+
+	fvalue := 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Open = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.High = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Low = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.Close = decimal.NewFromFloat(fvalue)
+	}
+
+	fvalue = 0.0
+	if binary.Read(r, binary.LittleEndian, &fvalue) != nil {
+		return false
+	} else {
+		ku.VolumeUSD = decimal.NewFromFloat(fvalue)
+	}
+
+	return true
+}
+
+func (k *KLineUnit) FromRaw(raw []interface{}) {
+	k.Time = time.UnixMilli(raw[0].(int64))
+	k.Open = util.String2DecimalPanic(raw[1].(string))
+	k.High = util.String2DecimalPanic(raw[4].(string))
+	k.Low = util.String2DecimalPanic(raw[2].(string))
+	k.Close = util.String2DecimalPanic(raw[3].(string))
+	k.VolumeUSD = util.String2DecimalPanic(raw[5].(string))
+}
 
 // 账户信息
 type AccountInfo struct {
@@ -253,4 +343,33 @@ type AccountIncome struct {
 func (a *AccountIncome) Parse() {
 	a.AssetLower = strings.ToLower(a.Asset)
 	a.Time = time.UnixMilli(a.TimeStamp)
+}
+
+// 下架计划
+type DelistPlan struct {
+	DelistTimeStamp int64    `json:"delistTime"`
+	Symbols         []string `json:"symbols"`
+	DelistTime      time.Time
+}
+
+func (d *DelistPlan) Parse() {
+	d.DelistTime = time.UnixMilli(d.DelistTimeStamp)
+}
+
+// 最新标记价格和资金费率
+type PremiumIndexResp struct {
+	Symbol               string          `json:"symbol"`
+	MarkPrice            decimal.Decimal `json:"markPrice"`
+	IndexPrice           decimal.Decimal `json:"indexPrice"`
+	LatestFr             decimal.Decimal `json:"lastFundingRate"`
+	NextFundingTimeStamp int64           `json:"nextFundingTime"`
+	InterestRate         decimal.Decimal `json:"interestRate"`
+	TimeStamp            int64           `json:"time"`
+	NextFundingTime      time.Time
+	Time                 time.Time
+}
+
+func (p *PremiumIndexResp) Parse() {
+	p.NextFundingTime = time.UnixMilli(p.NextFundingTimeStamp)
+	p.Time = time.UnixMilli(p.TimeStamp)
 }

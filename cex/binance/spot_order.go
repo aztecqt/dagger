@@ -43,7 +43,17 @@ func (o *SpotOrder) Init(
 	dir common.OrderDir,
 	makeOnly bool,
 	purpose string) bool {
-	return o.OrderImpl.Init(trader, trader.exchange.instrumentMgr, trader.Market().Type(), price, amount, dir, makeOnly, false, purpose)
+	o.CltOrderId = NewClientOrderId(purpose)
+	return o.OrderImpl.Init(
+		trader,
+		trader.exchange.instrumentMgr,
+		trader.Market().Type(),
+		price,
+		amount,
+		dir,
+		makeOnly,
+		false,
+		purpose)
 }
 
 func (o *SpotOrder) Go() {
@@ -92,7 +102,7 @@ func (o *SpotOrder) create() {
 	}
 
 	logger.LogInfo(o.LogPrefix, "creating [%s]", o.String())
-	resp, err := binancespotapi.MakeOrder(o.InstId, side, "LIMIT", o.CltOrderId, o.Price, o.Size)
+	resp, err := binancespotapi.MakeOrder(o.InstId, side, "LIMIT", o.CltOrderId.(string), o.Price, o.Size)
 	if err == nil {
 		if resp.Code == 0 && len(resp.Message) == 0 {
 			if resp.OrderID > 0 {
@@ -129,7 +139,7 @@ func (o *SpotOrder) cancel() {
 		}()
 
 		logger.LogInfo(o.LogPrefix, "canceling [%s]", o.String())
-		resp, err := binancespotapi.CancelOrder(o.InstId, 0, o.CltOrderId)
+		resp, err := binancespotapi.CancelOrder(o.InstId, 0, o.CltOrderId.(string))
 		if err == nil {
 			if resp.Code != 0 || len(resp.Message) > 0 {
 				o.ErrMsg = fmt.Sprintf("code:%d, msg:%s", resp.Code, resp.Message)
@@ -222,7 +232,7 @@ func (o *SpotOrder) refreshImm() {
 
 func (o *SpotOrder) doRestRefresh() {
 	logger.LogInfo(o.LogPrefix, "geting order info from rest...")
-	resp, err := binancespotapi.GetOrder(o.InstId, 0, o.CltOrderId)
+	resp, err := binancespotapi.GetOrder(o.InstId, 0, o.CltOrderId.(string))
 	b, _ := json.Marshal(resp)
 	logger.LogInfo(o.LogPrefix, "getted order info from rest, resp=%s", string(b))
 	if err == nil {

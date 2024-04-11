@@ -28,18 +28,19 @@ const (
 )
 
 type Message struct {
-	ntf       *Notifier
-	index     int
-	logPrefix string
-	taskId    int64
-	userid    string
-	msgType   string
-	text      string
-	urlUrl    string
-	urlPic    string
-	urlTitle  string
-	status    MessageStatus
-	errCount  int
+	ntf               *Notifier
+	index             int
+	logPrefix         string
+	taskId            int64
+	userid            string
+	msgType           string
+	text              string
+	actionCardRawText []string
+	urlUrl            string
+	urlPic            string
+	urlTitle          string
+	status            MessageStatus
+	errCount          int
 }
 
 func (m *Message) Status() MessageStatus {
@@ -59,6 +60,18 @@ func (m *Message) initAsText(ntf *Notifier, userid string, text string) {
 	m.msgType = "text"
 	m.text = fmt.Sprintf("%s\n\n%s", text, time.Now().Format("2006-01-02 15:04:05"))
 	logger.LogInfo(m.logPrefix, "init as text, text=%s", text)
+}
+
+// text格式：cardTitle,cardMarkdown,btnTitle0,btcUrl0,btnTitle1,btnUrl1...
+func (m *Message) initAsActionCard(ntf *Notifier, userid string, rawtext []string) {
+	m.index = msgIndex
+	m.logPrefix = fmt.Sprintf("dingtalk-actionCard-msg-%d", m.index)
+	msgIndex++
+	m.ntf = ntf
+	m.userid = userid
+	m.msgType = "action_card"
+	m.actionCardRawText = rawtext
+	logger.LogInfo(m.logPrefix, "init as action_card, raw_text=%s", rawtext)
 }
 
 func (m *Message) intiAsLink(ntf *Notifier, userid string, url, pic, title, text string) {
@@ -146,6 +159,17 @@ func (m *Message) dosend() bool {
 		taskId = m.ntf.sendTextMessage(m.userid, m.text)
 	} else if m.msgType == "link" {
 		taskId = m.ntf.sendLinkMessage(m.userid, m.urlUrl, m.urlPic, m.urlTitle, m.text)
+	} else if m.msgType == "action_card" {
+		ss := m.actionCardRawText
+		if len(ss) >= 4 && len(ss)%2 == 0 {
+			title := ss[0]
+			markdown := ss[1]
+			btnTextAndUrls := ss[2:]
+			taskId = m.ntf.sendActionCardMessage(m.userid, title, markdown, btnTextAndUrls)
+		} else {
+			logger.LogImportant(m.logPrefix, "invalid msg format for action_cark: %s", m.text)
+			return false
+		}
 	} else {
 		logger.LogImportant(m.logPrefix, "unknown msg type: %s", m.msgType)
 		return false
