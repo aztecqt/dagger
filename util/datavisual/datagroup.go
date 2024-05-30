@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aztecqt/dagger/framework"
 	"github.com/aztecqt/dagger/util"
 
-	"github.com/aztecqt/dagger/stratergy"
 	"github.com/aztecqt/dagger/util/logger"
 )
 
@@ -51,7 +51,7 @@ type TimeEvent struct {
 type DataGroup struct {
 	IntervalMs int64 `json:"interval"` // 所包含的时间序列间隔
 
-	lines      map[string]*stratergy.DataLine // 时间序列
+	lines      map[string]*framework.DataLine // 时间序列
 	points     map[string][]Point             // 非均匀分布的点
 	timeEvents map[string][]TimeEvent         // 时间事件
 	extraInfo  strings.Builder
@@ -60,18 +60,18 @@ type DataGroup struct {
 func NewDataGroup(intervalMs int64) *DataGroup {
 	dg := new(DataGroup)
 	dg.IntervalMs = intervalMs
-	dg.lines = make(map[string]*stratergy.DataLine)
+	dg.lines = make(map[string]*framework.DataLine)
 	dg.points = make(map[string][]Point)
 	dg.timeEvents = make(map[string][]TimeEvent)
 	return dg
 }
 
 // 查找一个Line，没有则创建
-func (d *DataGroup) FindOrAddDataLine(name string) *stratergy.DataLine {
+func (d *DataGroup) FindOrAddDataLine(name string) *framework.DataLine {
 	if dl, ok := d.lines[name]; ok {
 		return dl
 	} else {
-		dl := new(stratergy.DataLine)
+		dl := new(framework.DataLine)
 		dl.Init(name, math.MaxInt, d.IntervalMs, 0)
 		d.lines[name] = dl
 		return dl
@@ -125,19 +125,19 @@ func (d *DataGroup) AlignLineTail() {
 	}
 }
 
-func (d *DataGroup) CopyDataLine(dl *stratergy.DataLine) {
+func (d *DataGroup) CopyDataLine(dl *framework.DataLine) {
 	for i := 0; i < dl.Length(); i++ {
 		d.RecordLine(dl.Name(), dl.Values[i], time.UnixMilli(dl.Times[i]))
 	}
 }
 
-func (d *DataGroup) CopyDataLineAsPoint(dl *stratergy.DataLine, tag PointTag) {
+func (d *DataGroup) CopyDataLineAsPoint(dl *framework.DataLine, tag PointTag) {
 	for i := 0; i < dl.Length(); i++ {
 		d.RecordPoint(dl.Name(), Point{Time: time.UnixMilli(dl.Times[i]), Value: dl.Values[i], Tag: tag})
 	}
 }
 
-func (d *DataGroup) GetLine(key string) *stratergy.DataLine {
+func (d *DataGroup) GetLine(key string) *framework.DataLine {
 	return d.FindOrAddDataLine(key)
 }
 

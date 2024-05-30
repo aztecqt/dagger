@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/cex/common"
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 	"github.com/aztecqt/dagger/stratergy/datamanager"
 	"github.com/aztecqt/dagger/util/logger"
 
@@ -97,7 +97,7 @@ type ReversedGrid struct {
 	pm                   *PositionManager           // 这个用来执行吃单交易
 	activeTime           time.Time                  // 自动激活时间，过了这个时间会自动激活
 	onDeal               OnMakerOrderDeal           // 成交回调
-	dlPrice              *stratergy.DataLine        // waitActive阶段用于计算MarkPrice平均值
+	dlPrice              *framework.DataLine        // waitActive阶段用于计算MarkPrice平均值
 	basePrice            float64
 	longTakeProfitPrice  float64
 	shortTakeProfitPrice float64
@@ -128,7 +128,7 @@ func (g *ReversedGrid) Init(
 	g.onDeal = onDeal
 	g.infContext = datamanager.NewInfluxContext("rgrid", trader.Market().Type())
 	g.activeTime = activeTime
-	g.dlPrice = new(stratergy.DataLine)
+	g.dlPrice = new(framework.DataLine)
 	g.dlPrice.Init("price", 120, 1000, 0)
 
 	g.pm = new(PositionManager)

@@ -81,7 +81,14 @@ func (e *Exchange) Init(excfg ExchangeConfig, logInfo, logDebug, logError fnLog)
 	e.freezedBalance = make(map[string]decimal.Decimal)
 	e.freezedBalanceDetail = make(map[int]map[string]decimal.Decimal)
 	e.orderStatusHandler = make(map[int]func(*twsapi.OrderStatusMsg, *twsapi.OpenOrdersMsg))
-	e.balanceMgr = common.NewBalanceMgr()
+	e.balanceMgr = common.NewBalanceMgr(true)
+
+	// 资产最大容许偏移量设置
+	if excfg.MaxPitch != nil {
+		for ccy, maxPitch := range excfg.MaxPitch {
+			e.balanceMgr.FindBalance(ccy).SetMaxPitchAllowed(maxPitch)
+		}
+	}
 
 	// 初始化api
 	if logInfo == nil {
@@ -100,6 +107,7 @@ func (e *Exchange) Init(excfg ExchangeConfig, logInfo, logDebug, logError fnLog)
 	logDebugFn = logDebug
 	logErrorFn = logError
 
+	twsapi.LogMessage = false
 	twsapi.Init(twsapi.FnLog(logInfo), twsapi.FnLog(logDebug), twsapi.FnLog(logError))
 	e.c = twsapi.NewClient(excfg.Addr, excfg.Port)
 	e.msgHandlerId = e.c.RegisterMessageHandler(e.onMessage)
@@ -137,8 +145,8 @@ func (e *Exchange) Init(excfg ExchangeConfig, logInfo, logDebug, logError fnLog)
 	}()
 }
 
-func (e *Exchange) ReconnectApi() {
-	e.c.Reconnect()
+func (e *Exchange) ReconnectApi(reason string) {
+	e.c.Reconnect(reason)
 }
 
 func (e *Exchange) ready() bool {
@@ -313,22 +321,32 @@ func (e *Exchange) onMessage(m twsapi.Message) {
 func (e *Exchange) onMsg_AccountValue(msg *twsapi.AccountValueMsg) {
 	// 仅处理Key为TotalCashBalance的、且在配置中指定过的Currency
 	if msg.AccountName == e.accountName && msg.Key == "TotalCashBalance" && slices.Contains(e.excfg.Currencys, msg.Currency) {
-		e.balanceMgr.RefreshBalance(
-			strings.ToLower(msg.Currency),
+		ccy := strings.ToLower(msg.Currency)
+		pitch := e.balanceMgr.RefreshBalance(
+			ccy,
 			util.String2DecimalPanic(msg.Value),
 			decimal.Zero, // 目前似乎并不能知道被冻结的资产余额
 			time.Now())
+
+		if !pitch.IsZero() {
+			logError(logPrefix, "%s balance has pitch: %v", ccy, pitch)
+		}
 	}
 }
 
 func (e *Exchange) onMsg_PortfolioValue(msg *twsapi.PortfolioValueMsg) {
 	// 仅处理配置中指定过的、匹配Contract.Symbol的项目
 	if msg.AccountName == e.accountName && slices.Contains(e.excfg.Symbols, msg.Contract.Symbol) {
-		e.balanceMgr.RefreshBalance(
-			strings.ToLower(msg.Contract.Symbol),
+		ccy := strings.ToLower(msg.Contract.Symbol)
+		pitch := e.balanceMgr.RefreshBalance(
+			ccy,
 			msg.Position,
 			decimal.Zero,
 			time.Now())
+
+		if !pitch.IsZero() {
+			logError(logPrefix, "%s balance has pitch: %v", ccy, pitch)
+		}
 	}
 }
 

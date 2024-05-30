@@ -63,6 +63,22 @@ func USDT2ContractAmount(usdt decimal.Decimal, m FutureMarket) decimal.Decimal {
 	}
 }
 
+// U数量转换为合约张数（在特定价格）
+func USDT2ContractAmountAtPrice(usdt decimal.Decimal, m FutureMarket, px decimal.Decimal) decimal.Decimal {
+	if strings.Contains(m.ValueCurrency(), "usd") {
+		// usd合约
+		return usdt.Div(m.ValueAmount()).RoundDown(0)
+	} else {
+		// usdt合约
+		if m.MarkPrice().IsPositive() {
+			valueAmountUsdt := m.ValueAmount().Mul(px)
+			return usdt.Div(valueAmountUsdt).RoundDown(0)
+		} else {
+			return decimal.Zero
+		}
+	}
+}
+
 func USDT2ContractAmountFloatUnRounded(usdt decimal.Decimal, m FutureMarket) decimal.Decimal {
 	if strings.Contains(m.ValueCurrency(), "usd") {
 		// usd合约

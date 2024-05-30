@@ -103,3 +103,8 @@ func CreateHtmlFromTemplate(htmlTemlatePath, htmlPath, title, body string) bool 
 func CreateHtmlText(content, class string) string {
 	return fmt.Sprintf("<div class=\"%s\">%s</div>\n", class, content)
 }
+
+// 生成一个链接标签
+func CreateHtmlHref(content, url, class string) string {
+	return fmt.Sprintf(`<a class="%s" href="%s">%s</a><br>`, class, url, content)
+}

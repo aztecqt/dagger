@@ -1,17 +1,18 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-06 13:19:27
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-03-28 11:02:13
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-05-28 10:31:38
  * @FilePath: \stratergyc:\work\svn\quant\go\src\dagger\api\okexv5api\response_private.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5api
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -664,4 +665,111 @@ func (m *MarketLendingRateHistoryResp) parse() {
 	for i := range m.Date {
 		m.Date[i].parse()
 	}
+}
+
+// 杠杆借币信息（基础)
+type MarketLornInfoBasic struct {
+	Ccy   string          `json:"ccy"`
+	Quota decimal.Decimal `json:"quota"` // 基础借币限额
+	Rate  decimal.Decimal `json:"rate"`
+}
+
+// 杠杆借币信息（用户）
+type MarketLornInfoUserInfo struct {
+	LoanQuotaCoef decimal.Decimal `json:"loanQuotaCoef"` // 借币限额系数
+	Level         string          `json:"level"`
+}
+
+// 查询借币信息的返回结果
+type MarketLoanInfoResp struct {
+	CommonRestResp
+	Data []struct {
+		Basic   []MarketLornInfoBasic    `json:"basic"`
+		Vip     []MarketLornInfoUserInfo `json:"vip"`
+		Regular []MarketLornInfoUserInfo `json:"regular"`
+	}
+}
+
+// 虚拟仓位计算
+type PositionBuilderSimPos struct {
+	InstId string          `json:"instId"`
+	Pos    decimal.Decimal `json:"pos"`
+}
+
+type PositionBuilderSimAsset struct {
+	Ccy    string          `json:"ccy"`
+	Amount decimal.Decimal `json:"amt"`
+}
+
+// 虚拟仓位计算请求
+type PositionBuilderReq struct {
+	// 是否代入已有仓位和资产，默认true
+	InclRealPosAndEq bool `json:"inclRealPosAndEq"`
+
+	// 现货对冲模式
+	// 1：现货对冲模式U模式
+	// 2：现货对冲模式币模式
+	// 3：衍生品模式
+	// 默认是3
+	SpotOffsetType string `json:"spotOffsetType"`
+
+	// 模拟仓位列表
+	SimPos []PositionBuilderSimPos `json:"simPos"`
+
+	// 模拟资产
+	SimAsset []PositionBuilderSimAsset `json:"simAsset"`
+}
+
+func (p *PositionBuilderReq) GetSpotAmount(ccy string) decimal.Decimal {
+	ccy = strings.ToUpper(ccy)
+	for _, ass := range p.SimAsset {
+		if ass.Ccy == ccy {
+			return ass.Amount
+		}
+	}
+
+	return decimal.Zero
+}
+
+func NewPositionBuilderReq(useReal bool, spotOffsetType int) PositionBuilderReq {
+	return PositionBuilderReq{
+		InclRealPosAndEq: useReal,
+		SpotOffsetType:   strconv.FormatInt(int64(spotOffsetType), 10),
+		SimPos:           []PositionBuilderSimPos{},
+		SimAsset:         []PositionBuilderSimAsset{},
+	}
+}
+
+// 虚拟仓位计算结果
+type PositionBuilderAsset struct {
+	Ccy       string          `json:"ccy"`
+	AvailEq   decimal.Decimal `json:"availEq"`
+	SpotInUse decimal.Decimal `json:"spotInUse"`
+	BorrowMmr decimal.Decimal `json:"borrowMmr"`
+	BorrowImr decimal.Decimal `json:"borrowImr"`
+}
+
+type PositionBuilderRiskUnit struct {
+	RiskUnit   string          `json:"riskUnit"`
+	MMR        decimal.Decimal `json:"mmr"`
+	IMR        decimal.Decimal `json:"imr"`
+	Portfolios []struct {
+		InstId string          `json:"instId"`
+		Amount decimal.Decimal `json:"amt"`
+	} `json:"portfolios"`
+}
+
+type PositionBuilderResult struct {
+	Equity      decimal.Decimal           `json:"eq"`
+	TotalMmr    decimal.Decimal           `json:"totalMmr"`
+	TotalImr    decimal.Decimal           `json:"totalImr"`
+	BorrowMmr   decimal.Decimal           `json:"borrowMmr"`
+	DerivMmr    decimal.Decimal           `json:"derivMmr"`
+	MarginRatio decimal.Decimal           `json:"marginRatio"`
+	Assets      []PositionBuilderAsset    `json:"assets"`
+	RiskUnis    []PositionBuilderRiskUnit `json:"riskUnitData"`
+}
+type PositionBuilderResp struct {
+	CommonRestResp
+	Data []PositionBuilderResult `json:"data"`
 }

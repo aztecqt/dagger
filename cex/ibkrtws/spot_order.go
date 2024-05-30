@@ -12,6 +12,8 @@ package ibkrtws
 
 import (
 	"fmt"
+	"math"
+	"strings"
 	"time"
 
 	"github.com/aztecqt/dagger/api/ibkr/twsapi"
@@ -28,11 +30,13 @@ type SpotOrder struct {
 	twsOrder     twsmodel.Order
 	baseCcy      string
 	quoteCcy     string
-	ex           *Exchange // 订单需要在exchange对象中注册，以便得到更新推送
-	orderTif     string    // 优先GTC(good till cancel)，不行的话，按照交易所规定来
-	canceling    bool      // 是否正在取消(调试用)
-	modifying    bool      // 是否正在修改(调试用)
-	refreshCount int       // 刷新次数
+	feeCcy       string          // 手续费币种
+	fee          decimal.Decimal // 手续费
+	ex           *Exchange       // 订单需要在exchange对象中注册，以便得到更新推送
+	orderTif     string          // 优先GTC(good till cancel)，不行的话，按照交易所规定来
+	canceling    bool            // 是否正在取消(调试用)
+	modifying    bool            // 是否正在修改(调试用)
+	refreshCount int             // 刷新次数
 }
 
 func (o *SpotOrder) init(
@@ -306,6 +310,28 @@ func (o *SpotOrder) onOrderStatus(os *twsapi.OrderStatusMsg, oo *twsapi.OpenOrde
 		// 仅用来刷新价格、数量（当modify order时）
 		o.Price = oo.Order.LmtPrice
 		o.Size = oo.Order.TotalQuantity
+
+		// 增加：用来刷新手续费
+		fee := oo.OrderState.Commission
+		feeCcy := strings.ToLower(oo.OrderState.CommissionCurrency)
+		if len(feeCcy) > 0 && fee != math.MaxFloat64 {
+			if len(o.feeCcy) == 0 || o.feeCcy == oo.OrderState.CommissionCurrency {
+				o.feeCcy = feeCcy
+				feeD := decimal.NewFromFloat(fee)
+				feeDelta := feeD.Sub(o.fee)
+				o.fee = feeD
+
+				bal := o.ex.balanceMgr.FindBalance(feeCcy)
+				if bal != nil {
+					// 这里直接记录权益变化
+					bal.RecordTempRights(feeDelta.Neg(), time.Now())
+				} else {
+					logError(o.LogPrefix, "can't find balance for fee: %s", feeCcy)
+				}
+			} else {
+				logError(o.LogPrefix, "order fee ccy not match, origin: %s, new: %s. ignore this fee", o.feeCcy, feeCcy)
+			}
+		}
 	}
 
 	if o.Dir == common.OrderDir_Buy {

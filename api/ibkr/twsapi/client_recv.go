@@ -10,6 +10,7 @@ package twsapi
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"net"
 	"reflect"
@@ -29,7 +30,7 @@ func (c *Client) doRecv(conn net.Conn) {
 				if pos+n >= len(c.recvBuffer) {
 					// 缓冲区爆了
 					logError(logPrefix, "recvBuffer overflow, reconnect")
-					c.Reconnect()
+					c.Reconnect("recvBuffer overflow")
 					break
 				} else {
 					copy(c.recvBuffer[pos:], buf[:n])
@@ -39,7 +40,7 @@ func (c *Client) doRecv(conn net.Conn) {
 		} else {
 			// 读取失败，基本上是网络断了
 			logInfo("read from tcp failed, reconnect. err=%s", err.Error())
-			c.Reconnect()
+			c.Reconnect("read from tcp failed")
 			break
 		}
 
@@ -92,7 +93,7 @@ func (c *Client) parseAndProcessMessage(msg []byte) {
 
 				// 1300: 套接端口已经被重设，该连接被丢弃。请重新连接到新的端口
 				if msg.ErrorCode == 1300 {
-					c.Reconnect()
+					c.Reconnect(fmt.Sprintf("tws err: code=%d, msg=%s", msg.ErrorCode, msg.ErrorMessage))
 				}
 			case InCommingMessage_ManagedAccounts:
 				msg := deserializeAndProcessMessage(msgId, &ManagedAccountsMsg{}, buf, c)

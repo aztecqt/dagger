@@ -23,7 +23,8 @@ import (
 type APIClass int
 
 const (
-	API_ClassicUsd APIClass = iota
+	API_Invalid APIClass = iota
+	API_ClassicUsd
 	API_ClassicUsdt
 	API_UnifiedUsd
 	API_UnifiedUsdt
@@ -447,6 +448,13 @@ func GetAccountIncome(symbol string, incomeType string, t0, t1 time.Time, limit 
 	method := "GET"
 	params := url.Values{}
 
+	if ac == API_UnifiedUsd || ac == API_UnifiedUsdt {
+		t0Min := time.Now().AddDate(0, -3, 0)
+		if t0.Before(t0Min) {
+			t0 = t0Min
+		}
+	}
+
 	if len(symbol) > 0 {
 		params.Set("symbol", symbol)
 	}
@@ -460,7 +468,7 @@ func GetAccountIncome(symbol string, incomeType string, t0, t1 time.Time, limit 
 	}
 
 	if !t1.IsZero() {
-		params.Set("endTime", strconv.FormatInt(t0.UnixMilli(), 10))
+		params.Set("endTime", strconv.FormatInt(t1.UnixMilli(), 10))
 	}
 
 	if limit > 0 {
@@ -487,6 +495,38 @@ func GetAccountIncome(symbol string, incomeType string, t0, t1 time.Time, limit 
 	for i := range *rst {
 		(*rst)[i].Parse()
 	}
+
+	return rst, err
+}
+
+// 获取当前仓位
+func GetPositionRisk(symbolOrPair string, ac APIClass) (*[]binanceapi.PositionRisk, error) {
+	action := "/fapi/v2/positionRisk"
+	method := "GET"
+	params := url.Values{}
+
+	if len(symbolOrPair) > 0 {
+		params.Set("symbol", symbolOrPair)
+		params.Set("pair", symbolOrPair)
+	}
+
+	header, paramstr, err := binanceapi.SignerIns.Sign(params)
+	url := fmt.Sprintf("%s%s?%s", rootUrl, action, paramstr)
+
+	// 只有经典U本位合约的url是v2，其他都是v1
+	if ac != API_ClassicUsdt {
+		url = strings.Replace(url, "v2", "v1", 1)
+	}
+
+	rst, err := network.ParseHttpResult[[]binanceapi.PositionRisk](
+		restLogPrefix,
+		"GetPositionRisk",
+		realUrl(url, ac),
+		method,
+		"",
+		header, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, apiType(ac))
+		}, binanceapi.ErrorCallback)
 
 	return rst, err
 }

@@ -203,7 +203,7 @@ func getKlineFromApi(instId string, t0, t1 time.Time, bar string, reversed bool,
 				}
 			} else {
 				logger.LogImportant(logPrefix, "get kline from ex failed: %s", err.Error())
-				time.Sleep(time.Second * 3)
+				time.Sleep(time.Second * 10)
 				errCount++
 			}
 		}
@@ -238,7 +238,7 @@ func getKlineFromApi(instId string, t0, t1 time.Time, bar string, reversed bool,
 				}
 			} else {
 				logger.LogImportant(logPrefix, "get kline from ex failed: %s", err.Error())
-				time.Sleep(time.Second * 3)
+				time.Sleep(time.Second * 10)
 				errCount++
 			}
 		}

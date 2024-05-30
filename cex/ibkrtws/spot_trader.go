@@ -109,21 +109,29 @@ func (t *SpotTrader) String() string {
 }
 
 func (t *SpotTrader) Ready() bool {
-	return t.market.Ready() && t.baseBalance.Ready() && t.quoteBalance.Ready() && t.ex.ready()
+	baseBalOk, _ := t.baseBalance.Ready()
+	quoteBalOk, _ := t.quoteBalance.Ready()
+	return t.market.Ready() && baseBalOk && quoteBalOk && t.ex.ready()
 }
 
 func (t *SpotTrader) UnreadyReason() string {
 	if !t.market.Ready() {
 		return t.market.UnreadyReason()
-	} else if !t.baseBalance.Ready() {
-		return fmt.Sprintf("base balance(%s) not ready", t.market.BaseCurrency())
-	} else if !t.quoteBalance.Ready() {
-		return fmt.Sprintf("quote balance(%s) not ready", t.market.QuoteCurrency())
-	} else if !t.ex.ready() {
-		return t.ex.unreadyReason()
-	} else {
-		return ""
 	}
+
+	if ok, reason := t.baseBalance.Ready(); !ok {
+		return fmt.Sprintf("base balance(%s) not ready: %s", t.baseBalance.Ccy(), reason)
+	}
+
+	if ok, reason := t.quoteBalance.Ready(); !ok {
+		return fmt.Sprintf("quote balance(%s) not ready: %s", t.quoteBalance.Ccy(), reason)
+	}
+
+	if !t.ex.ready() {
+		return t.ex.unreadyReason()
+	}
+
+	return ""
 }
 
 func (t *SpotTrader) BuyPriceRange() (min, max decimal.Decimal) {

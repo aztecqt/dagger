@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-25 22:19:38
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-03-28 10:40:11
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-05-29 10:31:33
  * @FilePath: \dagger\api\okexv5api\response_public.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package okexv5api
 
@@ -200,6 +200,17 @@ func (t *TickerRestResp) parse() {
 	}
 }
 
+// 指数行情
+type IndexTicker struct {
+	InstId     string          `json:"instId"`
+	IndexPrice decimal.Decimal `json:"idxPx"`
+}
+
+type IndexTickerRestResp struct {
+	CommonRestResp
+	Data []IndexTicker `json:"data"`
+}
+
 // k线
 type KLineUnit struct {
 	Time      time.Time
@@ -276,13 +287,17 @@ func (kl *KLineRestResp) Build() {
 	for i := 0; i < len(kl.DataRaw); i++ {
 		v := kl.DataRaw[i]
 		ku := KLineUnit{
-			Time:      time.UnixMilli(util.String2Int64Panic(v[0])),
-			Open:      util.String2DecimalPanic(v[1]),
-			High:      util.String2DecimalPanic(v[2]),
-			Low:       util.String2DecimalPanic(v[3]),
-			Close:     util.String2DecimalPanic(v[4]),
-			VolumeUSD: util.String2DecimalPanic(v[7]),
+			Time:  time.UnixMilli(util.String2Int64Panic(v[0])),
+			Open:  util.String2DecimalPanic(v[1]),
+			High:  util.String2DecimalPanic(v[2]),
+			Low:   util.String2DecimalPanic(v[3]),
+			Close: util.String2DecimalPanic(v[4]),
 		}
+
+		if len(v) > 7 {
+			ku.VolumeUSD = util.String2DecimalPanic(v[7])
+		}
+
 		kl.Data = append(kl.Data, ku)
 	}
 }
@@ -394,12 +409,16 @@ func (f *FundingRateWsResp) parse() {
 // 历史资金费率
 type FundingRateHistory struct {
 	FundingRate         decimal.Decimal `json:"fundingRate"`
+	RealizedRate        decimal.Decimal `json:"realizedRate"`
 	FundingTimeStampStr string          `json:"fundingTime"`
+	Method              string          `json:"method"` // current_period/next_period
 	FundingTimeStamp    int64
+	FundingTime         time.Time
 }
 
 func (f *FundingRateHistory) parse() {
 	f.FundingTimeStamp = util.String2Int64Panic(f.FundingTimeStampStr)
+	f.FundingTime = time.UnixMilli(f.FundingTimeStamp)
 }
 
 type FundingRateHistoryRestResp struct {
@@ -528,4 +547,68 @@ type FinanceDefiStakingOffer struct {
 type FinanceDefiStakingOffersResp struct {
 	CommonRestResp
 	Data []FinanceDefiStakingOffer `json:"data"`
+}
+
+// 币种折算率等级
+type DiscountInfoUnit struct {
+	DiscountRate  decimal.Decimal `json:"discountRate"`
+	MaxAmount     decimal.Decimal `json:"maxAmt"`
+	MinAmount     decimal.Decimal `json:"minAmt"`
+	DiscountRateF float64
+	MaxAmountF    float64
+	MinAmountF    float64
+}
+
+func (u *DiscountInfoUnit) parse() {
+	u.DiscountRateF = u.DiscountRate.InexactFloat64()
+	u.MaxAmountF = u.MaxAmount.InexactFloat64()
+	u.MinAmountF = u.MinAmount.InexactFloat64()
+}
+
+type DiscountInfo struct {
+	Ccy           string             `json:"ccy"`
+	DiscountLvStr string             `json:"discountLv"`
+	DiscountInfo  []DiscountInfoUnit `json:"discountInfo"`
+	DiscountLv    int
+}
+
+func (d *DiscountInfo) parse() {
+	d.DiscountLv, _ = util.String2Int(d.DiscountLvStr)
+	for i := range d.DiscountInfo {
+		d.DiscountInfo[i].parse()
+	}
+}
+
+func (d *DiscountInfo) CalEq(valueUsd float64) float64 {
+	// 无数据表示折扣率为0，持有多少都相当于0
+	if d == nil {
+		return 0
+	}
+
+	// 负数资产不计算折算率
+	if valueUsd < 0 {
+		return valueUsd
+	}
+
+	eq := 0.0
+	for _, di := range d.DiscountInfo {
+		if di.MaxAmountF > 0 && di.MaxAmountF <= valueUsd {
+			eq += (di.MaxAmountF - di.MinAmountF) * di.DiscountRateF
+		} else {
+			eq += (valueUsd - di.MinAmountF) * di.DiscountRateF
+			break
+		}
+	}
+	return eq
+}
+
+type DiscountInfoResp struct {
+	CommonRestResp
+	Data []DiscountInfo `json:"data"`
+}
+
+func (r *DiscountInfoResp) parse() {
+	for i := range r.Data {
+		r.Data[i].parse()
+	}
 }

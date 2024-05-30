@@ -7,12 +7,12 @@
  */
 package indacators
 
-import "github.com/aztecqt/dagger/stratergy"
+import "github.com/aztecqt/dagger/framework"
 
 type MmwBand struct {
-	orign      *stratergy.DataLine
-	lower      *stratergy.DataLine
-	upper      *stratergy.DataLine
+	orign      *framework.DataLine
+	lower      *framework.DataLine
+	upper      *framework.DataLine
 	mm         *MinMax
 	ma         *SMA
 	n          int
@@ -20,11 +20,11 @@ type MmwBand struct {
 	rebuilding bool
 }
 
-func NewMmwBand(orign *stratergy.DataLine, n, n1 int) *MmwBand {
+func NewMmwBand(orign *framework.DataLine, n, n1 int) *MmwBand {
 	mmwband := new(MmwBand)
 	mmwband.orign = orign
-	mmwband.lower = new(stratergy.DataLine)
-	mmwband.upper = new(stratergy.DataLine)
+	mmwband.lower = new(framework.DataLine)
+	mmwband.upper = new(framework.DataLine)
 	mmwband.lower.Init("middle", orign.MaxLength(), orign.IntervalMS(), 0)
 	mmwband.upper.Init("upper", orign.MaxLength(), orign.IntervalMS(), 0)
 	mmwband.mm = NewMinMax(orign, n1)
@@ -34,15 +34,15 @@ func NewMmwBand(orign *stratergy.DataLine, n, n1 int) *MmwBand {
 	return mmwband
 }
 
-func (s *MmwBand) Upper() *stratergy.DataLine {
+func (s *MmwBand) Upper() *framework.DataLine {
 	return s.upper
 }
 
-func (s *MmwBand) Lower() *stratergy.DataLine {
+func (s *MmwBand) Lower() *framework.DataLine {
 	return s.lower
 }
 
-func (s *MmwBand) Middle() *stratergy.DataLine {
+func (s *MmwBand) Middle() *framework.DataLine {
 	return s.ma.value
 }
 

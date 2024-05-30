@@ -15,6 +15,7 @@ import (
 )
 
 const logPrefix = "twsapi"
+const maxTimeOutCount = 5
 
 type Message struct {
 	MsgId IncommingMessage
@@ -47,6 +48,11 @@ type Client struct {
 
 	// reqId自动累加
 	reqId int
+
+	// 连续超时逻辑
+	// 遇到过一些情况下，tws客户端运行正常，底层tcp连接没有中断，但是发什么都是超时
+	// 所以记录一下连续超时的次数。当连续超时大于n次后，尝试重新建立tcp连接，或许能解决这个问题
+	timeOutCountSeq int
 
 	// 消息处理
 	msgHandlerNextId int
@@ -123,10 +129,11 @@ func (c *Client) doConnect() bool {
 	return false
 }
 
-func (c *Client) Reconnect() {
-	logInfo(logPrefix, "need reconnect")
+func (c *Client) Reconnect(reason string) {
+	logInfo(logPrefix, "need reconnect, reason: %s", reason)
 	c.connected = false
 	c.conn = nil
+	c.nextOrderId = 0
 }
 
 func (c *Client) IsConnectOk() bool {

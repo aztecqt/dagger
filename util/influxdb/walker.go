@@ -58,7 +58,6 @@ func (w *Walker) Walk(
 
 	// 拼command
 	q := MakeQuery(fields, dbName, rp, measurement, tags, tStart, tEnd, 0)
-	logger.LogImportant(w.logPrefix, q.Command)
 
 	// 查询
 	cresp, err := w.conn.QueryAsChunk(q)
@@ -92,7 +91,6 @@ func (w *Walker) Walk(
 		} else {
 			if resp == nil && err.Error() == "EOF" {
 				callback(nil, 1, true)
-				logger.LogImportant(w.logPrefix, "finished")
 				break
 			} else {
 				logger.LogImportant(w.logPrefix, "get next response failed, err=%s", err.Error())

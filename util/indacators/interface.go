@@ -7,7 +7,7 @@
  */
 package indacators
 
-import "github.com/aztecqt/dagger/stratergy"
+import "github.com/aztecqt/dagger/framework"
 
 type Indicator interface {
 	Update()
@@ -16,7 +16,7 @@ type Indicator interface {
 
 type Band interface {
 	Indicator
-	Upper() *stratergy.DataLine
-	Lower() *stratergy.DataLine
-	Middle() *stratergy.DataLine
+	Upper() *framework.DataLine
+	Lower() *framework.DataLine
+	Middle() *framework.DataLine
 }

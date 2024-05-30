@@ -292,12 +292,14 @@ type LeverageBracket struct {
 	Symbol   string `json:"symbol"` // 币本位合约使用（BTCUSD）
 	Pair     string `json:"pair"`   // U本位合约使用（ETHUSDT）
 	Brackets []struct {
-		Bracket         int             `json:"bracket"`         // 等级
-		InitialLeverage int             `json:"initialLeverage"` // 杠杆倍率
-		QtyCap          decimal.Decimal `json:"qtyCap"`          // 上限（币本位，单位：币）
-		QtylFloor       decimal.Decimal `json:"qtylFloor"`       // 下限（币本位，单位：币）
-		NotionalCap     decimal.Decimal `json:"notionalCap"`     // 上限（U本位，单位：U）
-		NotionalFloor   decimal.Decimal `json:"notionalFloor"`   // 下限（U本位，单位：U）
+		Bracket         int             `json:"bracket"`          // 等级
+		InitialLeverage int             `json:"initialLeverage"`  // 杠杆倍率
+		QtyCap          decimal.Decimal `json:"qtyCap"`           // 上限（币本位，单位：币）
+		QtylFloor       decimal.Decimal `json:"qtylFloor"`        // 下限（币本位，单位：币）
+		NotionalCap     decimal.Decimal `json:"notionalCap"`      // 上限（U本位，单位：U）
+		NotionalFloor   decimal.Decimal `json:"notionalFloor"`    // 下限（U本位，单位：U）
+		Mmr             decimal.Decimal `json:"maintMarginRatio"` // 维持保证金率
+		Cum             decimal.Decimal `json:"cum"`              // 速算数。实际仓位对应档位的mmr，乘以仓位数量，减去速算数，就是维持保证金
 	} `json:"brackets"`
 }
 
@@ -340,6 +342,18 @@ type AccountIncome struct {
 	Time       time.Time
 }
 
+// 当前持仓
+type PositionRisk struct {
+	Symbol         string          `json:"symbol"`
+	PositionSide   string          `json:"positionSide"`
+	PositionAmount decimal.Decimal `json:"positionAmt"`
+	EntryPrice     decimal.Decimal `json:"entryPrice"`
+	MarkPrice      decimal.Decimal `json:"markPrice"`
+	LiqPrice       decimal.Decimal `json:"liquidationPrice"`
+	UnrealPnl      decimal.Decimal `json:"unRealizedProfit"`
+	UpdateTime     int64           `json:"updateTime"`
+}
+
 func (a *AccountIncome) Parse() {
 	a.AssetLower = strings.ToLower(a.Asset)
 	a.Time = time.UnixMilli(a.TimeStamp)
@@ -373,3 +387,31 @@ func (p *PremiumIndexResp) Parse() {
 	p.NextFundingTime = time.UnixMilli(p.NextFundingTimeStamp)
 	p.Time = time.UnixMilli(p.TimeStamp)
 }
+
+// 质押折扣率
+type CollateralRate struct {
+	Asset          string          `json:"asset"`
+	CollateralRate decimal.Decimal `json:"collateralRate"`
+}
+
+// 利息历史
+type InterestHistory struct {
+	Timestamp int64           `json:"interestAccuredTime"`
+	Asset     string          `json:"asset"`
+	Interest  decimal.Decimal `json:"interest"`
+}
+
+type GetInterestHistoryResp struct {
+	ErrorMessage
+	Rows []InterestHistory `json:"rows"`
+}
+
+// 交易手续费
+type SpotTradeFee struct {
+	Symbol   string          `json:"symbol"`
+	MakerFee decimal.Decimal `json:"makerCommission"`
+	TakerFee decimal.Decimal `json:"takerCommission"`
+}
+
+// 获取交易手续费
+type GetSpotTradeFeeResp []SpotTradeFee

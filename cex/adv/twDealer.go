@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/cex/common"
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 	"github.com/aztecqt/dagger/stratergy/datamanager"
 	"github.com/aztecqt/dagger/util/logger"
 
@@ -67,7 +67,7 @@ type TWDealer struct {
 	finished       bool
 
 	// 指标计算
-	dlPrice       stratergy.DataLine
+	dlPrice       framework.DataLine
 	ma            *indacators.SMA
 	needRebuild   bool
 	needRefreshDB bool

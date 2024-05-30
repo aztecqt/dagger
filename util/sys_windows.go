@@ -15,7 +15,7 @@ import (
 func setStdHandle(stdhandle int32, handle syscall.Handle) error {
 	var kernel32 = syscall.MustLoadDLL("kernel32.dll")
 	var procSetStdHandle = kernel32.MustFindProc("SetStdHandle")
-	r0, _, e1 := syscall.Syscall(procSetStdHandle.Addr(), 2, uintptr(stdhandle), uintptr(handle), 0)
+	r0, _, e1 := syscall.SyscallN(procSetStdHandle.Addr(), 2, uintptr(stdhandle), uintptr(handle), 0)
 	if r0 == 0 {
 		if e1 != 0 {
 			return error(e1)

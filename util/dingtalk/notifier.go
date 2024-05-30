@@ -102,11 +102,27 @@ func (n *Notifier) SendActionCardByMob(rawText []string, mobs ...int64) *Message
 }
 
 func (n *Notifier) SendActionCardByUid(rawText []string, uids ...string) *Message {
+	if len(rawText) < 4 {
+		return nil
+	}
+
+	title := rawText[0]
+	markdown := rawText[1]
+	var msg *Message
+	btnss := splitActionCardTextAndUrls(rawText[2:])
+	for _, btns := range btnss {
+		msg = n.doSendActionCardByUid(title, markdown, btns, uids...) // 对于拆分消息，仅追踪最后一条
+		time.Sleep(time.Second)
+	}
+	return msg
+}
+
+func (n *Notifier) doSendActionCardByUid(title, markdown string, btns []actionCardButton, uids ...string) *Message {
 	if len(uids) > 0 {
 		m := new(Message)
 		uidstr := strings.Join(uids, ",")
-		m.initAsActionCard(n, uidstr, rawText)
-		logger.LogInfo(n.logPrefix, "sending action_card msg to user, userid=%s, rawtext=%s", uidstr, rawText)
+		logger.LogInfo(n.logPrefix, "sending action_card msg to user, userid=%s, title=%s, btns=%s", uidstr, title, util.Object2StringWithoutIntent(btns))
+		m.initAsActionCard(n, uidstr, title, markdown, btns)
 		go m.send()
 		return m
 	}
@@ -275,43 +291,37 @@ func (n *Notifier) sendLinkMessage(uid string, messageUrl, picUrl, title, text s
 	}
 }
 
-func (n *Notifier) sendActionCardMessage(uid string, title, markdown string, btnTextsAndUrls []string) int64 {
-	// 最大1000个字符，过长需要拆分
-	lTitle := len(title) + len(markdown)
-	btnTextsAndUrlsArray := [][]string{}
-	temp := []string{}
-	lTotal := lTitle
-	for i := 0; i < len(btnTextsAndUrls); i += 2 {
-		text := btnTextsAndUrls[i]
-		url := btnTextsAndUrls[i+1]
-		lTotal = lTotal + len(text) + len(url)
-		if lTotal < 800 {
-			temp = append(temp, text)
-			temp = append(temp, url)
-		} else {
-			btnTextsAndUrlsArray = append(btnTextsAndUrlsArray, temp)
-			temp = []string{}
-			lTotal = lTitle
-			lTotal = lTotal + len(text) + len(url)
-			temp = append(temp, text)
-			temp = append(temp, url)
+// actionButton的拆分逻辑：每一份长度不超过1000
+func splitActionCardTextAndUrls(textAndUrls []string) [][]actionCardButton {
+	groups := [][]actionCardButton{}
+
+	grp := []actionCardButton{}
+	for i := 0; i < len(textAndUrls)-1; i += 2 {
+		title := textAndUrls[i]
+		url := textAndUrls[i+1]
+		url = fmt.Sprintf("dingtalk://dingtalkclient/page/link?url=%s&pc_slide=false", url)
+		grp = append(grp, actionCardButton{Title: title, Url: url})
+
+		jsonText := util.Object2StringWithoutIntent(grp)
+		lenJsonText := len(jsonText)
+		if lenJsonText > 950 {
+			extra := grp[len(grp)-1]
+			grp = grp[0 : len(grp)-1]
+			groups = append(groups, grp)
+			grp = []actionCardButton{extra}
 		}
 	}
 
-	if len(temp) > 0 {
-		btnTextsAndUrlsArray = append(btnTextsAndUrlsArray, temp)
+	if len(grp) > 0 {
+		groups = append(groups, grp)
 	}
 
-	id := int64(0)
-	for _, v := range btnTextsAndUrlsArray {
-		id = n.doSendActionCardMessage(uid, title, markdown, v)
-	}
-	return id
+	return groups
 }
 
 // title是卡片标题
 // btnTextsAndUrls长度应为偶数，为 按钮文本、按钮url...
-func (n *Notifier) doSendActionCardMessage(uid string, title, markdown string, btnTextsAndUrls []string) int64 {
+func (n *Notifier) sendActionCardMessage(uid string, title, markdown string, btns []actionCardButton) int64 {
 	defer util.DefaultRecover()
 	action := "/topapi/message/corpconversation/asyncsend_v2"
 	method := "POST"
@@ -328,15 +338,7 @@ func (n *Notifier) doSendActionCardMessage(uid string, title, markdown string, b
 	req.Msg.ActionCard.Title = title
 	req.Msg.ActionCard.Markdown = markdown
 	req.Msg.ActionCard.BtnOrientation = "0" // 仅支持纵向
-	if len(btnTextsAndUrls)%2 == 0 {
-		for i := 0; i < len(btnTextsAndUrls)/2; i++ {
-			title := btnTextsAndUrls[i*2]
-			url := btnTextsAndUrls[i*2+1]
-			// 转换为钉钉格式的url，禁用pc侧边栏
-			url = fmt.Sprintf("dingtalk://dingtalkclient/page/link?url=%s&pc_slide=false", url)
-			req.Msg.ActionCard.Btns = append(req.Msg.ActionCard.Btns, actionCardButton{Title: title, Url: url})
-		}
-	}
+	req.Msg.ActionCard.Btns = btns
 
 	b, _ := json.Marshal(req)
 	postStr := string(b)

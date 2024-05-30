@@ -35,10 +35,9 @@ type Requester struct {
 	deskey    string //解密密钥
 	chStop    chan int
 	share     bool // 共享模式。共享模式不会独占锁死所用的key
-	fn        FnKeyAquired
 }
 
-func (r *Requester) Go(exchange, account, user string, share bool, serverAddr string, serverPort int, fn FnKeyAquired) {
+func (r *Requester) Go(exchange, account, user string, share bool, serverAddr string, serverPort int) {
 	r.logPrefix = fmt.Sprintf("apikey-%s-%s", exchange, account)
 	r.share = share
 	logger.LogInfo(r.logPrefix, "start")
@@ -48,7 +47,6 @@ func (r *Requester) Go(exchange, account, user string, share bool, serverAddr st
 		logger.LogPanic(r.logPrefix, "connect to key server failed!")
 	}
 
-	r.fn = fn
 	r.chStop = make(chan int)
 
 	if b, err := os.ReadFile("des.private"); err == nil {
@@ -87,10 +85,6 @@ func (r *Requester) onRecvUDPMessage(op string, data []byte, addr *net.UDPAddr) 
 				r.Password = string(crypto.DesCBCDecrypter(bpass, []byte(key), []byte(key)))
 				r.key_enc = ack.Key
 				logger.LogInfo(r.logPrefix, "get key success!")
-
-				if r.fn != nil {
-					r.fn(r.Key, r.Secret, r.Password)
-				}
 			} else {
 				logger.LogInfo(r.logPrefix, "decrypt msg failed")
 			}

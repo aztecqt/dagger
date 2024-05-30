@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/cex/common"
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 	"github.com/aztecqt/dagger/stratergy/datamanager"
 	"github.com/aztecqt/dagger/util/logger"
 
@@ -87,7 +87,7 @@ type BBandDealer struct {
 	infContext *datamanager.InfluxContext // 数据存储
 
 	// 指标计算
-	dlPrice       stratergy.DataLine
+	dlPrice       framework.DataLine
 	band          indacators.Band
 	needRebuild   bool
 	needRefreshDB bool

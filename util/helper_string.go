@@ -465,6 +465,78 @@ func FormatJsonStr(str string) string {
 	return string(b)
 }
 
+// 从str中，找出after之后的第一个json对象（还没测过）
+func ExtractJsonAfter(str, after string) string {
+	index := strings.Index(str, after)
+	return ExtractJsonAfterIndex(str, index)
+}
+
+func ExtractJsonAfterIndex(str string, index int) string {
+	sb := strings.Builder{}
+	if index >= 0 {
+		count := 0
+		for i := index; i < len(str); i++ {
+			char := str[i]
+
+			if count > 0 {
+				if sb.Len() == 0 {
+					sb.WriteByte('{')
+				}
+				sb.WriteByte(char)
+			}
+
+			if char == '{' {
+				count++
+			} else if char == '}' {
+				count--
+				if count == 0 {
+					break
+				}
+			}
+		}
+	}
+
+	return sb.String()
+}
+
+// 从str中，key的位置，向前后查找，尝试找出包含他的一个json
+func ExtractAllJsonContainsKey(str, key string) []string {
+	results := []string{}
+	for {
+		index := strings.Index(str, key)
+		if index < 0 {
+			break
+		}
+
+		// 从index的位置向前查找大括号
+		startIndex := -1
+		for i := index; i >= 0; i-- {
+			if str[i] == '}' {
+				// 失败，关键字不是被大括号包裹的
+				break
+			}
+
+			if str[i] == '{' {
+				// 成功
+				startIndex = i
+				break
+			}
+		}
+
+		if startIndex < 0 {
+			str = str[index+len(key):]
+		} else {
+			jstr := ExtractJsonAfterIndex(str, startIndex)
+			if len(jstr) > 0 {
+				results = append(results, jstr)
+			}
+			str = str[startIndex+len(jstr):]
+		}
+	}
+
+	return results
+}
+
 // 字符串压缩
 func CompressString(str string) []byte {
 	var buf bytes.Buffer

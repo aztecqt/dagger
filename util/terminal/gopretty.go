@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/util"
+	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/jedib0t/go-pretty/v6/progress"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -121,4 +122,37 @@ func (t *TrackerF) Increment(val float64) {
 
 	nValue := int64(t.value * 10000)
 	t.Tracker.SetValue(nValue)
+}
+
+// 由一个二维map创建一个表格
+func GenTableFromMap(m map[interface{}]map[interface{}]interface{}) table.Writer {
+	t := table.NewWriter()
+	t.SetStyle(table.StyleLight)
+
+	// 第一维key做行，第二维key做列
+	colset := hashset.New()
+	for _, m1 := range m {
+		for k, _ := range m1 {
+			colset.Add(k)
+		}
+	}
+
+	cols := colset.Values()
+	rowHead := table.Row{""}
+	rowHead = append(rowHead, cols...)
+	t.AppendHeader(rowHead)
+
+	for k, m1 := range m {
+		row := table.Row{k}
+		for _, c := range cols {
+			if v, ok := m1[c]; ok {
+				row = append(row, v)
+			} else {
+				row = append(row, "")
+			}
+		}
+		t.AppendRow(row)
+	}
+
+	return t
 }

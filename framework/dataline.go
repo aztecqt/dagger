@@ -1,22 +1,23 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-09 17:34:59
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-04-01 11:14:21
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-05-05 10:55:02
  * @FilePath: \dagger\stratergy\dataline.go
  * @Description: 按固定时间间隔排列的数据队列
  * 对于外部输入时间-数据对，将其时间对齐后再记录
  * 有最大长度，超出最大长度则舍弃多余的数据
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
-package stratergy
+package framework
 
 import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/aztecqt/dagger/util"
@@ -112,6 +113,19 @@ func (d *DataLine) Clear() {
 	d.ver++
 }
 
+// 从一个float序列，创建一个时间同步的新的line
+func (d *DataLine) CreateParallel(name string, vals []float64) *DataLine {
+	if len(vals) != len(d.Values) {
+		return nil
+	}
+
+	dl := &DataLine{}
+	dl.Init(name, d.maxLength, d.intervalMs, 0)
+	dl.Times = slices.Clone(d.Times)
+	dl.Values = slices.Clone(vals)
+	return dl
+}
+
 func (d *DataLine) Update(ms int64, v float64) {
 	d.updateInner(ms, v)
 }
@@ -147,6 +161,8 @@ func (d *DataLine) updateInner(ms int64, v float64) {
 					d.Values = append(d.Values, v)
 					d.Times = append(d.Times, d.Times[l-1]+1)
 				}
+			} else {
+				break
 			}
 		}
 

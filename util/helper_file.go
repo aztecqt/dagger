@@ -58,9 +58,7 @@ func ObjectToFile(filePath string, obj interface{}) bool {
 
 func StringToFile(filePath string, content string) bool {
 	MakeSureDirForFile(filePath)
-	if file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666); err == nil {
-		file.WriteString(content)
-		file.Close()
+	if err := os.WriteFile(filePath, []byte(content), 0777); err == nil {
 		return true
 	} else {
 		return false
@@ -129,10 +127,8 @@ func DeserializeToObjects[T Deserializable](
 }
 
 func MakeSureDirForFile(filePath string) bool {
+	filePath = strings.ReplaceAll(filePath, "\\", "/")
 	i := strings.LastIndex(filePath, "/")
-	if i < 0 {
-		i = strings.LastIndex(filePath, "\\")
-	}
 	if i >= 0 {
 		fileDir := filePath[:i]
 		_, err := os.ReadDir(fileDir)

@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/aztecqt/dagger/cex/common"
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 	"github.com/aztecqt/dagger/stratergy/datamanager"
 	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
@@ -107,7 +107,7 @@ type BreakDealerV2 struct {
 	pm         *PositionManager
 	infContext *datamanager.InfluxContext
 
-	dlPrice             *stratergy.DataLine // waitActive阶段用于计算MarkPrice平均值
+	dlPrice             *framework.DataLine // waitActive阶段用于计算MarkPrice平均值
 	startPrice          float64             // 起始价格
 	bestPrice           float64             // 最佳价格
 	activeTime          time.Time           // 激活时间
@@ -129,7 +129,7 @@ func (d *BreakDealerV2) Init(
 	d.cfg = cfg
 	d.logPrefix = fmt.Sprintf("dealer-%s_%s", d.trader.FutureMarket().Symbol(), d.trader.FutureMarket().ContractType())
 	d.activeTime = activeTime
-	d.dlPrice = new(stratergy.DataLine)
+	d.dlPrice = new(framework.DataLine)
 	d.dlPrice.Init("price", 120, 1000, 0)
 	d.infContext = datamanager.NewInfluxContext("break_dealer", d.trader.Market().Type())
 

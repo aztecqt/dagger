@@ -139,7 +139,8 @@ func (ws *WsConnection) connect() {
 			logger.LogImportant(ws.logPrefix, "connect success, local addr:%s, remote addr: %s", c.LocalAddr().String(), c.RemoteAddr().String())
 			c.SetReadDeadline(time.Time{}) // 读取永不超时
 			c.SetPingHandler(func(appData string) error {
-				return c.WriteMessage(websocket.PongMessage, nil)
+				logger.LogImportant(ws.logPrefix, "recv ping: %s", appData)
+				return c.WriteMessage(websocket.PongMessage, []byte(appData))
 			})
 			ws.Conn = c
 			break

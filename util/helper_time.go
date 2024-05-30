@@ -22,26 +22,32 @@ var East8 = time.FixedZone("CCT", 8*3600)
 // 美国东部时间
 var UsEastern = time.FixedZone("EST", -5*3600)
 
-// 中国北京时间
-func BeijingZone() *time.Location {
-	z, err := time.LoadLocation("Asia/Beijing")
-	if err == nil {
-		return z
-	} else {
-		logger.LogPanic("", err.Error())
-		return nil
+func MinTime(tms ...time.Time) time.Time {
+	if len(tms) == 0 {
+		return time.Time{}
 	}
+
+	min := tms[0]
+	for i := 1; i < len(tms); i++ {
+		if tms[i].Before(min) {
+			min = tms[i]
+		}
+	}
+	return min
 }
 
-// 美国东部时间
-func AmericaNYZone() *time.Location {
-	z, err := time.LoadLocation("America/New_York")
-	if err == nil {
-		return z
-	} else {
-		logger.LogPanic("", err.Error())
-		return nil
+func MaxTime(tms ...time.Time) time.Time {
+	if len(tms) == 0 {
+		return time.Time{}
 	}
+
+	max := tms[0]
+	for i := 1; i < len(tms); i++ {
+		if tms[i].After(max) {
+			max = tms[i]
+		}
+	}
+	return max
 }
 
 func HourOfTime(t time.Time) time.Time {
@@ -54,6 +60,17 @@ func HourOfTime(t time.Time) time.Time {
 		fmt.Println(e.Error())
 	}
 	return hour
+}
+
+func TimeOfDay(t time.Time, h, m, s int) time.Time {
+	y, mo, d := t.Date()
+	name, _ := t.Zone()
+	str := fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d %s", y, mo, d, h, m, s, name)
+	tRst, e := time.Parse("2006-01-02 15:04:05 MST", str)
+	if e != nil {
+		fmt.Println(e.Error())
+	}
+	return tRst
 }
 
 // 是否是同一小时（忽略时区）

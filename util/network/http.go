@@ -45,11 +45,14 @@ func HttpCall(url string, method string, postData string, headers map[string]str
 		return
 	}
 
+	if len(postData) > 0 && (postData[0] != '{' || postData[len(postData)-1] != '}') {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+
 	for _, c := range cookies {
 		req.AddCookie(&c)
 	}
 
-	// req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if headers != nil {
 		for k, v := range headers {
 			req.Header.Set(k, v)

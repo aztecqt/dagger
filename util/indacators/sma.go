@@ -7,25 +7,25 @@
  */
 package indacators
 
-import "github.com/aztecqt/dagger/stratergy"
+import "github.com/aztecqt/dagger/framework"
 
 type SMA struct {
-	orign      *stratergy.DataLine
-	value      *stratergy.DataLine
+	orign      *framework.DataLine
+	value      *framework.DataLine
 	n          int
 	rebuilding bool
 }
 
-func NewSMA(orign *stratergy.DataLine, n int) *SMA {
+func NewSMA(orign *framework.DataLine, n int) *SMA {
 	sma := new(SMA)
 	sma.orign = orign
-	sma.value = new(stratergy.DataLine)
+	sma.value = new(framework.DataLine)
 	sma.value.Init("sma", orign.MaxLength(), orign.IntervalMS(), 0)
 	sma.n = n
 	return sma
 }
 
-func (s *SMA) Value() *stratergy.DataLine {
+func (s *SMA) Value() *framework.DataLine {
 	return s.value
 }
 

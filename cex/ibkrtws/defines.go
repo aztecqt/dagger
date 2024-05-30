@@ -80,11 +80,12 @@ func logErrorWithTolerate(id string, periodSec, maxCount int, logPrefix string, 
 
 // 交易所配置
 type ExchangeConfig struct {
-	Addr      string           `json:"addr"`
-	Port      int              `json:"port"`
-	Contracts []ContractConfig `json:"contracts"`
-	Symbols   []string         `json:"-"`
-	Currencys []string         `json:"-"`
+	Addr      string                     `json:"addr"`
+	Port      int                        `json:"port"`
+	Contracts []ContractConfig           `json:"contracts"`
+	MaxPitch  map[string]decimal.Decimal `json:"maxPitch"` // 各资产的最大允许偏移量
+	Symbols   []string                   `json:"-"`
+	Currencys []string                   `json:"-"`
 }
 
 func (e *ExchangeConfig) parse() {
@@ -146,8 +147,8 @@ func tradingTimesFromString(t *common.TradingTimes, str string) {
 		strDateTime := strings.Split(strDate, "-")
 		tts := common.TradingTimeSeg{}
 		if len(strDateTime) == 2 {
-			if t0, err := time.ParseInLocation("20060102:1504", strDateTime[0][:13], util.AmericaNYZone()); err == nil {
-				if t1, err := time.ParseInLocation("20060102:1504", strDateTime[1][:13], util.AmericaNYZone()); err == nil {
+			if t0, err := time.ParseInLocation("20060102:1504", strDateTime[0][:13], util.UsEastern); err == nil {
+				if t1, err := time.ParseInLocation("20060102:1504", strDateTime[1][:13], util.UsEastern); err == nil {
 					tts.OpenTime = t0
 					tts.CloseTime = t1
 				} else {

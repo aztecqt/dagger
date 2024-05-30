@@ -11,6 +11,7 @@ package binancespotapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -25,6 +26,7 @@ import (
 )
 
 const rootUrl = "https://api.binance.com"
+const rootUrlUnifiled = "https://papi.binance.com"
 const restLogPrefix = "binance_spot_rest"
 
 // 获取服务器时间（毫秒数）
@@ -33,9 +35,13 @@ var serverTsDelta int64
 type APIClass int
 
 const (
-	API_Spot APIClass = iota
-	API_CrossMargin
-	API_IsolatedMargin
+	API_Invalid APIClass = iota
+	API_ClassicSpot
+	API_ClassicCrossMargin
+	API_ClassicIsolatedMargin
+	API_UnifiedSpot
+	API_UnifiedCrossMargin
+	API_UnifiedIsolatedMargin
 )
 
 // 默认全部使用现货的url格式
@@ -43,7 +49,7 @@ const (
 func realUrl(url string, ac APIClass) string {
 	// api/v3/myTrades
 	// sapi/v1/margin/myTrades
-	if ac != API_Spot {
+	if ac != API_ClassicSpot {
 		url = strings.ReplaceAll(url, "api/v3", "sapi/v1/margin")
 	}
 	return url
@@ -656,7 +662,7 @@ func GetUserTrade(symbol string, t0, t1 time.Time, limit int, fromId int64, ac A
 		params.Set("limit", strconv.FormatInt(int64(limit), 10))
 	}
 
-	if ac == API_IsolatedMargin {
+	if ac == API_ClassicIsolatedMargin {
 		params.Set("isIsolated", "TRUE")
 	}
 
@@ -701,4 +707,101 @@ func GetDelistPlan() (*[]binanceapi.DelistPlan, error) {
 	} else {
 		return nil, err
 	}
+}
+
+// 获取资产的质押折扣率
+func GetCollateralRate() (*[]binanceapi.CollateralRate, error) {
+	action := "/sapi/v1/portfolio/collateralRate"
+	method := "GET"
+	ep := rootUrl + action
+	params := url.Values{}
+	header, _, err := binanceapi.SignerIns.Sign(params)
+	rst, err := network.ParseHttpResult[[]binanceapi.CollateralRate](
+		restLogPrefix,
+		"GetCollateralRate",
+		ep,
+		method,
+		"",
+		header, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+
+	return rst, err
+}
+
+// 获取利息历史
+// asset: USDT
+func GetMarginInterestHistory(asset string, t0, t1 time.Time, ac APIClass) (*binanceapi.GetInterestHistoryResp, error) {
+	ep := ""
+	switch ac {
+	case API_ClassicSpot:
+		return nil, errors.New("unsupported for spot")
+	case API_UnifiedSpot:
+		return nil, errors.New("unsupported for spot")
+	case API_ClassicCrossMargin:
+		fallthrough
+	case API_ClassicIsolatedMargin:
+		ep = rootUrl + "/sapi/v1/margin/interestHistory"
+	case API_UnifiedCrossMargin:
+		fallthrough
+	case API_UnifiedIsolatedMargin:
+		ep = rootUrlUnifiled + "/papi/v1/margin/marginInterestHistory"
+	}
+
+	method := "GET"
+	params := url.Values{}
+
+	if len(asset) > 0 {
+		params.Add("asset", asset)
+	}
+
+	if !t0.IsZero() {
+		params.Add("startTime", strconv.FormatInt(t0.UnixMilli()/1000*1000, 10))
+	}
+
+	if !t1.IsZero() {
+		params.Add("endTime", strconv.FormatInt(t1.UnixMilli()/1000*1000, 10))
+	}
+
+	params.Add("size", "100")
+	header, _, err := binanceapi.SignerIns.Sign(params)
+
+	paramsStr := params.Encode()
+	ep = ep + "?" + paramsStr
+	rst, err := network.ParseHttpResult[binanceapi.GetInterestHistoryResp](
+		restLogPrefix,
+		"GetMarginInterestHistory",
+		ep,
+		method,
+		"",
+		header, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+
+	return rst, err
+}
+
+// 获取交易手续费
+// symbol可以不填
+func GetTradeFee(symbol string) (*binanceapi.GetSpotTradeFeeResp, error) {
+	action := "/sapi/v1/asset/tradeFee"
+	method := "GET"
+	params := url.Values{}
+	if len(symbol) > 0 {
+		params.Set("symbol", symbol)
+	}
+
+	header, paramstr, err := binanceapi.SignerIns.Sign(params)
+	url := fmt.Sprintf("%s%s?%s", rootUrl, action, paramstr)
+
+	rst, err := network.ParseHttpResult[binanceapi.GetSpotTradeFeeResp](
+		restLogPrefix,
+		"GetTradeFee",
+		url,
+		method,
+		"",
+		header, func(resp *http.Response, body []byte) {
+			binanceapi.ProcessResponse(resp, body, "spot")
+		}, binanceapi.ErrorCallback)
+	return rst, err
 }

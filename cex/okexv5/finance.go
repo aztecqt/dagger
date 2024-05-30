@@ -107,26 +107,24 @@ func (f *Finance) Save(ccy string, amount decimal.Decimal) bool {
 	}
 
 	// 质押
-	purchaseSuccess := true
-	if resp, err := okexv5api.FinanceSavingPurchaseRedempt(ccy, amount, true); err != nil {
-		logger.LogImportant(logPrefix, "puchase %v %s failed: %s", amount, ccy, err.Error())
-		purchaseSuccess = false
-	} else if resp.Code != "0" {
-		logger.LogImportant(logPrefix, "puchase %v %s failed: %s", amount, ccy, resp.Msg)
-		purchaseSuccess = false
-	}
-
-	if !purchaseSuccess {
-		// 资金转回去
-		if resp, err := okexv5api.Transfer(ccy, amount, false); err != nil {
-			logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, err.Error())
+	success := true
+	for i := 0; i < 10; i++ {
+		if resp, err := okexv5api.FinanceSavingPurchaseRedempt(ccy, amount, true); err != nil {
+			logger.LogImportant(logPrefix, "puchase %v %s failed: %s", amount, ccy, err.Error())
+			success = false
 		} else if resp.Code != "0" {
-			logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, resp.Msg)
+			logger.LogImportant(logPrefix, "puchase %v %s failed: %s", amount, ccy, resp.Msg)
+			success = false
+		} else {
+			logger.LogImportant(logPrefix, "puchase %v %s success", amount, ccy)
+			success = true
+			break
 		}
-		return false
+
+		time.Sleep(time.Second)
 	}
 
-	return true
+	return success
 }
 
 func (f *Finance) Draw(ccy string, amount decimal.Decimal) bool {
@@ -142,14 +140,23 @@ func (f *Finance) Draw(ccy string, amount decimal.Decimal) bool {
 		return false
 	}
 
-	// 转账
-	if resp, err := okexv5api.Transfer(ccy, amount, false); err != nil {
-		logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, err.Error())
-		return false
-	} else if resp.Code != "0" {
-		logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, resp.Msg)
-		return false
+	success := false
+	for i := 0; i < 10; i++ {
+		// 转账
+		if resp, err := okexv5api.Transfer(ccy, amount, false); err != nil {
+			logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, err.Error())
+			success = false
+		} else if resp.Code != "0" {
+			logger.LogImportant(logPrefix, "transfer %v %s back from assert failed: %s", amount, ccy, resp.Msg)
+			success = false
+		} else {
+			logger.LogImportant(logPrefix, "transfer %v %s back from assert success", amount, ccy)
+			success = true
+			break
+		}
+
+		time.Sleep(time.Second)
 	}
 
-	return true
+	return success
 }

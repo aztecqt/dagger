@@ -78,6 +78,8 @@ type OrderObserver interface {
 }
 
 // 市场爆仓观察者
+// dir=buy，说明是一个买入订单，为空仓爆仓产生
+// dir=sell，说明是一个卖出订单，为多仓爆仓产生
 type LiquidationObserver interface {
 	OnLiquidation(px, sz decimal.Decimal, dir OrderDir)
 }

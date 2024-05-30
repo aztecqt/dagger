@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-02 10:03:20
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-03-13 09:28:30
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-05-26 08:28:08
  * @FilePath: \dagger\cex\okexv5\defines.go
  * @Description:
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5
 
@@ -28,6 +28,9 @@ type ExchangeConfig struct {
 
 	// 是否通过rest拉取ticker。是的话，由exchange统一拉取所有ticker，否则各个交易对自行订阅
 	TickerFromRest bool `json:"ticker_from_rest"`
+
+	// 是否持续更新instruments
+	InstrumentsKeepUpdate bool `json:"instruments_keep_update"`
 
 	// 是否订阅市场爆仓数据
 	SubscribeLiquidationOrders bool `json:"sub_liq_orders"`

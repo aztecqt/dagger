@@ -8,9 +8,12 @@
 package influxdb
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/user"
+	"slices"
 	"strings"
 	"time"
 
@@ -64,7 +67,13 @@ func MakeQuery(fields []string, db, rp, mm string, tags map[string]string, t0, t
 	}
 
 	sbCmd.WriteString(fmt.Sprintf(`FROM "%s"."%s"."%s" `, db, rp, mm))
-	sbCmd.WriteString(fmt.Sprintf(`WHERE time > '%s' AND time < '%s' `, t0.UTC().Format("2006-01-02 15:04:05"), t1.UTC().Format("2006-01-02 15:04:05")))
+
+	if t1.UnixMilli() == 0 {
+		t1 = time.Now()
+	}
+
+	tfmt := time.DateTime
+	sbCmd.WriteString(fmt.Sprintf(`WHERE time >= '%s' AND time <= '%s' `, t0.UTC().Format(tfmt), t1.UTC().Format(tfmt)))
 
 	if tags != nil {
 		for k, v := range tags {
@@ -77,6 +86,22 @@ func MakeQuery(fields []string, db, rp, mm string, tags map[string]string, t0, t
 	}
 
 	return client.NewQuery(sbCmd.String(), "", "")
+}
+
+// 转化influx的时间为golang的时间
+func ConvTime(raw interface{}) time.Time {
+	t, _ := time.Parse(time.RFC3339, raw.(string))
+	return t
+}
+
+// 转化influx的值为float
+func ConvFloat64(raw interface{}) (f float64, err error) {
+	util.DefaultRecoverWithCallback(func(es string) {
+		f = 0
+		err = errors.New("not a number")
+	})
+
+	return raw.(json.Number).Float64()
 }
 
 // 写入数据
@@ -125,6 +150,61 @@ func Write(conn client.Client, db, rp, mm string, tm time.Time, tags, fields []i
 			logger.LogImportant(logPrefix, "influx write point failed, err=%s", err.Error())
 		}
 	}()
+}
+
+// 一组粒度相同、相位对齐的点
+// 比如一组k线，间隔都是1小时，但并不一定每一组数据都包含所有时间点）
+// filedname->time->data
+type DataOfTime map[int64] /*ms*/ interface{}
+type DatasWithSameInterval map[string]DataOfTime
+
+// 写入这样一组点
+func WriteDataWithSameInterval(conn client.Client, db, rp, mm string, tags map[string]string, data DatasWithSameInterval) error {
+	defer util.DefaultRecover()
+
+	batchPoint, err := client.NewBatchPoints(client.BatchPointsConfig{Database: db, RetentionPolicy: rp})
+	if err != nil {
+		logger.LogImportant(logPrefix, "influx creat batchPoint failed, err=%s", err.Error())
+		return err
+	}
+
+	// 先统计出所有出现过的时间点，并排序
+	msSet := hashset.New()
+	for _, time2data := range data {
+		for ms := range time2data {
+			msSet.Add(ms)
+		}
+	}
+	times := make([]int64, msSet.Size())
+	msv := msSet.Values()
+	for i, v := range msv {
+		times[i] = v.(int64)
+	}
+	slices.Sort(times)
+
+	// 对于每一个时间点，找出存在数据的field，并制作一个Point，加入batchPoint
+	for _, ms := range times {
+		fields := map[string]interface{}{}
+		for fieldName, time2data := range data {
+			if v, ok := time2data[ms]; ok {
+				fields[fieldName] = v
+			}
+		}
+
+		if len(fields) > 0 {
+			if pt, err := client.NewPoint(mm, tags, fields, time.UnixMilli(ms)); err == nil {
+				batchPoint.AddPoint(pt)
+			}
+		}
+	}
+
+	err = conn.Write(batchPoint)
+	if err != nil {
+		logger.LogImportant(logPrefix, "influx write point failed, err=%s", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 // 保存日志
@@ -290,8 +370,15 @@ func GetMeasurementsWithTags(conn client.Client, dbName string) map[string]*hash
 }
 
 // 获取一个数据表中的最新一条数据的时间
-func GetLatestDataTime(conn client.Client, dbName, rp, mn string, tags map[string]string) time.Time {
+// tags/fields传空表示不限制
+func GetLatestDataTime(conn client.Client, dbName, rp, mn string, tags map[string]string, fields []string) time.Time {
 	t := time.Time{}
+
+	fieldSelector := "*"
+	if len(fields) > 0 {
+		fieldSelector = strings.Join(fields, ",")
+	}
+
 	tagSelector := ""
 	if tags != nil && len(tags) > 0 {
 		tagIndex := 0
@@ -306,8 +393,7 @@ func GetLatestDataTime(conn client.Client, dbName, rp, mn string, tags map[strin
 			tagIndex++
 		}
 	}
-	q := fmt.Sprintf("select * from \"%s\".\"%s\".\"%s\" %s ORDER BY time DESC limit 1", dbName, rp, mn, tagSelector)
-	logger.LogImportant(logPrefix, q)
+	q := fmt.Sprintf("select %s from \"%s\".\"%s\".\"%s\" %s ORDER BY time DESC limit 1", fieldSelector, dbName, rp, mn, tagSelector)
 	resp, err := conn.Query(client.NewQuery(q, "", ""))
 	if err != nil {
 		logger.LogImportant(logPrefix, "GetLatestDataTime1: %s", err.Error())
@@ -323,11 +409,7 @@ func GetLatestDataTime(conn client.Client, dbName, rp, mn string, tags map[strin
 		defer func() {
 			recover()
 		}()
-		str := resp.Results[0].Series[0].Values[0][0].(string)
-		t, err = time.Parse(time.RFC3339, str)
-		if err != nil {
-			logger.LogImportant(logPrefix, "GetLatestDataTime2: %s", err.Error())
-		}
+		t = ConvTime(resp.Results[0].Series[0].Values[0][0])
 	}()
 
 	return t
@@ -355,7 +437,7 @@ func SaveQueryResultToDB(conn client.Client, dbName, rp, mn string, resp *client
 			fields := make(map[string]interface{})
 			for col := 0; col < len(v); col++ {
 				if col == 0 {
-					t, _ = time.Parse(time.RFC3339, v[0].(string))
+					t = ConvTime(v[0])
 				} else {
 					if v[col] != nil {
 						if tagKeys.Contains(s.Columns[col]) {

@@ -15,20 +15,23 @@ import (
 )
 
 type BalanceMgr struct {
+	needInit     bool
 	balanceByCcy map[string] /*ccy*/ *BalanceImpl
 	muBalance    sync.RWMutex
 }
 
-func NewBalanceMgr() *BalanceMgr {
+func NewBalanceMgr(needInit bool) *BalanceMgr {
 	b := new(BalanceMgr)
 	b.balanceByCcy = make(map[string]*BalanceImpl)
+	b.needInit = needInit
 	return b
 }
 
 // 设置权益
-func (e *BalanceMgr) RefreshBalance(ccy string, free, frozen decimal.Decimal, refreshTime time.Time) {
+// 返回与本地的偏移值
+func (e *BalanceMgr) RefreshBalance(ccy string, free, frozen decimal.Decimal, refreshTime time.Time) decimal.Decimal {
 	bal := e.FindBalance(ccy)
-	bal.Refresh(free.Add(frozen), frozen, refreshTime)
+	return bal.Refresh(free.Add(frozen), frozen, refreshTime)
 }
 
 // 获取所有资产
@@ -52,7 +55,7 @@ func (e *BalanceMgr) FindBalance(ccy string) *BalanceImpl {
 	var b *BalanceImpl
 
 	if _, ok := e.balanceByCcy[ccy]; !ok {
-		e.balanceByCcy[ccy] = NewBalanceImpl(ccy)
+		e.balanceByCcy[ccy] = NewBalanceImpl(ccy, e.needInit)
 	}
 
 	b = e.balanceByCcy[ccy]
@@ -64,7 +67,7 @@ func (e *BalanceMgr) FindBalanceUnsafe(ccy string) *BalanceImpl {
 	var b *BalanceImpl
 
 	if _, ok := e.balanceByCcy[ccy]; !ok {
-		e.balanceByCcy[ccy] = NewBalanceImpl(ccy)
+		e.balanceByCcy[ccy] = NewBalanceImpl(ccy, e.needInit)
 	}
 
 	b = e.balanceByCcy[ccy]

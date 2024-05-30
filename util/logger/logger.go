@@ -1,15 +1,15 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-24 15:16:59
- * @LastEditors: aztec
- * @LastEditTime: 2023-08-18 10:41:42
+  - @LastEditors: Please set LastEditors
+  - @LastEditTime: 2024-04-30 12:22:28
  * @FilePath: \stratergy_antc:\work\svn\quant\go\src\dagger\util\logger\logger.go
  * @Description:
  * 日志管理器。基于go自带的log包。以hour/day为文件夹存储个个日志文件
  * 可以设置需要保留的日志文件夹个数以防止占用过多磁盘空间
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
- */
+*/
 
 package logger
 
@@ -18,12 +18,16 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
 // 日志分组模式
+type SplitMode int
+
 const (
-	SplitMode_ByDays = iota
+	SplitMode_ByDays SplitMode = iota
 	SplitMode_ByHours
 	SplitMode_ByMinutes
 )
@@ -31,17 +35,32 @@ const (
 var splitMode = SplitMode_ByDays
 
 // 日志等级
+type LogLevel int
+
 const (
-	LogLevel_Debug = iota
+	LogLevel_Debug LogLevel = iota
 	LogLevel_Info
 	LogLevel_Important
 	LogLevel_None
 )
 
+func String2LogLevel(str string) LogLevel {
+	switch strings.ToLower(str) {
+	case "debug":
+		return LogLevel_Debug
+	case "info":
+		return LogLevel_Info
+	case "important":
+		return LogLevel_Important
+	default:
+		panic("invalid log level:" + str)
+	}
+}
+
 var FileLogLevel = LogLevel_Debug
 var ConsleLogLevel = LogLevel_Important
 
-func MinLogLevel() int {
+func MinLogLevel() LogLevel {
 	if FileLogLevel < ConsleLogLevel {
 		return FileLogLevel
 	} else {
@@ -66,7 +85,54 @@ var consoleLogger *log.Logger
 // 初始化需要手动调用
 var inited bool
 
-func Init(sMode int, maxCount int) {
+// 以字符串的方式初始化
+// 如: d3, h24, m120
+func InitByStr(periodConfig string) {
+	sMode := SplitMode_ByDays
+	if periodConfig[0] == 'd' {
+		sMode = SplitMode_ByDays
+	} else if periodConfig[0] == 'h' {
+		sMode = SplitMode_ByHours
+	} else if periodConfig[0] == 'm' {
+		sMode = SplitMode_ByMinutes
+	} else {
+		msg := fmt.Sprintf("invalid logger config str: %s\n", periodConfig)
+		time.Sleep(time.Second)
+		fmt.Println(msg)
+		panic(msg)
+	}
+
+	maxCount := 7
+	if n, ok := string2Int(periodConfig[1:]); ok {
+		maxCount = n
+		if maxCount <= 0 {
+			maxCount = 1
+		}
+	} else {
+		msg := fmt.Sprintf("invalid logger config str: %s\n", periodConfig)
+		time.Sleep(time.Second)
+		fmt.Println(msg)
+		panic(msg)
+	}
+
+	Init(sMode, maxCount)
+}
+
+func string2Int(s string) (int, bool) {
+	if len(s) == 0 {
+		return 0, true
+	}
+
+	i, err := strconv.Atoi(s)
+	if err == nil {
+		return i, true
+	} else {
+		return 0, false
+	}
+}
+
+// 初始化
+func Init(sMode SplitMode, maxCount int) {
 	splitMode = sMode
 	maxFileCount = maxCount
 	switch splitMode {

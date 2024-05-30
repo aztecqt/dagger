@@ -10,33 +10,33 @@ package indacators
 import (
 	"math"
 
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 )
 
 type MinMax struct {
-	orign      *stratergy.DataLine
-	min        *stratergy.DataLine
-	max        *stratergy.DataLine
+	orign      *framework.DataLine
+	min        *framework.DataLine
+	max        *framework.DataLine
 	n          int
 	rebuilding bool
 }
 
-func NewMinMax(orign *stratergy.DataLine, n int) *MinMax {
+func NewMinMax(orign *framework.DataLine, n int) *MinMax {
 	mm := new(MinMax)
 	mm.orign = orign
-	mm.min = new(stratergy.DataLine)
+	mm.min = new(framework.DataLine)
 	mm.min.Init("min", orign.MaxLength(), orign.IntervalMS(), 0)
-	mm.max = new(stratergy.DataLine)
+	mm.max = new(framework.DataLine)
 	mm.max.Init("max", orign.MaxLength(), orign.IntervalMS(), 0)
 	mm.n = n
 	return mm
 }
 
-func (s *MinMax) Min() *stratergy.DataLine {
+func (s *MinMax) Min() *framework.DataLine {
 	return s.min
 }
 
-func (s *MinMax) Max() *stratergy.DataLine {
+func (s *MinMax) Max() *framework.DataLine {
 	return s.max
 }
 

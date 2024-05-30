@@ -101,6 +101,10 @@ type Exchange struct {
 	tickerCallbacksOfInstType map[string][]func(tks []okexv5api.TickerResp)
 	muTickerCallback          sync.Mutex
 	tickerRestInstType        map[string]int
+
+	// 从rest拉取到的ticker的缓存
+	restTickers   map[string]okexv5api.TickerResp
+	muRestTickers sync.Mutex
 }
 
 func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb func(e error)) {
@@ -120,7 +124,7 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 	e.spotMarketsSlice = make([]common.SpotMarket, 0)
 	e.spotTradersSlice = make([]common.SpotTrader, 0)
 
-	e.balanceMgr = common.NewBalanceMgr()
+	e.balanceMgr = common.NewBalanceMgr(false)
 	e.instrumentMgr = common.NewInstrumentMgr(logPrefix)
 	e.ctPositions = make(map[string]*common.PositionImpl)
 	e.positionInstTypes = make(map[string]int)
@@ -129,6 +133,7 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 	e.tickerCallbacks = make(map[string][]func(t okexv5api.TickerResp))
 	e.tickerCallbacksOfInstType = make(map[string][]func(tks []okexv5api.TickerResp))
 	e.tickerRestInstType = make(map[string]int)
+	e.restTickers = make(map[string]okexv5api.TickerResp)
 	e.maxAvailable = make(map[string]okexv5api.MaxAvailableSizeResp)
 
 	// 初始化api
@@ -138,7 +143,7 @@ func (e *Exchange) Init(key, secret, pass string, excfg *ExchangeConfig, ecb fun
 
 	// 获取所有交易对列表
 	logger.LogImportant(logPrefix, "fetching instruments...")
-	e.initInstruments()
+	e.refreshInstruments()
 
 	if okexv5api.HasKey() {
 		// 撤销所有订单
@@ -208,6 +213,10 @@ func (e *Exchange) GetSpotInstrument(baseCcy, quoteCcy string) *common.Instrumen
 
 func (e *Exchange) GetFutureInstrument(symbol, contractType string) *common.Instruments {
 	return e.instrumentMgr.Get(CCyCttypeToInstId(symbol, contractType))
+}
+
+func (e *Exchange) GetInstrumentManager() *common.InstrumentMgr {
+	return e.instrumentMgr
 }
 
 func (e *Exchange) GetUniAccRisk() common.UniAccRisk {
@@ -786,13 +795,27 @@ func (e *Exchange) isSingleMarginMode() bool {
 	return e.singleMargin
 }
 
-func (e *Exchange) initInstruments() {
+func (e *Exchange) refreshInstruments() {
 	logger.LogImportant(logPrefix, "fetching instruments...SPOT")
 	e.processInstruments("SPOT")
 	logger.LogImportant(logPrefix, "fetching instruments...SWAP")
 	e.processInstruments("SWAP")
 	logger.LogImportant(logPrefix, "fetching instruments...FUTURES")
 	e.processInstruments("FUTURES")
+
+	if e.excfg.InstrumentsKeepUpdate {
+		go func() {
+			for {
+				logger.LogImportant(logPrefix, "fetching instruments...SPOT")
+				e.processInstruments("SPOT")
+				logger.LogImportant(logPrefix, "fetching instruments...SWAP")
+				e.processInstruments("SWAP")
+				logger.LogImportant(logPrefix, "fetching instruments...FUTURES")
+				e.processInstruments("FUTURES")
+				time.Sleep(time.Minute * 10)
+			}
+		}()
+	}
 }
 
 func (e *Exchange) updateLiquidationOrders() {
@@ -805,6 +828,9 @@ func (e *Exchange) updateLiquidationOrders() {
 		for _, v := range resp.Data {
 			if m, ok := e.futureMarkets[v.InstId]; ok {
 				for _, lod := range v.Details {
+					// 注意
+					// 方向为buy，代表是空仓爆仓导致的买入，是相对高位
+					// 方向为sell，代表是多仓爆仓导致的卖出，是相对低位
 					m.onLiquidationOrder(lod.BrokenPrice, lod.Size, util.ValueIf(lod.Side == "buy", common.OrderDir_Buy, common.OrderDir_Sell))
 				}
 			}
@@ -987,6 +1013,7 @@ func (e *Exchange) updateTickersByRest() {
 		<-ticker.C
 		for instType := range e.tickerRestInstType {
 			if resp, err := okexv5api.GetTickers(instType); err == nil {
+				e.muRestTickers.Lock()
 				for _, tk := range resp.Data {
 					// 回调
 					e.muTickerCallback.Lock()
@@ -999,7 +1026,10 @@ func (e *Exchange) updateTickersByRest() {
 					for _, fn := range cbs {
 						fn(tk)
 					}
+
+					e.restTickers[tk.InstId] = tk
 				}
+				e.muRestTickers.Unlock()
 
 				// 回调
 				if cbs, ok := e.tickerCallbacksOfInstType[instType]; ok {
@@ -1013,6 +1043,14 @@ func (e *Exchange) updateTickersByRest() {
 			}
 		}
 	}
+}
+
+// 直接从rest缓存中获取最新的ticker
+func (e *Exchange) GetTickerFromRestBuffer(instId string) (okexv5api.TickerResp, bool) {
+	e.muRestTickers.Lock()
+	e.muRestTickers.Unlock()
+	v, ok := e.restTickers[instId]
+	return v, ok
 }
 
 func (e *Exchange) getMaxAvailable(instId string) (okexv5api.MaxAvailableSizeResp, bool) {

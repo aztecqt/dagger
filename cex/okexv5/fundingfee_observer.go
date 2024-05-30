@@ -85,7 +85,7 @@ func (f *FundingFeeObserver) onSwapTickers(tks []okexv5api.TickerResp) {
 	}
 
 	// 删除无效数据
-	for k, _ := range f.fundingFees {
+	for k := range f.fundingFees {
 		if _, ok := validInstIds[k]; !ok {
 			delete(f.fundingFees, k)
 		}

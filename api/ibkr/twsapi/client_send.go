@@ -64,9 +64,6 @@ func (c *Client) _sendParams(buf *bytes.Buffer, printRawData bool, params ...int
 			buf.WriteString(util.ValueIf(b, "1", "0"))
 			binary.Write(buf, binary.BigEndian, byte(0))
 		} else if i, ok := p.(int); ok {
-			if i == -1 {
-				fmt.Print()
-			}
 			if i != math.MaxInt32 {
 				buf.WriteString(fmt.Sprintf("%d", i))
 			}
@@ -102,7 +99,7 @@ func (c *Client) _sendParams(buf *bytes.Buffer, printRawData bool, params ...int
 }
 
 // 通用的同步调用过程。把tws的异步api，转换为同步调用过程
-func syncResponse[T any](c *Client, tTimeOut *T, fnMsgProc func(m Message) *T) *T {
+func syncResponse[T any](c *Client, tTimeOut *T, fnMsgProc func(m Message) *T, fnTimeOut func(isTimeOut bool)) *T {
 	// 等待订单快照，或者Error，作为下单的返回结果
 	ch := make(chan *T)
 	done := false
@@ -126,6 +123,19 @@ func syncResponse[T any](c *Client, tTimeOut *T, fnMsgProc func(m Message) *T) *
 	ch = nil
 	c.UnregisterMessageHandler(hid)
 	return msg
+}
+
+// 超时处理
+func (c *Client) onSyncresponseTimeOut(isTimeOut bool) {
+	if isTimeOut {
+		c.timeOutCountSeq++
+		if c.timeOutCountSeq > maxTimeOutCount {
+			c.timeOutCountSeq = 0
+			c.Reconnect("too many time out")
+		}
+	} else {
+		c.timeOutCountSeq = 0
+	}
 }
 
 // 订阅账户概要。每三分钟同步一次账户信息。期间有变化也不会立即更新
@@ -218,7 +228,7 @@ func (c *Client) ReqContractDetails(cont twsmodel.Contract) *ContractDetailRespo
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 }
 
 // 查询市场规则（其实就是价格增量）
@@ -238,7 +248,7 @@ func (c *Client) ReqMarketRule(marketRuleId int) *MarketRuleResponse {
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 }
 
 // 请求L1数据
@@ -280,7 +290,7 @@ func (c *Client) ReqMarketData(cont twsmodel.Contract, genericTickList string, s
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 
 	return
 }
@@ -305,6 +315,8 @@ func (c *Client) ReqTickByTick(cont twsmodel.Contract, tickType string, numberOf
 		numberOfTicks,
 		ignoreSize,
 	)
+
+	// TODO: syncResponse
 
 	return
 }
@@ -364,7 +376,7 @@ func (c *Client) ReqHistoricalData(
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 }
 
 // 执行下单
@@ -397,7 +409,7 @@ func (c *Client) PlaceOrder(cont twsmodel.Contract, o twsmodel.Order) *OrderResp
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 }
 
 // 撤单
@@ -424,7 +436,7 @@ func (c *Client) CancelOrder(orderId int, manualOrderCancelTime string) *OrderRe
 		}
 
 		return nil
-	})
+	}, c.onSyncresponseTimeOut)
 }
 
 // 撤销所有订单

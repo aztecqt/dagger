@@ -52,6 +52,7 @@ type GridConfig struct {
 	GridRange   float64 `json:"grid_range"` // 网格范围（以单边计）
 	GridStep    float64 `json:"grid_step"`  // 网格格子大小
 	SLStep      int     `json:"tp_step"`    // 止损价格子数。在超出网格范围多少格之后止损
+	ByMarketLiq bool    `json:"by_liq"`     // 是否以市场爆仓作为交易标志。true的话，仅在市场发生爆仓时，以暴仓价格作为计算自己仓位的依据，而不是markprice
 }
 
 func (c *GridConfig) String() string {
@@ -101,6 +102,8 @@ type Grid struct {
 	onDeal                 OnMakerOrderDeal           // 成交回调
 	longStopLossPrice      float64
 	shortStopLossPrice     float64
+	lastLiqPrice           float64         // 最近一次市场爆仓的价格
+	lastLiqDir             common.OrderDir // 最近一次市场爆仓的方向
 	longStopLossStartTime  time.Time
 	shortStopLossStartTime time.Time
 	p2pOpenBuy             *PriceMap2Position // 价格-仓位映射
@@ -126,6 +129,7 @@ func (g *Grid) Init(
 	g.onDeal = onDeal
 	g.infContext = datamanager.NewInfluxContext("grid", trader.Market().Type())
 	g.activeTime = activeTime
+	g.GetMarket().AddLiquidationObserver(g)
 
 	g.pm = new(PositionManager)
 	g.pm.Init(g.trader, g.onOrderDeal, g.logPrefix, true, true)
@@ -355,24 +359,66 @@ func (g *Grid) update_Dealing() {
 	if g.longValid() && markPrice < basePx {
 		// 尝试做多
 		targetDir = common.OrderDir_Buy
-		posopen := g.p2pOpenBuy.GetPosition(markPrice)
-		posclose := g.p2pCloseBuy.GetPosition(markPrice)
-		if posopen > g.long() {
+		posopen := -1.0
+		posclose := -1.0
+		canBuy := false
+		canSell := false
+		if g.cfg.ByMarketLiq {
+			if g.lastLiqPrice > 0 {
+				posopen = g.p2pOpenBuy.GetPosition(g.lastLiqPrice)
+				posclose = g.p2pCloseBuy.GetPosition(g.lastLiqPrice)
+				if g.lastLiqDir == common.OrderDir_Buy {
+					canSell = true
+				} else {
+					canBuy = true
+				}
+			}
+		} else {
+			posopen = g.p2pOpenBuy.GetPosition(markPrice)
+			posclose = g.p2pCloseBuy.GetPosition(markPrice)
+			canBuy = true
+			canSell = true
+		}
+
+		posopen = g.GetMarket().AlignSize(decimal.NewFromFloat(posopen)).InexactFloat64()
+		posclose = g.GetMarket().AlignSize(decimal.NewFromFloat(posclose)).InexactFloat64()
+		if posopen > 0 && posopen > g.long() && canBuy {
 			g.pm.ModifyTargetSizeWithDealDir(decimal.NewFromFloat(posopen), targetDir, DealDir_Open)
 			logger.LogInfo(g.logPrefix, "target size modified up to %v(%s)", posopen, common.OrderDir2Str(targetDir))
-		} else if posclose < g.long() {
+		} else if posclose > 0 && posclose < g.long() && canSell {
 			g.pm.ModifyTargetSizeWithDealDir(decimal.NewFromFloat(posclose), targetDir, DealDir_Close)
 			logger.LogInfo(g.logPrefix, "target size modified down to %v(%s)", posclose, common.OrderDir2Str(targetDir))
 		}
 	} else if g.shortValid() && markPrice > basePx {
 		// 尝试做空
 		targetDir = common.OrderDir_Sell
-		posopen := g.p2pOpenSell.GetPosition(markPrice)
-		posclose := g.p2pCloseSell.GetPosition(markPrice)
-		if posopen > g.short() {
+		posopen := -1.0
+		posclose := -1.0
+		canBuy := false
+		canSell := false
+		if g.cfg.ByMarketLiq {
+			if g.lastLiqPrice > 0 {
+				posopen = g.p2pOpenSell.GetPosition(g.lastLiqPrice)
+				posclose = g.p2pCloseSell.GetPosition(g.lastLiqPrice)
+				if g.lastLiqDir == common.OrderDir_Buy {
+					canSell = true
+				} else {
+					canBuy = true
+				}
+			}
+		} else {
+			posopen = g.p2pOpenSell.GetPosition(markPrice)
+			posclose = g.p2pCloseSell.GetPosition(markPrice)
+			canBuy = true
+			canSell = true
+		}
+
+		posopen = g.GetMarket().AlignSize(decimal.NewFromFloat(posopen)).InexactFloat64()
+		posclose = g.GetMarket().AlignSize(decimal.NewFromFloat(posclose)).InexactFloat64()
+		if posopen > 0 && posopen > g.short() && canSell {
 			g.pm.ModifyTargetSizeWithDealDir(decimal.NewFromFloat(posopen), targetDir, DealDir_Open)
 			logger.LogInfo(g.logPrefix, "target size modified up to %v(%s)", posopen, common.OrderDir2Str(targetDir))
-		} else if posclose < g.short() {
+		} else if posclose > 0 && posclose < g.short() && canBuy {
 			g.pm.ModifyTargetSizeWithDealDir(decimal.NewFromFloat(posclose), targetDir, DealDir_Close)
 			logger.LogInfo(g.logPrefix, "target size modified down to %v(%s)", posclose, common.OrderDir2Str(targetDir))
 		}
@@ -400,14 +446,14 @@ func (g *Grid) generatePlan() {
 	basePx := g.cfg.BasePrice
 
 	maxLong :=
-		common.USDT2ContractAmount(
+		common.USDT2ContractAmountAtPrice(
 			decimal.NewFromInt(g.cfg.MaxLongPos),
-			g.trader.FutureMarket()).InexactFloat64()
+			g.trader.FutureMarket(), decimal.NewFromFloat(g.cfg.BasePrice)).InexactFloat64()
 
 	maxShort :=
-		common.USDT2ContractAmount(
+		common.USDT2ContractAmountAtPrice(
 			decimal.NewFromInt(g.cfg.MaxShortPos),
-			g.trader.FutureMarket()).InexactFloat64()
+			g.trader.FutureMarket(), decimal.NewFromFloat(g.cfg.BasePrice)).InexactFloat64()
 
 	// 设置价格-仓位映射
 	if maxLong > 0 {
@@ -446,6 +492,12 @@ func (g *Grid) switchPhase(phase GridPhase) {
 			GridPhase2Str(phase))
 		g.phase = phase
 	}
+}
+
+func (g *Grid) OnLiquidation(px, sz decimal.Decimal, dir common.OrderDir) {
+	g.lastLiqPrice = px.InexactFloat64()
+	g.lastLiqDir = dir
+	logger.LogImportant(g.logPrefix, "latest liq price set to %v, liq dir = %s", px, common.OrderDir2Str(dir))
 }
 
 // #region 内部函数

@@ -9,6 +9,7 @@ package datavisual
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/aztecqt/dagger/util"
 )
@@ -337,4 +338,9 @@ func (l *LayoutConfig) SaveToDir(dir string) {
 func GenerateLayoutGroupConfig(dir string) {
 	util.MakeSureDir(dir)
 	util.ObjectToFile(fmt.Sprintf("%s/layout_group.json", dir), "{}")
+}
+
+func LaunchVisualTool(dir string) {
+	cmd := exec.Command("CommonDataViewer.exe", dir)
+	go cmd.Run()
 }

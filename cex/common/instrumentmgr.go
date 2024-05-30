@@ -7,6 +7,9 @@
 package common
 
 import (
+	"slices"
+	"sync"
+
 	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 
@@ -14,6 +17,7 @@ import (
 )
 
 type InstrumentMgr struct {
+	sync.Mutex
 	logPrefix       string
 	instrumentsById map[string] /*instId*/ *Instruments
 	instruments     []*Instruments
@@ -28,11 +32,15 @@ func NewInstrumentMgr(logPrefix string) *InstrumentMgr {
 }
 
 func (i *InstrumentMgr) Set(instId string, ins *Instruments) {
+	i.Lock()
+	defer i.Unlock()
 	i.instrumentsById[instId] = ins
 	i.instruments = append(i.instruments, ins)
 }
 
 func (i *InstrumentMgr) Get(instId string) *Instruments {
+	i.Lock()
+	defer i.Unlock()
 	if v, ok := i.instrumentsById[instId]; ok {
 		return v
 	} else {
@@ -41,10 +49,16 @@ func (i *InstrumentMgr) Get(instId string) *Instruments {
 }
 
 func (i *InstrumentMgr) GetAll() []*Instruments {
-	return i.instruments
+	i.Lock()
+	temp := slices.Clone(i.instruments)
+	i.Unlock()
+	return temp
 }
 
 func (i *InstrumentMgr) AlignPriceNumber(instId string, price decimal.Decimal) decimal.Decimal {
+	i.Lock()
+	defer i.Unlock()
+
 	if inst, ok := i.instrumentsById[instId]; ok {
 		inst.refreshTickSizeMode()
 		t := inst.TickSize
@@ -64,6 +78,9 @@ func (i *InstrumentMgr) AlignPriceNumber(instId string, price decimal.Decimal) d
 }
 
 func (i *InstrumentMgr) AlignPrice(instId string, price decimal.Decimal, dir OrderDir, makeOnly bool, buy1, sell1 decimal.Decimal) decimal.Decimal {
+	i.Lock()
+	defer i.Unlock()
+
 	if inst, ok := i.instrumentsById[instId]; ok {
 		inst.refreshTickSizeMode()
 		t := inst.TickSize
@@ -102,6 +119,9 @@ func (i *InstrumentMgr) AlignPrice(instId string, price decimal.Decimal, dir Ord
 }
 
 func (i *InstrumentMgr) AlignSize(instId string, size decimal.Decimal) decimal.Decimal {
+	i.Lock()
+	defer i.Unlock()
+
 	if inst, ok := i.instrumentsById[instId]; ok {
 		// 精度对齐
 		c := size.Div(inst.LotSize).IntPart()
@@ -114,6 +134,9 @@ func (i *InstrumentMgr) AlignSize(instId string, size decimal.Decimal) decimal.D
 }
 
 func (i *InstrumentMgr) MinSize(instId string, price decimal.Decimal) decimal.Decimal {
+	i.Lock()
+	defer i.Unlock()
+
 	if inst, ok := i.instrumentsById[instId]; ok {
 		// 兼顾MinSize和MinValue
 		return i.AlignSize(instId, decimal.Max(inst.MinSize, inst.MinValue.Div(price)))

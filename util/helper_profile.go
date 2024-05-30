@@ -19,6 +19,16 @@ func GetProfileDir() (string, bool) {
 	// 读取profile名
 	bpf, err := os.ReadFile("profile.txt")
 	if err != nil {
+		// 没有profile.txt的话，默认使用第一个子目录
+		if fis, err := os.ReadDir("./profiles"); err == nil {
+			for _, fi := range fis {
+				fi.IsDir()
+				profileName := fi.Name()
+				profileDir := fmt.Sprintf("profiles/%s", profileName)
+				return profileDir, true
+			}
+		}
+
 		fmt.Println("read profile.txt failed")
 		time.Sleep(time.Second * 3)
 		return "", false

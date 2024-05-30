@@ -11,26 +11,26 @@ package indacators
 import (
 	"math"
 
-	"github.com/aztecqt/dagger/stratergy"
+	"github.com/aztecqt/dagger/framework"
 )
 
 type StdDev struct {
-	orign      *stratergy.DataLine
-	value      *stratergy.DataLine
+	orign      *framework.DataLine
+	value      *framework.DataLine
 	n          int
 	rebuilding bool
 }
 
-func NewStdDev(orign *stratergy.DataLine, n int) *StdDev {
+func NewStdDev(orign *framework.DataLine, n int) *StdDev {
 	stddev := new(StdDev)
 	stddev.orign = orign
-	stddev.value = new(stratergy.DataLine)
+	stddev.value = new(framework.DataLine)
 	stddev.value.Init("stddev", orign.MaxLength(), orign.IntervalMS(), 0)
 	stddev.n = n
 	return stddev
 }
 
-func (s *StdDev) Value() *stratergy.DataLine {
+func (s *StdDev) Value() *framework.DataLine {
 	return s.value
 }
 

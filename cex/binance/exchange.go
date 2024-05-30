@@ -62,7 +62,7 @@ func (e *Exchange) Init(key, secret string, ecb func(e error)) {
 	e.spotTradersSlice = make([]common.SpotTrader, 0)
 
 	e.stratergyId = int(time.Now().Unix())
-	e.spotBalanceMgr = common.NewBalanceMgr()
+	e.spotBalanceMgr = common.NewBalanceMgr(false)
 	e.instrumentMgr = common.NewInstrumentMgr(logPrefix)
 	e.spotOrderSnapshotFns = make(map[string]OnOrderSnapshotFn)
 
@@ -441,9 +441,7 @@ func GetKline(
 	temp := make([]common.KUnit, 0)
 	for {
 		resp, err := fnKlineApi(instId, bar, time.Time{}, tEnd, 1000)
-		if err != nil {
-			break
-		} else {
+		if err == nil {
 			if len(*resp) == 0 {
 				break
 			}

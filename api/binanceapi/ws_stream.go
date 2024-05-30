@@ -17,8 +17,8 @@ import (
 )
 
 const SpotBaseUrl = "wss://stream.binance.com:9443/ws/"
-const CmBaseUrl = "wss://fstream.binance.com/ws/"
-const UmBaseUrl = "wss://dstream.binance.com/ws/"
+const CmBaseUrl = "wss://dstream.binance.com/ws/"
+const UmBaseUrl = "wss://fstream.binance.com/ws/"
 const wsLogPrefix = "binance_ws"
 
 var wsSubscribeId int

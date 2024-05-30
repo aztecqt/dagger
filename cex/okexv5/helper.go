@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-04-01 15:56:40
   - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-03-12 16:49:12
+  - @LastEditTime: 2024-05-16 19:17:07
  * @FilePath: \dagger\cex\okexv5\helper.go
  * @Description: okexv5的帮助函数
  *
@@ -51,6 +51,11 @@ func ContractType2OkxInstType(contractType string) string {
 	}
 
 	return ""
+}
+
+// BTC-USDT-SWAP -> btc_usdt_swap
+func ToCommonInstId(instId string) string {
+	return strings.ToLower(strings.ReplaceAll(instId, "-", "_"))
 }
 
 // BTC-USDT-SWAP -> btc

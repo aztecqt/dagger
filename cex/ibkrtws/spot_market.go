@@ -187,11 +187,10 @@ func (m *SpotMarket) subscribeMarketData() {
 						m.needResub = true
 						m.resubForInvalidDepthTime = time.Now()
 						logInfo(logPrefix, "orderbook invalid for %.0f seconds, need resub", depthInvalidSec)
-					} else {
-						time.Sleep(time.Second)
 					}
 				}
 			}
+			time.Sleep(time.Second)
 		}
 	}()
 }
@@ -291,12 +290,12 @@ func (m *SpotMarket) Ready() bool {
 func (m *SpotMarket) UnreadyReason() string {
 	if !m.c.IsConnectOk() {
 		return "connect lost"
+	} else if !m.marketIsOpen() {
+		return "not in trading time"
 	} else if !m.priceOk {
 		return "latest price not ready"
 	} else if !m.depthOk() {
 		return "depth not ready"
-	} else if !m.marketIsOpen() {
-		return "not in trading time"
 	} else {
 		return ""
 	}

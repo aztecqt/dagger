@@ -7,13 +7,13 @@
  */
 package indacators
 
-import "github.com/aztecqt/dagger/stratergy"
+import "github.com/aztecqt/dagger/framework"
 
 type BBand struct {
-	orign      *stratergy.DataLine
-	middle     *stratergy.DataLine
-	upper      *stratergy.DataLine
-	lower      *stratergy.DataLine
+	orign      *framework.DataLine
+	middle     *framework.DataLine
+	upper      *framework.DataLine
+	lower      *framework.DataLine
 	sma        *SMA
 	stddev     *StdDev
 	stddevma   *SMA
@@ -22,12 +22,12 @@ type BBand struct {
 	rebuilding bool
 }
 
-func NewBBand(orign *stratergy.DataLine, nMA int, nStdDev float64) *BBand {
+func NewBBand(orign *framework.DataLine, nMA int, nStdDev float64) *BBand {
 	bband := new(BBand)
 	bband.orign = orign
-	bband.middle = new(stratergy.DataLine)
-	bband.upper = new(stratergy.DataLine)
-	bband.lower = new(stratergy.DataLine)
+	bband.middle = new(framework.DataLine)
+	bband.upper = new(framework.DataLine)
+	bband.lower = new(framework.DataLine)
 	bband.middle.Init("middle", orign.MaxLength(), orign.IntervalMS(), 0)
 	bband.upper.Init("upper", orign.MaxLength(), orign.IntervalMS(), 0)
 	bband.lower.Init("lower", orign.MaxLength(), orign.IntervalMS(), 0)
@@ -40,15 +40,15 @@ func NewBBand(orign *stratergy.DataLine, nMA int, nStdDev float64) *BBand {
 	return bband
 }
 
-func (s *BBand) Middle() *stratergy.DataLine {
+func (s *BBand) Middle() *framework.DataLine {
 	return s.middle
 }
 
-func (s *BBand) Upper() *stratergy.DataLine {
+func (s *BBand) Upper() *framework.DataLine {
 	return s.upper
 }
 
-func (s *BBand) Lower() *stratergy.DataLine {
+func (s *BBand) Lower() *framework.DataLine {
 	return s.lower
 }
 

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -135,6 +136,29 @@ func GetTickers(instType string) (*TickerRestResp, error) {
 	return resp, err
 }
 
+// 批量查询指数价格行情
+// quoteCcy：指数计价单位， 目前只有 USD/USDT/BTC/USDC为计价单位的指数，quoteCcy和instId必须填写一个
+// instId：BTC-USDT
+// 两个参数2选1
+func GetIndexTickers(quoteCcy, instId string) (*IndexTickerRestResp, error) {
+	action := "/api/v5/market/index-tickers"
+	method := "GET"
+	params := url.Values{}
+
+	if len(quoteCcy) > 0 {
+		params.Set("quoteCcy", quoteCcy)
+	}
+
+	if len(instId) > 0 {
+		params.Set("instId", quoteCcy)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[IndexTickerRestResp](restLogPrefix, "GetIndexTickers", url, method, "", nil, nil, ErrorCallback)
+	return resp, err
+}
+
 // 查深度
 func GetDepth(instId string, sz int) (*DepthRestResp, error) {
 	action := "/api/v5/market/books"
@@ -178,6 +202,60 @@ func GetKline(instId string, t0, t1 time.Time, bar string, limit int) (*KLineRes
 	return resp, err
 }
 
+func GetIndexKline(instId string, t0, t1 time.Time, bar string, limit int) (*KLineRestResp, error) {
+	action := "/api/v5/market/history-index-candles"
+	method := "GET"
+	params := url.Values{}
+	params.Set("instId", instId)
+	if !t0.IsZero() {
+		params.Set("before", fmt.Sprintf("%d", t0.UnixMilli()))
+	}
+	if !t1.IsZero() {
+		params.Set("after", fmt.Sprintf("%d", t1.UnixMilli()))
+	}
+
+	if limit > 0 {
+		params.Set("limit", fmt.Sprintf("%d", limit))
+	}
+
+	params.Set("bar", bar)
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[KLineRestResp](restLogPrefix, "GetIndexKline", url, method, "", nil, nil, ErrorCallback)
+	resp.Build()
+	return resp, err
+}
+
+// 查询大范围内的k线
+func GetKlineInRange(instId string, t0, t1 time.Time, bar string, intervalMs int64, fnRaw func(instId string, t0, t1 time.Time, bar string, limit int) (*KLineRestResp, error)) []KLineUnit {
+	result := []KLineUnit{}
+	for {
+		tBefore := time.Now()
+		if resp, err := fnRaw(instId, t0, t1, bar, 100); err == nil {
+			resp.Build()
+			if len(resp.Data) > 0 {
+				result = append(result, resp.Data...)
+				t1 = resp.Data[len(resp.Data)-1].Time
+			}
+			if len(resp.Data) < 100 {
+				break
+			}
+
+			tAfter := time.Now()
+			costMs := tAfter.UnixMilli() - tBefore.UnixMilli()
+			if costMs < intervalMs {
+				time.Sleep(time.Millisecond * time.Duration(intervalMs-costMs))
+			}
+		} else {
+			logger.LogImportant(restLogPrefix, "get kline in range error: %s", err.Error())
+			time.Sleep(time.Second * 2)
+		}
+	}
+
+	slices.Reverse(result)
+	return result
+}
+
 // 查标记价格
 func GetMarkPrice(instId string) (*MarkPriceRestResp, error) {
 	action := "/api/v5/public/mark-price"
@@ -218,17 +296,17 @@ func GetFundingRate(instId string) (*FundingRateRestResp, error) {
 }
 
 // 查历史费率
-func GetFundingRateHistory(instId string, limit int, before, after time.Time) (*FundingRateHistoryRestResp, error) {
+func GetFundingRateHistory(instId string, limit int, t0, t1 time.Time) (*FundingRateHistoryRestResp, error) {
 	action := "/api/v5/public/funding-rate-history"
 	method := "GET"
 	params := url.Values{}
 	params.Set("instId", instId)
 	params.Set("limit", fmt.Sprintf("%d", limit))
-	if !before.IsZero() {
-		params.Set("before", fmt.Sprintf("%d", before.UnixMilli()))
+	if !t0.IsZero() {
+		params.Set("before", fmt.Sprintf("%d", t0.UnixMilli()))
 	}
-	if !after.IsZero() {
-		params.Set("after", fmt.Sprintf("%d", after.UnixMilli()))
+	if !t1.IsZero() {
+		params.Set("after", fmt.Sprintf("%d", t1.UnixMilli()))
 	}
 
 	action = action + "?" + params.Encode()
@@ -238,6 +316,38 @@ func GetFundingRateHistory(instId string, limit int, before, after time.Time) (*
 		resp.parse()
 	}
 	return resp, err
+}
+
+// 获取一个大时间跨度内的历史费率
+func GetFundingRateHistoryInRange(instId string, t0, t1 time.Time) []FundingRateHistory {
+	rst := []FundingRateHistory{}
+	intervalMs := int64(240)
+
+	for {
+		tBefore := time.Now()
+		if resp, err := GetFundingRateHistory(instId, 100, t0, t1); err == nil {
+			resp.parse()
+			if len(resp.Data) > 0 {
+				rst = append(rst, resp.Data...)
+				t1 = resp.Data[len(resp.Data)-1].FundingTime
+			}
+
+			if len(resp.Data) < 100 {
+				break
+			}
+
+			tAfter := time.Now()
+			costMs := tAfter.UnixMilli() - tBefore.UnixMilli()
+			if costMs < intervalMs {
+				time.Sleep(time.Millisecond * time.Duration(intervalMs-costMs))
+			}
+		} else {
+			logger.LogImportant(restLogPrefix, "get funding fee rate in range failed: %s", err.Error())
+		}
+	}
+
+	slices.Reverse(rst)
+	return rst
 }
 
 // 查询账户配置
@@ -859,6 +969,47 @@ func GetMarketLendingRateHistory(ccy string, after, before time.Time, limit int)
 	url := rootUrl + action
 	resp, err := network.ParseHttpResult[MarketLendingRateHistoryResp](restLogPrefix, "GetMarketLendingRateHistory", url, method, "", nil, nil, ErrorCallback)
 	if resp != nil {
+		resp.parse()
+	}
+	return resp, err
+}
+
+// 获取市场杠杆借贷利率和限额
+func GetMarketLornInfo() (*MarketLoanInfoResp, error) {
+	action := "/api/v5/public/interest-rate-loan-quota"
+	method := "GET"
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[MarketLoanInfoResp](restLogPrefix, "GetMarketLendingRateHistory", url, method, "", nil, nil, ErrorCallback)
+	return resp, err
+}
+
+// 模拟仓位创建器
+func CallPositionBuilder(req PositionBuilderReq) (*PositionBuilderResp, error) {
+	action := "/api/v5/account/position-builder"
+	method := "POST"
+	url := rootUrl + action
+
+	b, _ := json.Marshal(req)
+	postStr := string(b)
+	resp, err := network.ParseHttpResult[PositionBuilderResp](restLogPrefix, "CallPositionBuilder", url, method, postStr, signerIns.getHttpHeaderWithSign(method, action, postStr), nil, ErrorCallback)
+	return resp, err
+}
+
+// 获取折算率等级数据
+func GetDiscountInfo(ccy string) (*DiscountInfoResp, error) {
+	action := "/api/v5/public/discount-rate-interest-free-quota"
+	method := "GET"
+	params := url.Values{}
+	params.Set("t", strconv.FormatInt(time.Now().UnixMilli(), 10))
+
+	if len(ccy) > 0 {
+		params.Set("ccy", ccy)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[DiscountInfoResp](restLogPrefix, "GetMarketLendingRateHistory", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
 		resp.parse()
 	}
 	return resp, err

@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-01 14:14:14
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-04-09 15:53:13
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-05-25 07:51:07
  * @FilePath: \stratergyc:\work\svn\go\src\dagger\cex\okexv5\future_trader.go
  * @Description:合约交易器okexv5版本。实现common.FutureTrader接口
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5
 
@@ -186,23 +186,32 @@ func (t *FutureTrader) String() string {
 }
 
 func (t *FutureTrader) Ready() bool {
-	return t.market.Ready() && t.pos.Ready() && t.balance.Ready() && exchangeReady && !t.errorlock
+	balOk, _ := t.balance.Ready()
+	return t.market.Ready() && t.pos.Ready() && balOk && exchangeReady && !t.errorlock
 }
 
 func (t *FutureTrader) UnreadyReason() string {
 	if !t.market.Ready() {
 		return t.market.UnreadyReason()
-	} else if !t.pos.Ready() {
-		return "postion not ready"
-	} else if t.balance.Ready() {
-		return "balance not ready"
-	} else if !exchangeReady {
-		return "exchange not ready"
-	} else if t.errorlock {
-		return "locked by error"
-	} else {
-		return ""
 	}
+
+	if !t.pos.Ready() {
+		return "postion not ready"
+	}
+
+	if ok, reason := t.balance.Ready(); !ok {
+		return "balance not ready: " + reason
+	}
+
+	if !exchangeReady {
+		return "exchange not ready"
+	}
+
+	if t.errorlock {
+		return "locked by error"
+	}
+
+	return ""
 }
 
 func (t *FutureTrader) BuyPriceRange() (min, max decimal.Decimal) {
@@ -256,6 +265,7 @@ func (t *FutureTrader) FeeMaker() decimal.Decimal {
 	return decimal.Zero
 }
 
+// TODO：组合保证金模式下，还要考虑最大持仓上限的问题
 func (t *FutureTrader) AvailableAmount(dir common.OrderDir, price decimal.Decimal) decimal.Decimal {
 	// 开仓时，可用数量以保证金计算
 	// 反向合约（USD合约）为coin x price x lever / AmountValue

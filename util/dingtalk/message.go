@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aztecqt/dagger/util"
 	"github.com/aztecqt/dagger/util/logger"
 )
 
@@ -28,19 +29,21 @@ const (
 )
 
 type Message struct {
-	ntf               *Notifier
-	index             int
-	logPrefix         string
-	taskId            int64
-	userid            string
-	msgType           string
-	text              string
-	actionCardRawText []string
-	urlUrl            string
-	urlPic            string
-	urlTitle          string
-	status            MessageStatus
-	errCount          int
+	ntf                  *Notifier
+	index                int
+	logPrefix            string
+	taskId               int64
+	userid               string
+	msgType              string
+	text                 string
+	actionButtonTitle    string
+	actionButtonMarkdown string
+	actionCardBtns       []actionCardButton
+	urlUrl               string
+	urlPic               string
+	urlTitle             string
+	status               MessageStatus
+	errCount             int
 }
 
 func (m *Message) Status() MessageStatus {
@@ -63,15 +66,17 @@ func (m *Message) initAsText(ntf *Notifier, userid string, text string) {
 }
 
 // text格式：cardTitle,cardMarkdown,btnTitle0,btcUrl0,btnTitle1,btnUrl1...
-func (m *Message) initAsActionCard(ntf *Notifier, userid string, rawtext []string) {
+func (m *Message) initAsActionCard(ntf *Notifier, userid string, title, markdown string, btns []actionCardButton) {
 	m.index = msgIndex
 	m.logPrefix = fmt.Sprintf("dingtalk-actionCard-msg-%d", m.index)
 	msgIndex++
 	m.ntf = ntf
 	m.userid = userid
 	m.msgType = "action_card"
-	m.actionCardRawText = rawtext
-	logger.LogInfo(m.logPrefix, "init as action_card, raw_text=%s", rawtext)
+	m.actionButtonTitle = title
+	m.actionButtonMarkdown = markdown
+	m.actionCardBtns = btns
+	logger.LogInfo(m.logPrefix, "init as action_card, title=%s, btns=%s", title, util.Object2String(btns))
 }
 
 func (m *Message) intiAsLink(ntf *Notifier, userid string, url, pic, title, text string) {
@@ -160,16 +165,7 @@ func (m *Message) dosend() bool {
 	} else if m.msgType == "link" {
 		taskId = m.ntf.sendLinkMessage(m.userid, m.urlUrl, m.urlPic, m.urlTitle, m.text)
 	} else if m.msgType == "action_card" {
-		ss := m.actionCardRawText
-		if len(ss) >= 4 && len(ss)%2 == 0 {
-			title := ss[0]
-			markdown := ss[1]
-			btnTextAndUrls := ss[2:]
-			taskId = m.ntf.sendActionCardMessage(m.userid, title, markdown, btnTextAndUrls)
-		} else {
-			logger.LogImportant(m.logPrefix, "invalid msg format for action_cark: %s", m.text)
-			return false
-		}
+		taskId = m.ntf.sendActionCardMessage(m.userid, m.actionButtonTitle, m.actionButtonMarkdown, m.actionCardBtns)
 	} else {
 		logger.LogImportant(m.logPrefix, "unknown msg type: %s", m.msgType)
 		return false
