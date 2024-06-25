@@ -1,0 +1,7 @@
+{
+    "redis": {
+        "addr": "bs1.ant.aztecqt.cn:6379",
+        "password": "dmq1110",
+        "db": 4
+    }
+}
