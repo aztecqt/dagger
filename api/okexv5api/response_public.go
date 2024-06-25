@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-03-25 22:19:38
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-05-29 10:31:33
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-06-15 21:08:09
  * @FilePath: \dagger\api\okexv5api\response_public.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5api
 
@@ -460,6 +460,25 @@ func (r *GetMarketTradesResp) Parse() {
 	}
 }
 
+// 市场持仓
+type MarketHolding struct {
+	InstId       string          `json:"instId"`
+	HoldingInCcy decimal.Decimal `json:"oiCcy"`
+}
+
+type GetMarketHoldingResp struct {
+	CommonRestResp
+	Data []MarketHolding `json:"data"`
+	Map  map[string]MarketHolding
+}
+
+func (r *GetMarketHoldingResp) Parse() {
+	r.Map = map[string]MarketHolding{}
+	for _, d := range r.Data {
+		r.Map[d.InstId] = d
+	}
+}
+
 // 爆仓信息（外部API）
 type LiquidationOrderExt struct {
 	BrokenLost  decimal.Decimal `json:"bkLoss"` //穿仓损失
@@ -554,9 +573,9 @@ type DiscountInfoUnit struct {
 	DiscountRate  decimal.Decimal `json:"discountRate"`
 	MaxAmount     decimal.Decimal `json:"maxAmt"`
 	MinAmount     decimal.Decimal `json:"minAmt"`
-	DiscountRateF float64
-	MaxAmountF    float64
-	MinAmountF    float64
+	DiscountRateF float64         `json:"-"`
+	MaxAmountF    float64         `json:"-"`
+	MinAmountF    float64         `json:"-"`
 }
 
 func (u *DiscountInfoUnit) parse() {
@@ -569,7 +588,11 @@ type DiscountInfo struct {
 	Ccy           string             `json:"ccy"`
 	DiscountLvStr string             `json:"discountLv"`
 	DiscountInfo  []DiscountInfoUnit `json:"discountInfo"`
-	DiscountLv    int
+	DiscountLv    int                `json:"-"`
+}
+
+func (d DiscountInfo) Valid() bool {
+	return d.DiscountLv > 0
 }
 
 func (d *DiscountInfo) parse() {

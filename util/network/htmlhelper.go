@@ -9,6 +9,7 @@ package network
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -60,36 +61,43 @@ func WalkThroughHtmlNode(n *html.Node, fn func(n *html.Node)) {
 	}
 }
 
-// 从模板生成一个html页面
-func CreateHtmlFromTemplate(htmlTemlatePath, htmlPath, title, body string) bool {
-	util.MakeSureDirForFile(htmlPath)
-
+// 从模板生成一个html页面文件
+func CreateHtmlFromTemplate(htmlTemlatePath string, title, body string) ([]byte, bool) {
 	// 打开并读取模板文件
 	if fsrc, err := os.OpenFile(htmlTemlatePath, os.O_RDONLY, os.ModePerm); err == nil {
-		// 创建目标文件
-		os.Remove(htmlPath)
-		if fdst, err := os.OpenFile(htmlPath, os.O_CREATE|os.O_WRONLY, os.ModePerm); err == nil {
-			// 逐行读取目标文件，找到指定位置了，就写进去
-			scanner := bufio.NewScanner(fsrc)
-			for scanner.Scan() {
-				line := scanner.Text()
-				if strings.Contains(line, "<title>") {
-					if len(title) > 0 {
-						fdst.WriteString(fmt.Sprintf("<title>%s</title>", title))
-					}
-				} else if line == "</body>" {
-					fdst.WriteString(body)
-					fdst.WriteString("\n")
-					fdst.WriteString(line)
-					fdst.WriteString("\n")
-				} else {
-					fdst.WriteString(line)
-					fdst.WriteString("\n")
+		// 逐行读取目标文件，找到指定位置了，就写进去
+		scanner := bufio.NewScanner(fsrc)
+		buf := bytes.NewBuffer(nil)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.Contains(line, "<title>") {
+				if len(title) > 0 {
+					buf.WriteString(fmt.Sprintf("<title>%s</title>", title))
 				}
+			} else if line == "</body>" {
+				buf.WriteString(body)
+				buf.WriteString("\n")
+				buf.WriteString(line)
+				buf.WriteString("\n")
+			} else {
+				buf.WriteString(line)
+				buf.WriteString("\n")
 			}
-			fsrc.Close()
-			fdst.Close()
+		}
+		fsrc.Close()
+		return buf.Bytes(), true
+	} else {
+		return nil, false
+	}
+}
 
+// 从模板生成一个html页面文件
+func CreateHtmlFileFromTemplate(htmlTemlatePath, htmlPath, title, body string) bool {
+	if b, ok := CreateHtmlFromTemplate(htmlTemlatePath, title, body); ok {
+		util.MakeSureDirForFile(htmlPath)
+		if fdst, err := os.OpenFile(htmlPath, os.O_CREATE|os.O_WRONLY, os.ModePerm); err == nil {
+			fdst.Write(b)
+			fdst.Close()
 			return true
 		} else {
 			return false
@@ -101,10 +109,14 @@ func CreateHtmlFromTemplate(htmlTemlatePath, htmlPath, title, body string) bool 
 
 // 生成一个文本标签
 func CreateHtmlText(content, class string) string {
-	return fmt.Sprintf("<div class=\"%s\">%s</div>\n", class, content)
+	return fmt.Sprintf("<div class=\"%s\">%s</div>", class, content)
 }
 
 // 生成一个链接标签
-func CreateHtmlHref(content, url, class string) string {
-	return fmt.Sprintf(`<a class="%s" href="%s">%s</a><br>`, class, url, content)
+func CreateHtmlHref(content, url, class string, newPage, newline bool) string {
+	if newPage {
+		return fmt.Sprintf(`<a class="%s" href="%s" target="_blank">%s</a>%s`, class, url, content, util.ValueIf(newline, "<br>", ""))
+	} else {
+		return fmt.Sprintf(`<a class="%s" href="%s">%s</a>%s`, class, url, content, util.ValueIf(newline, "<br>", ""))
+	}
 }

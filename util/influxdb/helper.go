@@ -96,60 +96,64 @@ func ConvTime(raw interface{}) time.Time {
 
 // 转化influx的值为float
 func ConvFloat64(raw interface{}) (f float64, err error) {
-	util.DefaultRecoverWithCallback(func(es string) {
-		f = 0
-		err = errors.New("not a number")
-	})
-
-	return raw.(json.Number).Float64()
+	if jn, ok := raw.(json.Number); ok {
+		return jn.Float64()
+	} else {
+		return 0, errors.New("not json.Number")
+	}
 }
 
 // 写入数据
-func Write(conn client.Client, db, rp, mm string, tm time.Time, tags, fields []interface{}) {
-	go func() {
-		defer util.DefaultRecover()
+func WriteSync(conn client.Client, db, rp, mm string, tm time.Time, tags, fields []interface{}) bool {
+	defer util.DefaultRecover()
 
-		if len(tags)%2 != 0 {
-			logger.LogImportant(logPrefix, "len(tags) must be odd")
+	if len(tags)%2 != 0 {
+		logger.LogImportant(logPrefix, "len(tags) must be odd")
+		return false
+	}
+
+	if len(fields)%2 != 0 {
+		logger.LogImportant(logPrefix, "len(fields) must be odd")
+		return false
+	}
+
+	var mTags map[string]string
+	var mFields map[string]interface{}
+	if len(tags) > 0 {
+		mTags = make(map[string]string)
+		for i := 0; i < len(tags); i += 2 {
+			mTags[tags[i].(string)] = tags[i+1].(string)
 		}
+	}
 
-		if len(fields)%2 != 0 {
-			logger.LogImportant(logPrefix, "len(fields) must be odd")
+	if len(fields) > 0 {
+		mFields = make(map[string]interface{})
+		for i := 0; i < len(fields); i += 2 {
+			mFields[fields[i].(string)] = fields[i+1]
 		}
+	}
 
-		var mTags map[string]string
-		var mFields map[string]interface{}
-		if len(tags) > 0 {
-			mTags = make(map[string]string)
-			for i := 0; i < len(tags); i += 2 {
-				mTags[tags[i].(string)] = tags[i+1].(string)
-			}
-		}
+	batchPoint, err := client.NewBatchPoints(client.BatchPointsConfig{Database: db, RetentionPolicy: rp})
+	if err != nil {
+		logger.LogImportant(logPrefix, "influx creat batchPoint failed, err=%s", err.Error())
+		return false
+	}
 
-		if len(fields) > 0 {
-			mFields = make(map[string]interface{})
-			for i := 0; i < len(fields); i += 2 {
-				mFields[fields[i].(string)] = fields[i+1]
-			}
-		}
+	pt, err := client.NewPoint(mm, mTags, mFields, tm)
+	if err != nil {
+		logger.LogImportant(logPrefix, "influx creat point failed, err=%s", err.Error())
+		return false
+	}
 
-		batchPoint, err := client.NewBatchPoints(client.BatchPointsConfig{Database: db, RetentionPolicy: rp})
-		if err != nil {
-			logger.LogImportant(logPrefix, "influx creat batchPoint failed, err=%s", err.Error())
-		}
+	batchPoint.AddPoint(pt)
 
-		pt, err := client.NewPoint(mm, mTags, mFields, tm)
-		if err != nil {
-			logger.LogImportant(logPrefix, "influx creat point failed, err=%s", err.Error())
-		}
+	err = conn.Write(batchPoint)
+	if err != nil {
+		logger.LogImportant(logPrefix, "influx write point failed, err=%s", err.Error())
+		return false
+	}
 
-		batchPoint.AddPoint(pt)
-
-		err = conn.Write(batchPoint)
-		if err != nil {
-			logger.LogImportant(logPrefix, "influx write point failed, err=%s", err.Error())
-		}
-	}()
+	return true
 }
 
 // 一组粒度相同、相位对齐的点
@@ -222,7 +226,7 @@ func SaveLog(conn client.Client, str string) {
 		userName = user.Username
 	}
 
-	Write(conn, "_internal", "monitor", "log", time.Now(), []interface{}{"host", host, "user", userName}, []interface{}{"content", str})
+	go WriteSync(conn, "_internal", "monitor", "log", time.Now(), []interface{}{"host", host, "user", userName}, []interface{}{"content", str})
 }
 
 func DBExist(conn client.Client, dbName string) bool {

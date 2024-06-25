@@ -57,10 +57,7 @@ func getParamHmacSHA256Sign(message string, secretKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	str := fmt.Sprintf("%x", (mac.Sum(nil)))
-	//str := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-	//str = url.QueryEscape(str)
 	return str, nil
 }
 

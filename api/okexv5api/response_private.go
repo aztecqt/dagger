@@ -1,13 +1,13 @@
 /*
  * @Author: aztec
  * @Date: 2022-04-06 13:19:27
-  - @LastEditors: Please set LastEditors
-  - @LastEditTime: 2024-05-28 10:31:38
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-06-19 13:06:55
  * @FilePath: \stratergyc:\work\svn\quant\go\src\dagger\api\okexv5api\response_private.go
  * @Description:okex的api返回数据。不对外公开，仅在包内做临时传递数据用
  *
  * Copyright (c) 2022 by aztec, All Rights Reserved.
-*/
+ */
 
 package okexv5api
 
@@ -772,4 +772,18 @@ type PositionBuilderResult struct {
 type PositionBuilderResp struct {
 	CommonRestResp
 	Data []PositionBuilderResult `json:"data"`
+}
+
+// 手续费率
+type TradeFee struct {
+	Taker     decimal.Decimal `json:"taker"`
+	Maker     decimal.Decimal `json:"maker"`
+	TakerUsdt decimal.Decimal `json:"takerU"`
+	MakerUsdt decimal.Decimal `json:"makerU"`
+	Level     string          `json:"level"`
+}
+
+type TradeFeeResp struct {
+	CommonRestResp
+	Data []TradeFee `json:"data"`
 }

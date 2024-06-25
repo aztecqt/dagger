@@ -107,7 +107,7 @@ func (e *Exchange) Init(excfg ExchangeConfig, logInfo, logDebug, logError fnLog)
 	logDebugFn = logDebug
 	logErrorFn = logError
 
-	twsapi.LogMessage = false
+	twsapi.LogMessage = true
 	twsapi.Init(twsapi.FnLog(logInfo), twsapi.FnLog(logDebug), twsapi.FnLog(logError))
 	e.c = twsapi.NewClient(excfg.Addr, excfg.Port)
 	e.msgHandlerId = e.c.RegisterMessageHandler(e.onMessage)
@@ -329,7 +329,7 @@ func (e *Exchange) onMsg_AccountValue(msg *twsapi.AccountValueMsg) {
 			time.Now())
 
 		if !pitch.IsZero() {
-			logError(logPrefix, "%s balance has pitch: %v", ccy, pitch)
+			logInfo(logPrefix, "%s balance has pitch: %v", ccy, pitch)
 		}
 	}
 }
@@ -345,7 +345,7 @@ func (e *Exchange) onMsg_PortfolioValue(msg *twsapi.PortfolioValueMsg) {
 			time.Now())
 
 		if !pitch.IsZero() {
-			logError(logPrefix, "%s balance has pitch: %v", ccy, pitch)
+			logInfo(logPrefix, "%s balance has pitch: %v", ccy, pitch)
 		}
 	}
 }

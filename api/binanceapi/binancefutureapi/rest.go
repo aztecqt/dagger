@@ -357,7 +357,7 @@ func GetPremiumIndex(symbol string, ac APIClass) (*binanceapi.PremiumIndexResp, 
 // 获取当前的市场合约持仓量
 // pair: BTCUSD
 // contractType：ALL, CURRENT_QUARTER, NEXT_QUARTER, PERPETUAL
-func GetMarketHold(symbolOrPair string, ac APIClass) (*[]binanceapi.MarketHold, error) {
+func GetMarketHold(symbolOrPair string, period string, limit int, ac APIClass) (*[]binanceapi.MarketHold, error, []byte) {
 	action := "/futures/data/openInterestHist"
 	method := "GET"
 	params := url.Values{}
@@ -367,16 +367,18 @@ func GetMarketHold(symbolOrPair string, ac APIClass) (*[]binanceapi.MarketHold, 
 		params.Set("pair", symbolOrPair)
 		params.Set("contractType", "PERPETUAL") // 仅支持永续
 	}
-	params.Set("period", "1d")
-	params.Set("limit", "1")
+	params.Set("period", period)
+	params.Set("limit", strconv.FormatInt(int64(limit), 10))
 
 	paramsStr := params.Encode()
 	action = action + "?" + paramsStr
 	url := rootUrl + action
+	var b []byte
 	rst, err := network.ParseHttpResult[[]binanceapi.MarketHold](restLogPrefix, "GetMarketHold", realUrlMissingInUnified(url, ac), method, "", nil, func(resp *http.Response, body []byte) {
 		binanceapi.ProcessResponse(resp, body, apiType(ac))
+		b = body
 	}, binanceapi.ErrorCallback)
-	return rst, err
+	return rst, err, b
 }
 
 // 获取杠杆分层标准

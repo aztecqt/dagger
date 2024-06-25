@@ -110,7 +110,7 @@ func (a *Api) GetFundDetailList() (*RespFundDetailListInner, error) {
 	if resp, err := a.getFundDetailListTaskid(); err == nil {
 		params.Set("task_id", resp.TaskId)
 		url := rootUrl + action + "?" + params.Encode()
-		for i := 0; i < 5; i++ {
+		for i := 0; i < 20; i++ {
 			time.Sleep(time.Second * time.Duration(i))
 			if resp, err := network.ParseHttpResult[RespFundDetailList](logPrefix, "GetFundDetailList", url, method, "", nil, nil, nil); err == nil {
 				if resp.Status == 1 {

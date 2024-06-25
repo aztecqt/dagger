@@ -9,7 +9,6 @@ package cachedok
 
 import (
 	"fmt"
-	"os"
 	"slices"
 	"time"
 
@@ -42,7 +41,7 @@ func GetFundingFees(instId string, t0, t1 time.Time, fnprg fnprg) (fees []okexv5
 			if apit0.IsZero() {
 				apit0 = dt
 			}
-			apit1 = dt.AddDate(0, 1, 0)
+			apit1 = dt.AddDate(0, 1, 0).Add(-time.Second)
 		}
 	}
 
@@ -72,8 +71,7 @@ func GetFundingFees(instId string, t0, t1 time.Time, fnprg fnprg) (fees []okexv5
 }
 
 func pathOfFundingFees(instId string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/okx/fundingfees/%s/%s.kline", appDataPath, instId, dt.Format("2006-01"))
+	return fmt.Sprintf("%s/dagger/okx/fundingfees/%s/%s.kline", util.SystemCachePath(), instId, dt.Format("2006-01"))
 }
 
 func loadFundingFeesOfMonth(instId string, dt time.Time) ([]okexv5api.FundingRateHistory, bool) {

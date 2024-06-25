@@ -350,6 +350,29 @@ func GetFundingRateHistoryInRange(instId string, t0, t1 time.Time) []FundingRate
 	return rst
 }
 
+// 查市场持仓量
+// instType:SWAP/FUTURES/OPTION
+func GetMarketHolding(instType string, instId string) (*GetMarketHoldingResp, error) {
+	action := "/api/v5/public/open-interest"
+	method := "GET"
+	params := url.Values{}
+	if len(instType) > 0 {
+		params.Set("instType", instType)
+	}
+
+	if len(instId) > 0 {
+		params.Set("instId", instId)
+	}
+
+	action = action + "?" + params.Encode()
+	url := rootUrl + action
+	resp, err := network.ParseHttpResult[GetMarketHoldingResp](restLogPrefix, "GetMarketHolding", url, method, "", nil, nil, ErrorCallback)
+	if err == nil {
+		resp.Parse()
+	}
+	return resp, err
+}
+
 // 查询账户配置
 func GetAccountConfig() (*AccountConfigRestResp, error) {
 	action := "/api/v5/account/config"
@@ -393,6 +416,20 @@ func GetLeverage(instId string) (*GetSetLeverageRestResp, error) {
 	if err == nil {
 		resp.parse()
 	}
+	return resp, err
+}
+
+// 查手续费率
+func GetTradeFee(instType string) (*TradeFeeResp, error) {
+	action := "/api/v5/account/trade-fee"
+	method := "GET"
+
+	params := url.Values{}
+	params.Set("instType", instType)
+	action = action + "?" + params.Encode()
+
+	ep := rootUrl + action
+	resp, err := network.ParseHttpResult[TradeFeeResp](restLogPrefix, "GetTradeFee", ep, method, "", signerIns.getHttpHeaderWithSign(method, action, ""), nil, ErrorCallback)
 	return resp, err
 }
 

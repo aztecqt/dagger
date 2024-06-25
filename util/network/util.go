@@ -8,11 +8,14 @@
 package network
 
 import (
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/aztecqt/dagger/util"
+	"github.com/russross/blackfriday/v2"
 )
 
 func JsonHeaders() map[string]string {
@@ -65,4 +68,15 @@ func LoadCookiesPuppeteerStyleStr(str string) []http.Cookie {
 		}
 	}
 	return cookies
+}
+
+// 将一个.md文件转换成网页发送给客户端
+func SendMarkdownAsPage(mdPath string, w http.ResponseWriter) {
+	if b, err := os.ReadFile(mdPath); err == nil {
+		html := blackfriday.Run(b, blackfriday.WithExtensions(blackfriday.HardLineBreak))
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(html)
+	} else {
+		io.WriteString(w, "open readme.md failed")
+	}
 }

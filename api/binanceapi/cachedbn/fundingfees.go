@@ -9,7 +9,6 @@ package cachedbn
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -43,7 +42,7 @@ func GetFundingFees(instId string, t0, t1 time.Time, fnprg fnprg) (fees []binanc
 			if apit0.IsZero() {
 				apit0 = dt
 			}
-			apit1 = dt.AddDate(0, 1, 0)
+			apit1 = dt.AddDate(0, 1, 0).Add(-time.Second)
 		}
 	}
 
@@ -73,8 +72,7 @@ func GetFundingFees(instId string, t0, t1 time.Time, fnprg fnprg) (fees []binanc
 }
 
 func pathOfFundingFees(instId string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/binance/fundingfees/%s/%s.kline", appDataPath, instId, dt.Format("2006-01"))
+	return fmt.Sprintf("%s/dagger/binance/fundingfees/%s/%s.kline", util.SystemCachePath(), instId, dt.Format("2006-01"))
 }
 
 func loadFundingFeesOfMonth(instId string, dt time.Time) ([]binanceapi.FundingFee, bool) {
@@ -114,6 +112,7 @@ func getFundingFeesFromApi(instId string, t0, t1 time.Time, fnprg fnprg) []binan
 	enough := false
 	for !enough {
 		if resp, err := binancefutureapi.GetHistoryFundingRate(instId, t, time.Time{}, 1000, ac); err == nil {
+			time.Sleep(time.Millisecond * 1200) // 频率限制：5分钟500次
 			if len(*resp) == 0 {
 				enough = true
 			} else {
@@ -131,7 +130,7 @@ func getFundingFeesFromApi(instId string, t0, t1 time.Time, fnprg fnprg) []binan
 			}
 		} else {
 			fmt.Printf("get funding fee from bn failed: %s\n", err.Error())
-			time.Sleep(time.Second * 3)
+			time.Sleep(time.Second * 10)
 		}
 	}
 

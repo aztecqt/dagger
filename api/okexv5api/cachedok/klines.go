@@ -10,7 +10,6 @@ package cachedok
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"slices"
 	"time"
 
@@ -106,8 +105,7 @@ func getBar(intervalSec int) (string, bool) {
 }
 
 func klineCachePath(instId, bar string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/okx/klines/%s/%s/%s.kline", appDataPath, instId, bar, dt.Format(time.DateOnly))
+	return fmt.Sprintf("%s/dagger/okx/klines/%s/%s/%s.kline", util.SystemCachePath(), instId, bar, dt.Format(time.DateOnly))
 }
 
 // 加载某一日的k线数据

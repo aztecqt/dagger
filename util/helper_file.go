@@ -203,6 +203,13 @@ func FileExtName(name string) string {
 	}
 }
 
+// 从路径中提取文件名
+func Path2FileName(path string) string {
+	path = strings.ReplaceAll(path, "\\", "/")
+	ss := strings.Split(path, "/")
+	return ss[len(ss)-1]
+}
+
 func CopyFile(src, dst string) (int64, error) {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {

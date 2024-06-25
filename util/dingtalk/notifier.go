@@ -458,3 +458,25 @@ func (n *Notifier) UploadMediaFile(filePath, fileType string) (result string, ok
 
 	return
 }
+
+func (n *Notifier) GetUserList() (*getUserListResp, error) {
+	defer util.DefaultRecover()
+	action := "/topapi/industry/user/list"
+	method := "POST"
+	params := url.Values{}
+	params.Set("access_token", n.accessToken)
+	params.Set("dept_id", "1") // 默认值
+	params.Set("size", "1000") // 最大1000
+
+	action = action + "?" + params.Encode()
+	url := rootURL + action
+
+	req := getUserListReq{
+		DepartmentId: "1",
+		Size:         "1000",
+	}
+	b, _ := json.Marshal(req)
+	postStr := string(b)
+
+	return network.ParseHttpResult[getUserListResp](n.logPrefix, "sendResult", url, method, postStr, network.JsonHeaders(), nil, nil)
+}

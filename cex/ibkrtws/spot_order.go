@@ -329,7 +329,7 @@ func (o *SpotOrder) onOrderStatus(os *twsapi.OrderStatusMsg, oo *twsapi.OpenOrde
 					logError(o.LogPrefix, "can't find balance for fee: %s", feeCcy)
 				}
 			} else {
-				logError(o.LogPrefix, "order fee ccy not match, origin: %s, new: %s. ignore this fee", o.feeCcy, feeCcy)
+				logError(o.LogPrefix, "order fee ccy not match, origin: %s, new: %s. ignore this fee", o.feeCcy, oo.OrderState.CommissionCurrency)
 			}
 		}
 	}

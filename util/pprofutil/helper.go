@@ -39,12 +39,11 @@ func StopCPUProfile(id string) {
 			svg.Write(b)
 			svg.Close()
 
-			// windows下直接打开并删除，其他os保留svg文件
+			// windows下直接打开
 			if isWin {
 				cmdSvg := exec.Command("explorer.exe", svgPath)
 				cmdSvg.Run()
 				time.Sleep(time.Second)
-				os.Remove(svgPath)
 			}
 		} else {
 			fmt.Println(string(b))

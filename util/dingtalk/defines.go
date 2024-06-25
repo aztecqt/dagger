@@ -114,3 +114,19 @@ type uploadMediaResp struct {
 	Type    string `json:"type"`
 	MediaId string `json:"media_id"`
 }
+
+type getUserListReq struct {
+	DepartmentId string `json:"dept_id"`
+	Size         string `json:"size"`
+}
+
+type userInfoInList struct {
+	Name   string `json:"name"`
+	UserId string `json:"userid"`
+}
+type getUserListResp struct {
+	commonResp
+	Result struct {
+		Details []userInfoInList `json:"details"`
+	} `json:"result"`
+}

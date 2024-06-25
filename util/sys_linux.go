@@ -25,3 +25,12 @@ func RedirectStderr() (err error) {
 	}
 	return
 }
+
+// 系统缓存目录
+func SystemCachePath() string {
+	if b, err := os.ReadFile("/var/cache/dagger/linux_cache_path.txt"); err == nil {
+		return string(b)
+	}
+
+	return "/var/cache"
+}

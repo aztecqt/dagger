@@ -9,6 +9,7 @@ package okexv5
 
 import (
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 	"sync"
@@ -797,21 +798,21 @@ func (e *Exchange) isSingleMarginMode() bool {
 
 func (e *Exchange) refreshInstruments() {
 	logger.LogImportant(logPrefix, "fetching instruments...SPOT")
-	e.processInstruments("SPOT")
+	e.processInstruments("SPOT", true)
 	logger.LogImportant(logPrefix, "fetching instruments...SWAP")
-	e.processInstruments("SWAP")
+	e.processInstruments("SWAP", true)
 	logger.LogImportant(logPrefix, "fetching instruments...FUTURES")
-	e.processInstruments("FUTURES")
+	e.processInstruments("FUTURES", true)
 
 	if e.excfg.InstrumentsKeepUpdate {
 		go func() {
 			for {
 				logger.LogImportant(logPrefix, "fetching instruments...SPOT")
-				e.processInstruments("SPOT")
+				e.processInstruments("SPOT", false)
 				logger.LogImportant(logPrefix, "fetching instruments...SWAP")
-				e.processInstruments("SWAP")
+				e.processInstruments("SWAP", false)
 				logger.LogImportant(logPrefix, "fetching instruments...FUTURES")
-				e.processInstruments("FUTURES")
+				e.processInstruments("FUTURES", false)
 				time.Sleep(time.Minute * 10)
 			}
 		}()
@@ -848,7 +849,7 @@ func (e *Exchange) updateLiquidationOrders() {
 	}
 }
 
-func (e *Exchange) processInstruments(instType string) {
+func (e *Exchange) processInstruments(instType string, isInit bool) {
 	resp, err := okexv5api.GetInstruments(instType)
 	if err == nil {
 		for _, data := range resp.Data {
@@ -884,7 +885,11 @@ func (e *Exchange) processInstruments(instType string) {
 			e.instrumentMgr.Set(instId, ins)
 		}
 	} else {
-		logger.LogPanic(logPrefix, "can't get instruments of type [%s]", instType)
+		if isInit {
+			logger.LogPanic(logPrefix, "can't get instruments of type [%s]", instType)
+		} else {
+			logger.LogImportant(logPrefix, "can't get instruments of type [%s]", instType)
+		}
 	}
 }
 
@@ -893,7 +898,7 @@ func (e *Exchange) findOrGetInstrument(instType, instId string) *common.Instrume
 	if inst != nil {
 		return inst
 	} else {
-		e.processInstruments(instType)
+		e.processInstruments(instType, false)
 		inst := e.instrumentMgr.Get(instId)
 		return inst
 	}
@@ -981,6 +986,16 @@ func (e *Exchange) CloseAllOrders() {
 	}
 }
 
+func (e *Exchange) getMaxAvailable(instId string) (okexv5api.MaxAvailableSizeResp, bool) {
+	// usdt合约只查询一次，统一按btc来
+	if strings.Contains(instId, "USDT-SWAP") {
+		instId = "BTC-USDT-SWAP"
+	}
+
+	v, ok := e.maxAvailable[instId]
+	return v, ok
+}
+
 func (e *Exchange) registerTickerCallback(instId string, fn func(t okexv5api.TickerResp)) {
 	e.muTickerCallback.Lock()
 	defer e.muTickerCallback.Unlock()
@@ -1048,19 +1063,23 @@ func (e *Exchange) updateTickersByRest() {
 // 直接从rest缓存中获取最新的ticker
 func (e *Exchange) GetTickerFromRestBuffer(instId string) (okexv5api.TickerResp, bool) {
 	e.muRestTickers.Lock()
-	e.muRestTickers.Unlock()
+	defer e.muRestTickers.Unlock()
 	v, ok := e.restTickers[instId]
 	return v, ok
 }
 
-func (e *Exchange) getMaxAvailable(instId string) (okexv5api.MaxAvailableSizeResp, bool) {
-	// usdt合约只查询一次，统一按btc来
-	if strings.Contains(instId, "USDT-SWAP") {
-		instId = "BTC-USDT-SWAP"
-	}
+// 获取所有ticker
+func (e *Exchange) GetAllTickers() map[string]okexv5api.TickerResp {
+	m := map[string]okexv5api.TickerResp{}
+	e.muRestTickers.Lock()
+	m = maps.Clone(e.restTickers)
+	defer e.muRestTickers.Unlock()
+	return m
+}
 
-	v, ok := e.maxAvailable[instId]
-	return v, ok
+// 访问okexv5api.AccountBalanceResp
+func (e *Exchange) GetAccountBal() okexv5api.AccountBalanceResp {
+	return e.accountBal
 }
 
 // #endregion

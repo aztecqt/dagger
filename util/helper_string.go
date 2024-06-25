@@ -428,6 +428,21 @@ func SplitString2IntSlice(s, sep string) ([]int, bool) {
 	return rst, true
 }
 
+func SplitString2FloatSlice(s, sep string) ([]float64, bool) {
+	splited := strings.Split(s, sep)
+	rst := make([]float64, 0)
+
+	for _, v := range splited {
+		if f, ok := String2Float64(v); ok {
+			rst = append(rst, f)
+		} else {
+			return nil, false
+		}
+	}
+
+	return rst, true
+}
+
 func SplitString2DecimalSlice(s, sep string) ([]decimal.Decimal, bool) {
 	splited := strings.Split(s, sep)
 	rst := make([]decimal.Decimal, 0)
@@ -445,7 +460,11 @@ func SplitString2DecimalSlice(s, sep string) ([]decimal.Decimal, bool) {
 }
 
 func Object2String(obj interface{}) string {
-	b, _ := json.MarshalIndent(obj, "", "  ")
+	b, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	return string(b)
 }
 
@@ -621,4 +640,13 @@ func DeserializeString(r io.Reader) (string, bool) {
 // 是否为可见字符
 func IsVisibleByte(b byte) bool {
 	return b >= '!' && b <= '~'
+}
+
+// 错误或者消息
+func MsgOrError(e error, msg string) string {
+	if e != nil {
+		return e.Error()
+	} else {
+		return msg
+	}
 }

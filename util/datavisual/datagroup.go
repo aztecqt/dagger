@@ -78,6 +78,15 @@ func (d *DataGroup) FindOrAddDataLine(name string) *framework.DataLine {
 	}
 }
 
+// 返回所有dataline
+func (d *DataGroup) GetAllDataLines() framework.DataLines {
+	dls := framework.DataLines{}
+	for _, l := range d.lines {
+		dls.Lines = append(dls.Lines, l)
+	}
+	return dls
+}
+
 // 查找一个Point数组，没有则创建
 func (d *DataGroup) FindOrAddPointList(name string) []Point {
 	if pts, ok := d.points[name]; ok {

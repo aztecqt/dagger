@@ -15,7 +15,7 @@ import (
 )
 
 const logPrefix = "twsapi"
-const maxTimeOutCount = 5
+const maxTimeOutCount = 3
 
 type Message struct {
 	MsgId IncommingMessage
@@ -94,7 +94,7 @@ func (c *Client) doConnect() bool {
 	c.serverVersion = 0
 	c.nextOrderId = 0
 	c.reqId = 0
-	logInfo("dialing to %s:%d", c.addr, c.port)
+	logInfo(logPrefix, "dialing to %s:%d", c.addr, c.port)
 	if conn, e := net.Dial("tcp", fmt.Sprintf("%s:%d", c.addr, c.port)); e == nil {
 		logInfo(logPrefix, "dial success")
 		c.conn = conn
@@ -104,7 +104,7 @@ func (c *Client) doConnect() bool {
 
 		connOk := false
 		for i := 0; i < 100; i++ {
-			if c.nextOrderId > 0 {
+			if c.nextOrderId > 0 && len(c.accounts) > 0 {
 				connOk = true
 				break
 			} else {

@@ -10,7 +10,6 @@ package cachedbn
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -124,8 +123,7 @@ func getKline(instType, instId string, t0, t1 time.Time, bar string, reversed bo
 }
 
 func klineCachePath(instType, instId, bar string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/binance/klines/%s/%s/%s/%s.kline", appDataPath, instType, instId, bar, dt.Format(time.DateOnly))
+	return fmt.Sprintf("%s/dagger/binance/klines/%s/%s/%s/%s.kline", util.SystemCachePath(), instType, instId, bar, dt.Format(time.DateOnly))
 }
 
 // 加载某一日的k线数据

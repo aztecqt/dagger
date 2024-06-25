@@ -9,7 +9,6 @@ package cachedok
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/aztecqt/dagger/api/okexv5api"
@@ -115,8 +114,7 @@ func getBillsFromApi(t0, t1 time.Time, fn func(prg time.Time)) []okexv5api.Bill 
 
 // bills缓存路径
 func billsCachePath(acc string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/okx/bills/%s/%s.bills", appDataPath, acc, dt.Format(time.DateOnly))
+	return fmt.Sprintf("%s/dagger/okx/bills/%s/%s.bills", util.SystemCachePath(), acc, dt.Format(time.DateOnly))
 }
 
 // 加载某一日的bills

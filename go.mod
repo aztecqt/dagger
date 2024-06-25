@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/influxdata/influxdb v1.11.4
 	github.com/markcheno/go-talib v0.0.0-20190307022042-cd53a9264d70
+	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shopspring/decimal v1.3.1
 	golang.org/x/net v0.17.0

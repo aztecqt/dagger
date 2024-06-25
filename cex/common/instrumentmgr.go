@@ -122,6 +122,10 @@ func (i *InstrumentMgr) AlignSize(instId string, size decimal.Decimal) decimal.D
 	i.Lock()
 	defer i.Unlock()
 
+	return i.alignSize(instId, size)
+}
+
+func (i *InstrumentMgr) alignSize(instId string, size decimal.Decimal) decimal.Decimal {
 	if inst, ok := i.instrumentsById[instId]; ok {
 		// 精度对齐
 		c := size.Div(inst.LotSize).IntPart()
@@ -139,7 +143,7 @@ func (i *InstrumentMgr) MinSize(instId string, price decimal.Decimal) decimal.De
 
 	if inst, ok := i.instrumentsById[instId]; ok {
 		// 兼顾MinSize和MinValue
-		return i.AlignSize(instId, decimal.Max(inst.MinSize, inst.MinValue.Div(price)))
+		return i.alignSize(instId, decimal.Max(inst.MinSize, inst.MinValue.Div(price)))
 	} else {
 		logger.LogPanic(i.logPrefix, "unknown instid:%s", instId)
 		return decimal.Zero

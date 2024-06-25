@@ -2,7 +2,7 @@
  * @Author: aztec
  * @Date: 2022-04-09 17:34:59
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-05-05 10:55:02
+ * @LastEditTime: 2024-06-14 23:27:35
  * @FilePath: \dagger\stratergy\dataline.go
  * @Description: 按固定时间间隔排列的数据队列
  * 对于外部输入时间-数据对，将其时间对齐后再记录
@@ -32,6 +32,8 @@ type DataLine struct {
 	name          string
 	logPrefix     string
 	filePath      string // 保存文件路径。正确设定后会自动存储
+	autoSave      bool   // 数据长度发生变化时自动保存
+	loaded        bool
 	maxLength     int
 	intervalMs    int64
 	lastAlignedMs int64
@@ -78,21 +80,23 @@ func (d *DataLine) Name() string {
 	return d.name
 }
 
-func (d *DataLine) WithFilePath(path string) *DataLine {
+func (d *DataLine) WithFilePath(path string, autoSave bool) *DataLine {
 	if len(path) > 0 {
 		d.filePath = path
+		d.autoSave = autoSave
 		d.load()
 	}
 
 	return d
 }
 
-func (d *DataLine) WithFileDirAndPath(dir, path string) *DataLine {
+func (d *DataLine) WithFileDirAndPath(dir, path string, autoSave bool) *DataLine {
 	if len(dir) > 0 && len(path) > 0 {
 		if dir[len(dir)-1] != '\\' && dir[len(dir)-1] != '/' {
 			dir = dir + "/"
 		}
 		d.filePath = dir + path
+		d.autoSave = autoSave
 		d.load()
 	}
 
@@ -111,6 +115,13 @@ func (d *DataLine) Clear() {
 	d.Values = d.Values[:0]
 	d.Times = d.Times[:0]
 	d.ver++
+}
+
+func (d *DataLine) Clone() *DataLine {
+	dl := *d
+	dl.Times = slices.Clone(d.Times)
+	dl.Values = slices.Clone(d.Values)
+	return &dl
 }
 
 // 从一个float序列，创建一个时间同步的新的line
@@ -135,6 +146,7 @@ func (d *DataLine) UpdateDecimal(ms int64, v decimal.Decimal) {
 }
 
 func (d *DataLine) updateInner(ms int64, v float64) {
+	needSave := false
 	if len(d.Values) == 0 {
 		// 首个元素直接插入
 		msAligned := ms / d.intervalMs * d.intervalMs
@@ -143,6 +155,7 @@ func (d *DataLine) updateInner(ms int64, v float64) {
 		d.Values = append(d.Values, v)
 		d.Values = append(d.Values, v)
 		d.lastAlignedMs = msAligned
+		needSave = true
 	} else {
 		for {
 			l := len(d.Values)
@@ -160,6 +173,7 @@ func (d *DataLine) updateInner(ms int64, v float64) {
 					d.lastAlignedMs = d.Times[l-1]
 					d.Values = append(d.Values, v)
 					d.Times = append(d.Times, d.Times[l-1]+1)
+					needSave = true
 				}
 			} else {
 				break
@@ -173,6 +187,10 @@ func (d *DataLine) updateInner(ms int64, v float64) {
 				d.Times = append(d.Times[:0], d.Times[len(d.Times)-d.maxLength/2:]...)
 			}
 		}
+	}
+
+	if needSave && d.autoSave && d.loaded && len(d.filePath) > 0 {
+		d.Save()
 	}
 }
 
@@ -275,6 +293,7 @@ func (d *DataLine) Save() {
 
 func (d *DataLine) load() {
 	if len(d.filePath) == 0 {
+		d.loaded = true
 		return
 	}
 
@@ -298,7 +317,11 @@ func (d *DataLine) load() {
 				break
 			}
 		}
+
+		file.Read(b)
 	}
+
+	d.loaded = true
 }
 
 // #endregion

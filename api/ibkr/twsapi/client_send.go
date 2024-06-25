@@ -107,6 +107,7 @@ func syncResponse[T any](c *Client, tTimeOut *T, fnMsgProc func(m Message) *T, f
 		t := fnMsgProc(m)
 		if t != nil {
 			done = true
+			fnTimeOut(false)
 			ch <- t
 		}
 	})
@@ -116,6 +117,7 @@ func syncResponse[T any](c *Client, tTimeOut *T, fnMsgProc func(m Message) *T, f
 		<-timeOutTicker.C
 		if !done {
 			ch <- tTimeOut
+			fnTimeOut(true)
 		}
 	}()
 

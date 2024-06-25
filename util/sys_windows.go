@@ -39,3 +39,8 @@ func RedirectStderr() (err error) {
 	os.Stderr = logFile
 	return
 }
+
+// 系统缓存目录
+func SystemCachePath() string {
+	return os.Getenv("APPDATA")
+}

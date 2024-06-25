@@ -9,7 +9,6 @@ package cachedok
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/aztecqt/dagger/api/okexv5api"
@@ -110,8 +109,7 @@ func getPositionHistoryFromApi(instType string, t0, t1 time.Time, fn func(prg ti
 }
 
 func positionHistoryCachePath(acc, instType string, dt time.Time) string {
-	appDataPath := os.Getenv("APPDATA")
-	return fmt.Sprintf("%s/dagger/okx/position_history/%s/%s/%s.poshis", appDataPath, acc, instType, dt.Format(time.DateOnly))
+	return fmt.Sprintf("%s/dagger/okx/position_history/%s/%s/%s.poshis", util.SystemCachePath(), acc, instType, dt.Format(time.DateOnly))
 }
 
 func loadPositionHistoryOfDate(acc, instType string, dt time.Time) ([]okexv5api.PositionHistory, bool) {
